@@ -400,18 +400,6 @@
         #   logLevel: debug
         #   prettyPrint: false
 
-      # Debug HTTP Export ---------------
-      #
-      # Enable the following debug exporter to start a http server to inspect the exported records
-      #
-      # These setting can also be overridden using the environment variables "ZEEBE_BROKER_EXPORTERS_DEBUGHTTP_..."
-      #
-      # debugHttp:
-        # className: io.camunda.zeebe.broker.exporter.debug.DebugHttpExporter
-        # args:
-        #   port = 8000
-        #   limit = 1024
-
       # Elasticsearch Exporter ----------
       # An example configuration for the elasticsearch exporter:
       #
