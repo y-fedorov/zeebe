@@ -1,0 +1,4 @@
+export ZEEBE_ADDRESS='7415ccc7-3c0f-489e-b60f-cbb1061d5b5f.bru-2.zeebe.ultrawombat.com:443'
+export ZEEBE_CLIENT_ID='8kgFe2Bk0WnT9d_mKOUlbE9BHqc8RhHE'
+export ZEEBE_CLIENT_SECRET='drR~Qp-ZINKcq2ldlDE0OcPdrMXKtXstDbHEnETu3Sq6lQaMWVeo8LAHxeyWCbb-'
+export ZEEBE_AUTHORIZATION_SERVER_URL='https://login.cloud.ultrawombat.com/oauth/token'
