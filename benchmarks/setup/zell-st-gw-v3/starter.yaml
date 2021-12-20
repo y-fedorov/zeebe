@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: starter
-  replicas: 1
+  replicas: 10
   template:
     metadata:
       labels:
@@ -21,7 +21,7 @@ spec:
           env:
             - name: JAVA_OPTIONS
               value: >-
-                -Dapp.starter.rate=200
+                -Dapp.starter.rate=300
                 -Dapp.tls=true
                 -Dzeebe.client.requestTimeout=62000
                 -XX:+HeapDumpOnOutOfMemoryError
