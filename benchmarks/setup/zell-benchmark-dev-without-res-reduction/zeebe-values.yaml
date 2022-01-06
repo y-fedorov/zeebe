@@ -5,7 +5,7 @@ image:
 
 # ZEEBE CFG
 clusterSize: 3
-partitionCount: 3
+partitionCount: 1
 replicationFactor: 3
 cpuThreadCount: 4
 ioThreadCount: 4
