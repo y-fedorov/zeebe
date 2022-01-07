@@ -24,6 +24,7 @@ public class ActorMetrics {
       Counter.build()
           .namespace("zeebe")
           .name("sched_task_execution_count")
+          .help("test")
           .labelNames("actorName")
           .register();
 

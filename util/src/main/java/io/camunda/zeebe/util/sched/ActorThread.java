@@ -25,7 +25,6 @@ import sun.misc.Unsafe;
 
 public class ActorThread extends Thread implements Consumer<Runnable> {
   static final Unsafe UNSAFE = UnsafeAccess.UNSAFE;
-  static final ActorMetrics ACTOR_METRICS = new ActorMetrics();
   private static final long STATE_OFFSET;
   private static final Logger LOG = Loggers.ACTOR_LOGGER;
   private static final FatalErrorHandler FATAL_ERROR_HANDLER = FatalErrorHandler.withLogger(LOG);
@@ -43,6 +42,7 @@ public class ActorThread extends Thread implements Consumer<Runnable> {
   protected final ActorTimerQueue timerJobQueue;
   protected ActorTaskRunnerIdleStrategy idleStrategy = new ActorTaskRunnerIdleStrategy();
   ActorTask currentTask;
+  private final ActorMetrics actorMetrics = new ActorMetrics();
   private final CompletableFuture<Void> terminationFuture = new CompletableFuture<>();
   private final ActorClock clock;
   private final int threadId;
@@ -79,8 +79,8 @@ public class ActorThread extends Thread implements Consumer<Runnable> {
     if (currentTask != null) {
       try {
         final var actorName = currentTask.actor.getName();
-        ACTOR_METRICS.countExecution(actorName);
-        try (final var timer = ACTOR_METRICS.startExecutionTimer(actorName)) {
+        actorMetrics.countExecution(actorName);
+        try (final var timer = actorMetrics.startExecutionTimer(actorName)) {
           executeCurrentTask();
         }
 
