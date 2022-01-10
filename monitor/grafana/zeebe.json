@@ -69,6 +69,12 @@
       "id": "table-old",
       "name": "Table (old)",
       "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
     }
   ],
   "annotations": {
@@ -88,9 +94,592 @@
   "gnetId": null,
   "graphTooltip": 1,
   "id": null,
-  "iteration": 1640095638552,
+  "iteration": 1641568252745,
   "links": [],
   "panels": [
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {},
+          "custom": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "hiddenSeries": false,
+      "id": 305,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": false
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(zeebe_sched_task_execution_latency_sum{namespace=~\"$namespace\", pod=~\"$pod\"}) by (actorName)  / sum(zeebe_sched_task_execution_latency_count{namespace=~\"$namespace\", pod=~\"$pod\"} ) by (actorName)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Panel Title",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:785",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:786",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateOranges",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "heatmap": {},
+      "hideZeroBuckets": false,
+      "highlightCards": true,
+      "id": 302,
+      "legend": {
+        "show": false
+      },
+      "pluginVersion": "7.4.5",
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(zeebe_sched_task_execution_latency_bucket{namespace=~\"$namespace\", pod=~\"$pod\", actorName=~\".*-StreamProcessor.*\"}[30s])) by (le)",
+          "format": "heatmap",
+          "hide": false,
+          "interval": "30s",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        },
+        {
+          "expr": "",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "title": "Panel Title",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateOranges",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "heatmap": {},
+      "hideZeroBuckets": false,
+      "highlightCards": true,
+      "id": 300,
+      "legend": {
+        "show": false
+      },
+      "pluginVersion": "7.4.5",
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(zeebe_sched_task_execution_latency_bucket{namespace=~\"$namespace\", pod=~\"$pod\", actorName=~\".*-StreamProcessor.*\"}[30s])) by (le)",
+          "format": "heatmap",
+          "hide": false,
+          "interval": "30s",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        },
+        {
+          "expr": "",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "title": "Panel Title",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateOranges",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "heatmap": {},
+      "hideZeroBuckets": false,
+      "highlightCards": true,
+      "id": 301,
+      "legend": {
+        "show": false
+      },
+      "pluginVersion": "7.4.5",
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(zeebe_sched_task_execution_latency_bucket{namespace=~\"$namespace\", pod=~\"$pod\", actorName=~\".*-Exporter.*\"}[30s])) by (le)",
+          "format": "heatmap",
+          "hide": false,
+          "interval": "30s",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        },
+        {
+          "expr": "",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "title": "Panel Title",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 298,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.5",
+      "targets": [
+        {
+          "expr": "avg(rate(zeebe_sched_task_execution_latency_bucket[1m])) by (actorName)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Panel Title",
+      "type": "timeseries"
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateOranges",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "heatmap": {},
+      "hideZeroBuckets": false,
+      "highlightCards": true,
+      "id": 303,
+      "legend": {
+        "show": false
+      },
+      "pluginVersion": "7.4.5",
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(zeebe_sched_task_execution_latency_bucket{namespace=~\"$namespace\", pod=~\"$pod\", actorName=~\".*-Exporter.*\"}[30s])) by (le)",
+          "format": "heatmap",
+          "hide": false,
+          "interval": "30s",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        },
+        {
+          "expr": "",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "title": "Panel Title",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {},
+          "custom": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          }
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "hiddenSeries": false,
+      "id": 296,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(rate(zeebe_sched_task_execution_count_total{namespace=~\"$namespace\", pod=~\"$pod\"}[1m])) by (pod, actorName)",
+          "interval": "",
+          "legendFormat": "{{pod}} {{actorName}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Panel Title",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:98",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:99",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
     {
       "collapsed": true,
       "datasource": "${DS_PROMETHEUS}",
@@ -98,7 +687,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 32
       },
       "id": 56,
       "panels": [
@@ -166,7 +755,7 @@
             "h": 6,
             "w": 8,
             "x": 0,
-            "y": 1
+            "y": 9
           },
           "id": 68,
           "links": [],
@@ -286,7 +875,7 @@
             "h": 6,
             "w": 9,
             "x": 8,
-            "y": 1
+            "y": 9
           },
           "id": 243,
           "options": {
@@ -340,7 +929,7 @@
             "h": 6,
             "w": 7,
             "x": 17,
-            "y": 1
+            "y": 9
           },
           "hiddenSeries": false,
           "id": 116,
@@ -454,7 +1043,7 @@
             "h": 5,
             "w": 12,
             "x": 0,
-            "y": 7
+            "y": 15
           },
           "hiddenSeries": false,
           "id": 58,
@@ -564,7 +1153,7 @@
             "h": 5,
             "w": 12,
             "x": 12,
-            "y": 7
+            "y": 15
           },
           "hiddenSeries": false,
           "id": 270,
@@ -670,7 +1259,7 @@
             "h": 6,
             "w": 8,
             "x": 0,
-            "y": 12
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 62,
@@ -790,7 +1379,7 @@
             "h": 2,
             "w": 9,
             "x": 8,
-            "y": 12
+            "y": 20
           },
           "id": 232,
           "links": [],
@@ -844,7 +1433,7 @@
             "h": 6,
             "w": 7,
             "x": 17,
-            "y": 12
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 74,
@@ -954,7 +1543,7 @@
             "h": 2,
             "w": 9,
             "x": 8,
-            "y": 14
+            "y": 22
           },
           "id": 118,
           "interval": null,
@@ -1046,7 +1635,7 @@
             "h": 2,
             "w": 9,
             "x": 8,
-            "y": 16
+            "y": 24
           },
           "id": 117,
           "interval": null,
@@ -1128,7 +1717,7 @@
             "h": 6,
             "w": 8,
             "x": 0,
-            "y": 18
+            "y": 26
           },
           "hiddenSeries": false,
           "id": 39,
@@ -1245,7 +1834,7 @@
             "h": 6,
             "w": 9,
             "x": 8,
-            "y": 18
+            "y": 26
           },
           "id": 190,
           "links": [],
@@ -1304,7 +1893,7 @@
             "h": 6,
             "w": 7,
             "x": 17,
-            "y": 18
+            "y": 26
           },
           "hiddenSeries": false,
           "id": 33,
@@ -1423,7 +2012,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 1
+        "y": 33
       },
       "id": 203,
       "panels": [
@@ -1446,7 +2035,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 2
+            "y": 10
           },
           "hiddenSeries": false,
           "id": 272,
@@ -1569,7 +2158,7 @@
             "h": 4,
             "w": 12,
             "x": 0,
-            "y": 9
+            "y": 17
           },
           "id": 192,
           "options": {
@@ -1617,7 +2206,7 @@
             "h": 4,
             "w": 7,
             "x": 12,
-            "y": 9
+            "y": 17
           },
           "id": 196,
           "pageSize": null,
@@ -1698,7 +2287,7 @@
             "h": 4,
             "w": 5,
             "x": 19,
-            "y": 9
+            "y": 17
           },
           "id": 200,
           "pageSize": null,
@@ -1791,7 +2380,7 @@
             "h": 6,
             "w": 5,
             "x": 0,
-            "y": 13
+            "y": 21
           },
           "id": 194,
           "options": {
@@ -1838,7 +2427,7 @@
             "h": 6,
             "w": 7,
             "x": 5,
-            "y": 13
+            "y": 21
           },
           "id": 199,
           "pageSize": null,
@@ -1919,7 +2508,7 @@
             "h": 12,
             "w": 5,
             "x": 12,
-            "y": 13
+            "y": 21
           },
           "id": 198,
           "pageSize": null,
@@ -2000,7 +2589,7 @@
             "h": 12,
             "w": 7,
             "x": 17,
-            "y": 13
+            "y": 21
           },
           "id": 268,
           "pageSize": null,
@@ -2093,7 +2682,7 @@
             "h": 6,
             "w": 5,
             "x": 0,
-            "y": 19
+            "y": 27
           },
           "id": 189,
           "options": {
@@ -2141,7 +2730,7 @@
             "h": 6,
             "w": 7,
             "x": 5,
-            "y": 19
+            "y": 27
           },
           "id": 201,
           "pageSize": null,
@@ -2218,7 +2807,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 34
       },
       "id": 44,
       "panels": [
@@ -3266,7 +3855,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 35
       },
       "id": 100,
       "panels": [
@@ -3895,7 +4484,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 36
       },
       "id": 42,
       "panels": [
@@ -4453,7 +5042,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 37
       },
       "id": 293,
       "panels": [
@@ -4680,7 +5269,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 38
       },
       "id": 120,
       "panels": [
@@ -5399,7 +5988,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 39
       },
       "id": 46,
       "panels": [
@@ -6080,7 +6669,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 40
       },
       "id": 48,
       "panels": [
@@ -6508,7 +7097,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 41
       },
       "id": 162,
       "panels": [
@@ -6779,1673 +7368,1334 @@
       "type": "row"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 42
       },
       "id": 76,
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "${DS_PROMETHEUS}",
-          "description": "Shows the rate of different raft requests send from the leader to different followers",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 7,
-            "w": 24,
-            "x": 0,
-            "y": 10
-          },
-          "hiddenSeries": false,
-          "id": 278,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "hideEmpty": true,
-            "hideZero": true,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null as zero",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "7.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "sum(rate(atomix_raft_messages_send_total{namespace=~\"$namespace\"}[1m])) by (pod, partition, to, type)",
-              "interval": "",
-              "legendFormat": "{{pod}} {{partition}} send {{type}} to {{to}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Raft requests per second [1m]",
-          "tooltip": {
-            "shared": true,
-            "sort": 2,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": "Requests",
-              "logBase": 1,
-              "max": null,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "cards": {
-            "cardPadding": null,
-            "cardRound": null
-          },
-          "color": {
-            "cardColor": "#b4ff00",
-            "colorScale": "sqrt",
-            "colorScheme": "interpolateSpectral",
-            "exponent": 0.5,
-            "mode": "spectrum"
-          },
-          "dataFormat": "tsbuckets",
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 12,
-            "x": 0,
-            "y": 17
-          },
-          "heatmap": {},
-          "hideZeroBuckets": true,
-          "highlightCards": true,
-          "id": 78,
-          "legend": {
-            "show": false
-          },
-          "links": [],
-          "reverseYBuckets": false,
-          "targets": [
-            {
-              "expr": "sum(increase(atomix_compaction_time_ms_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[5m])) by (le)",
-              "format": "heatmap",
-              "intervalFactor": 1,
-              "legendFormat": "{{le}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Compacting time",
-          "tooltip": {
-            "show": true,
-            "showHistogram": false
-          },
-          "type": "heatmap",
-          "xAxis": {
-            "show": true
-          },
-          "xBucketNumber": null,
-          "xBucketSize": null,
-          "yAxis": {
-            "decimals": null,
-            "format": "dtdurations",
-            "logBase": 1,
-            "max": null,
-            "min": null,
-            "show": true,
-            "splitFactor": null
-          },
-          "yBucketBound": "auto",
-          "yBucketNumber": null,
-          "yBucketSize": null
-        },
-        {
-          "cards": {
-            "cardPadding": null,
-            "cardRound": null
-          },
-          "color": {
-            "cardColor": "#b4ff00",
-            "colorScale": "sqrt",
-            "colorScheme": "interpolateSpectral",
-            "exponent": 0.5,
-            "mode": "spectrum"
-          },
-          "dataFormat": "tsbuckets",
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 12,
-            "x": 12,
-            "y": 17
-          },
-          "heatmap": {},
-          "hideZeroBuckets": true,
-          "highlightCards": true,
-          "id": 81,
-          "legend": {
-            "show": false
-          },
-          "links": [],
-          "reverseYBuckets": false,
-          "targets": [
-            {
-              "expr": "sum(increase(atomix_segment_creation_time_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
-              "format": "heatmap",
-              "intervalFactor": 1,
-              "legendFormat": "{{le}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Segment Creation Time",
-          "tooltip": {
-            "show": true,
-            "showHistogram": false
-          },
-          "type": "heatmap",
-          "xAxis": {
-            "show": true
-          },
-          "xBucketNumber": null,
-          "xBucketSize": null,
-          "yAxis": {
-            "decimals": null,
-            "format": "dtdurations",
-            "logBase": 1,
-            "max": null,
-            "min": null,
-            "show": true,
-            "splitFactor": null
-          },
-          "yBucketBound": "auto",
-          "yBucketNumber": null,
-          "yBucketSize": null
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "${DS_PROMETHEUS}",
-          "description": "Shows the total count of send install requests from the leader to the followers",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 7,
-            "w": 24,
-            "x": 0,
-            "y": 23
-          },
-          "hiddenSeries": false,
-          "id": 283,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "hideEmpty": true,
-            "hideZero": true,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null as zero",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "7.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "atomix_raft_messages_send_total{namespace=~\"$namespace\", type=\"InstallRequest\"}",
-              "interval": "",
-              "legendFormat": "{{pod}} {{partition}} send {{type}} to {{to}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Total install requests send",
-          "tooltip": {
-            "shared": true,
-            "sort": 2,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": "Install Requests",
-              "logBase": 1,
-              "max": null,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$DS_PROMETHEUS",
-          "description": "Approximate Install RPC as measured by the follower.",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 7,
-            "w": 12,
-            "x": 0,
-            "y": 30
-          },
-          "hiddenSeries": false,
-          "id": 79,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "7.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "atomix_snapshot_replication_duration_milliseconds{namespace=~\"$namespace\",pod=~\"$pod\",partition=~\"$partition\"}",
-              "format": "time_series",
-              "instant": false,
-              "intervalFactor": 1,
-              "legendFormat": "{{pod}} p{{partition}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Snapshot Replication Duration",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ms",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$DS_PROMETHEUS",
-          "description": "Ongoing snapshot replications per partition, from the follower point-of-view.",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 7,
-            "w": 12,
-            "x": 12,
-            "y": 30
-          },
-          "hiddenSeries": false,
-          "id": 114,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "7.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "atomix_snapshot_replication_count{namespace=~\"$namespace\",pod=~\"$pod\",partition=~\"$partition\"}",
-              "interval": "",
-              "legendFormat": "{{pod}} {{partitionGroupName}}-{{partition}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Snapshot Replications",
-          "tooltip": {
-            "shared": true,
-            "sort": 2,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "cards": {
-            "cardPadding": null,
-            "cardRound": null
-          },
-          "color": {
-            "cardColor": "#b4ff00",
-            "colorScale": "sqrt",
-            "colorScheme": "interpolateSpectral",
-            "exponent": 0.5,
-            "mode": "spectrum"
-          },
-          "dataFormat": "tsbuckets",
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 12,
-            "x": 0,
-            "y": 37
-          },
-          "heatmap": {},
-          "hideZeroBuckets": true,
-          "highlightCards": true,
-          "id": 89,
-          "legend": {
-            "show": false
-          },
-          "links": [],
-          "reverseYBuckets": false,
-          "targets": [
-            {
-              "expr": "sum(increase(atomix_segment_flush_time_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
-              "format": "heatmap",
-              "intervalFactor": 1,
-              "legendFormat": "{{le}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Segment Flush Latency",
-          "tooltip": {
-            "show": true,
-            "showHistogram": false
-          },
-          "type": "heatmap",
-          "xAxis": {
-            "show": true
-          },
-          "xBucketNumber": null,
-          "xBucketSize": null,
-          "yAxis": {
-            "decimals": null,
-            "format": "dtdurations",
-            "logBase": 1,
-            "max": null,
-            "min": null,
-            "show": true,
-            "splitFactor": null
-          },
-          "yBucketBound": "auto",
-          "yBucketNumber": null,
-          "yBucketSize": null
-        },
-        {
-          "cards": {
-            "cardPadding": null,
-            "cardRound": null
-          },
-          "color": {
-            "cardColor": "#b4ff00",
-            "colorScale": "sqrt",
-            "colorScheme": "interpolateSpectral",
-            "exponent": 0.5,
-            "mode": "spectrum"
-          },
-          "dataFormat": "tsbuckets",
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 12,
-            "x": 12,
-            "y": 37
-          },
-          "heatmap": {},
-          "hideZeroBuckets": true,
-          "highlightCards": true,
-          "id": 86,
-          "legend": {
-            "show": false
-          },
-          "links": [],
-          "reverseYBuckets": false,
-          "targets": [
-            {
-              "expr": "sum(increase(atomix_append_entries_latency_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
-              "format": "heatmap",
-              "intervalFactor": 1,
-              "legendFormat": "{{le}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Append Entry Latency",
-          "tooltip": {
-            "show": true,
-            "showHistogram": false
-          },
-          "type": "heatmap",
-          "xAxis": {
-            "show": true
-          },
-          "xBucketNumber": null,
-          "xBucketSize": null,
-          "yAxis": {
-            "decimals": null,
-            "format": "dtdurations",
-            "logBase": 1,
-            "max": null,
-            "min": null,
-            "show": true,
-            "splitFactor": null
-          },
-          "yBucketBound": "auto",
-          "yBucketNumber": null,
-          "yBucketSize": null
-        },
-        {
-          "cards": {
-            "cardPadding": null,
-            "cardRound": null
-          },
-          "color": {
-            "cardColor": "#b4ff00",
-            "colorScale": "sqrt",
-            "colorScheme": "interpolateSpectral",
-            "exponent": 0.5,
-            "min": null,
-            "mode": "spectrum"
-          },
-          "dataFormat": "tsbuckets",
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 44
-          },
-          "heatmap": {},
-          "hideZeroBuckets": true,
-          "highlightCards": true,
-          "id": 70,
-          "legend": {
-            "show": true
-          },
-          "links": [],
-          "reverseYBuckets": false,
-          "targets": [
-            {
-              "expr": "sum(increase(atomix_heartbeat_time_in_s_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
-              "format": "heatmap",
-              "instant": false,
-              "interval": "1m",
-              "intervalFactor": 1,
-              "legendFormat": "{{le}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Time Between Heartbeats",
-          "tooltip": {
-            "show": true,
-            "showHistogram": false
-          },
-          "type": "heatmap",
-          "xAxis": {
-            "show": true
-          },
-          "xBucketNumber": null,
-          "xBucketSize": null,
-          "yAxis": {
-            "decimals": null,
-            "format": "dtdurations",
-            "logBase": 1,
-            "max": null,
-            "min": null,
-            "show": true,
-            "splitFactor": null
-          },
-          "yBucketBound": "auto",
-          "yBucketNumber": null,
-          "yBucketSize": null
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 44
-          },
-          "hiddenSeries": false,
-          "id": 72,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "hideZero": true,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "sideWidth": 100,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "7.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "sum(increase(atomix_heartbeat_miss_count_total{namespace=~\"$namespace\", partition=~\"$partition\", pod=~\"$pod\"}[1m])) by (pod, partition)",
-              "format": "time_series",
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{pod}} - {{partition}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Heartbeat Miss Counts",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "cacheTimeout": null,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$DS_PROMETHEUS",
-          "decimals": 0,
-          "description": "Shows when a role change has happened. \n1 = Follower\n2 = Candidate\n3 = Leader\n2 - ",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 0,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 52
-          },
-          "hiddenSeries": false,
-          "id": 95,
-          "interval": "1s",
-          "legend": {
-            "alignAsTable": false,
-            "avg": false,
-            "current": true,
-            "hideEmpty": false,
-            "hideZero": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": false,
-            "sideWidth": 300,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "7.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "atomix_role{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
-              "format": "time_series",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{pod}} p{{partition}} ",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Role changes over time",
-          "tooltip": {
-            "shared": true,
-            "sort": 2,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "decimals": 0,
-              "format": "short",
-              "label": "Role (3 = Leader)",
-              "logBase": 1,
-              "max": "3",
-              "min": "1",
-              "show": true
-            },
-            {
-              "decimals": null,
-              "format": "Misc",
-              "label": "",
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": 1
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "${DS_PROMETHEUS}",
-          "description": "",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 52
-          },
-          "hiddenSeries": false,
-          "id": 180,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "7.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "atomix_segment_count{namespace=~\"$namespace\", pod=~\"$pod\"}",
-              "interval": "",
-              "legendFormat": "{{pod}} {{partition}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Number of log segements",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fontSize": "100%",
-          "gridPos": {
-            "h": 5,
-            "w": 8,
-            "x": 0,
-            "y": 60
-          },
-          "id": 205,
-          "maxPerRow": 6,
-          "pageSize": null,
-          "pluginVersion": "6.7.1",
-          "repeat": "partition",
-          "repeatDirection": "h",
-          "scopedVars": {
-            "partition": {
-              "selected": false,
-              "text": "1",
-              "value": "1"
-            }
-          },
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": true
-          },
-          "styles": [
-            {
-              "alias": "Time",
-              "align": "auto",
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "alias": "Commit index",
-              "align": "right",
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "mappingType": 1,
-              "pattern": "Current",
-              "thresholds": [],
-              "type": "string",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "expr": "atomix_partition_raft_commit_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
-              "format": "time_series",
-              "instant": true,
-              "interval": "",
-              "legendFormat": "{{pod}} p{{partition}} ",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Commit Index",
-          "transform": "timeseries_aggregations",
-          "type": "table-old"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fontSize": "100%",
-          "gridPos": {
-            "h": 5,
-            "w": 8,
-            "x": 8,
-            "y": 60
-          },
-          "id": 279,
-          "maxPerRow": 6,
-          "pageSize": null,
-          "pluginVersion": "6.7.1",
-          "repeatDirection": "h",
-          "repeatIteration": 1634130126219,
-          "repeatPanelId": 205,
-          "scopedVars": {
-            "partition": {
-              "selected": false,
-              "text": "2",
-              "value": "2"
-            }
-          },
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": true
-          },
-          "styles": [
-            {
-              "alias": "Time",
-              "align": "auto",
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "alias": "Commit index",
-              "align": "right",
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "mappingType": 1,
-              "pattern": "Current",
-              "thresholds": [],
-              "type": "string",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "expr": "atomix_partition_raft_commit_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
-              "format": "time_series",
-              "instant": true,
-              "interval": "",
-              "legendFormat": "{{pod}} p{{partition}} ",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Commit Index",
-          "transform": "timeseries_aggregations",
-          "type": "table-old"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fontSize": "100%",
-          "gridPos": {
-            "h": 5,
-            "w": 8,
-            "x": 16,
-            "y": 60
-          },
-          "id": 280,
-          "maxPerRow": 6,
-          "pageSize": null,
-          "pluginVersion": "6.7.1",
-          "repeatDirection": "h",
-          "repeatIteration": 1634130126219,
-          "repeatPanelId": 205,
-          "scopedVars": {
-            "partition": {
-              "selected": false,
-              "text": "3",
-              "value": "3"
-            }
-          },
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": true
-          },
-          "styles": [
-            {
-              "alias": "Time",
-              "align": "auto",
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "alias": "Commit index",
-              "align": "right",
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "mappingType": 1,
-              "pattern": "Current",
-              "thresholds": [],
-              "type": "string",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "expr": "atomix_partition_raft_commit_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
-              "format": "time_series",
-              "instant": true,
-              "interval": "",
-              "legendFormat": "{{pod}} p{{partition}} ",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Commit Index",
-          "transform": "timeseries_aggregations",
-          "type": "table-old"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fontSize": "100%",
-          "gridPos": {
-            "h": 5,
-            "w": 8,
-            "x": 0,
-            "y": 65
-          },
-          "id": 209,
-          "maxPerRow": 6,
-          "pageSize": null,
-          "pluginVersion": "6.7.1",
-          "repeat": "partition",
-          "repeatDirection": "h",
-          "scopedVars": {
-            "partition": {
-              "selected": false,
-              "text": "1",
-              "value": "1"
-            }
-          },
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": true
-          },
-          "styles": [
-            {
-              "alias": "Time",
-              "align": "auto",
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "alias": "Last appended index",
-              "align": "right",
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "mappingType": 1,
-              "pattern": "Current",
-              "thresholds": [],
-              "type": "string",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "expr": "atomix_partition_raft_append_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
-              "format": "time_series",
-              "instant": true,
-              "interval": "",
-              "legendFormat": "{{pod}}-p{{partition}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Index of last appended entry",
-          "transform": "timeseries_aggregations",
-          "type": "table-old"
-        },
-        {
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1000
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 5,
-            "w": 12,
-            "x": 12,
-            "y": 65
-          },
-          "id": 217,
-          "options": {
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "last"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "text": {}
-          },
-          "pluginVersion": "7.4.5",
-          "repeat": null,
-          "repeatDirection": "h",
-          "targets": [
-            {
-              "expr": "max(atomix_partition_raft_commit_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace) - min(atomix_partition_raft_commit_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace)",
-              "interval": "",
-              "legendFormat": "Partition {{partition}} ({{namespace}})",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Number of records by which the slowest follower is lagging behind",
-          "type": "gauge"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fontSize": "100%",
-          "gridPos": {
-            "h": 5,
-            "w": 8,
-            "x": 8,
-            "y": 70
-          },
-          "id": 281,
-          "maxPerRow": 6,
-          "pageSize": null,
-          "pluginVersion": "6.7.1",
-          "repeatDirection": "h",
-          "repeatIteration": 1634130126219,
-          "repeatPanelId": 209,
-          "scopedVars": {
-            "partition": {
-              "selected": false,
-              "text": "2",
-              "value": "2"
-            }
-          },
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": true
-          },
-          "styles": [
-            {
-              "alias": "Time",
-              "align": "auto",
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "alias": "Last appended index",
-              "align": "right",
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "mappingType": 1,
-              "pattern": "Current",
-              "thresholds": [],
-              "type": "string",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "expr": "atomix_partition_raft_append_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
-              "format": "time_series",
-              "instant": true,
-              "interval": "",
-              "legendFormat": "{{pod}}-p{{partition}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Index of last appended entry",
-          "transform": "timeseries_aggregations",
-          "type": "table-old"
-        },
-        {
-          "columns": [
-            {
-              "text": "Current",
-              "value": "current"
-            }
-          ],
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "fontSize": "100%",
-          "gridPos": {
-            "h": 5,
-            "w": 8,
-            "x": 16,
-            "y": 70
-          },
-          "id": 282,
-          "maxPerRow": 6,
-          "pageSize": null,
-          "pluginVersion": "6.7.1",
-          "repeatDirection": "h",
-          "repeatIteration": 1634130126219,
-          "repeatPanelId": 209,
-          "scopedVars": {
-            "partition": {
-              "selected": false,
-              "text": "3",
-              "value": "3"
-            }
-          },
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": true
-          },
-          "styles": [
-            {
-              "alias": "Time",
-              "align": "auto",
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "alias": "Last appended index",
-              "align": "right",
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "decimals": 2,
-              "mappingType": 1,
-              "pattern": "Current",
-              "thresholds": [],
-              "type": "string",
-              "unit": "short"
-            }
-          ],
-          "targets": [
-            {
-              "expr": "atomix_partition_raft_append_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
-              "format": "time_series",
-              "instant": true,
-              "interval": "",
-              "legendFormat": "{{pod}}-p{{partition}}",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Index of last appended entry",
-          "transform": "timeseries_aggregations",
-          "type": "table-old"
-        },
-        {
-          "datasource": "$DS_PROMETHEUS",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 300
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 5,
-            "w": 12,
-            "x": 0,
-            "y": 75
-          },
-          "id": 215,
-          "options": {
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "mean"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "text": {}
-          },
-          "pluginVersion": "7.4.5",
-          "targets": [
-            {
-              "expr": "max(atomix_partition_raft_append_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace) - max(atomix_partition_raft_commit_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace)",
-              "interval": "",
-              "legendFormat": "Partition {{partition}} ({{namespace}})",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Number of records appended on the leader but not committed",
-          "type": "gauge"
-        }
-      ],
+      "panels": [],
       "title": "Atomix",
       "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "Shows the rate of different raft requests send from the leader to different followers",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "hiddenSeries": false,
+      "id": 278,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "hideEmpty": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(rate(atomix_raft_messages_send_total{namespace=~\"$namespace\"}[1m])) by (pod, partition, to, type)",
+          "interval": "",
+          "legendFormat": "{{pod}} {{partition}} send {{type}} to {{to}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Raft requests per second [1m]",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "Requests",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateSpectral",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 50
+      },
+      "heatmap": {},
+      "hideZeroBuckets": true,
+      "highlightCards": true,
+      "id": 78,
+      "legend": {
+        "show": false
+      },
+      "links": [],
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(atomix_compaction_time_ms_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[5m])) by (le)",
+          "format": "heatmap",
+          "intervalFactor": 1,
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Compacting time",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateSpectral",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 50
+      },
+      "heatmap": {},
+      "hideZeroBuckets": true,
+      "highlightCards": true,
+      "id": 81,
+      "legend": {
+        "show": false
+      },
+      "links": [],
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(atomix_segment_creation_time_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
+          "format": "heatmap",
+          "intervalFactor": 1,
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Segment Creation Time",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "Shows the total count of send install requests from the leader to the followers",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "hiddenSeries": false,
+      "id": 283,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "hideEmpty": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "atomix_raft_messages_send_total{namespace=~\"$namespace\", type=\"InstallRequest\"}",
+          "interval": "",
+          "legendFormat": "{{pod}} {{partition}} send {{type}} to {{to}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total install requests send",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "Install Requests",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "$DS_PROMETHEUS",
+      "description": "Approximate Install RPC as measured by the follower.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "hiddenSeries": false,
+      "id": 79,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "atomix_snapshot_replication_duration_milliseconds{namespace=~\"$namespace\",pod=~\"$pod\",partition=~\"$partition\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "{{pod}} p{{partition}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Snapshot Replication Duration",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "$DS_PROMETHEUS",
+      "description": "Ongoing snapshot replications per partition, from the follower point-of-view.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "hiddenSeries": false,
+      "id": 114,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "atomix_snapshot_replication_count{namespace=~\"$namespace\",pod=~\"$pod\",partition=~\"$partition\"}",
+          "interval": "",
+          "legendFormat": "{{pod}} {{partitionGroupName}}-{{partition}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Snapshot Replications",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateSpectral",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 70
+      },
+      "heatmap": {},
+      "hideZeroBuckets": true,
+      "highlightCards": true,
+      "id": 89,
+      "legend": {
+        "show": false
+      },
+      "links": [],
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(atomix_segment_flush_time_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
+          "format": "heatmap",
+          "intervalFactor": 1,
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Segment Flush Latency",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateSpectral",
+        "exponent": 0.5,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 70
+      },
+      "heatmap": {},
+      "hideZeroBuckets": true,
+      "highlightCards": true,
+      "id": 86,
+      "legend": {
+        "show": false
+      },
+      "links": [],
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(atomix_append_entries_latency_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
+          "format": "heatmap",
+          "intervalFactor": 1,
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Append Entry Latency",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateSpectral",
+        "exponent": 0.5,
+        "min": null,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 77
+      },
+      "heatmap": {},
+      "hideZeroBuckets": true,
+      "highlightCards": true,
+      "id": 70,
+      "legend": {
+        "show": true
+      },
+      "links": [],
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "sum(increase(atomix_heartbeat_time_in_s_bucket{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}[1m])) by (le)",
+          "format": "heatmap",
+          "instant": false,
+          "interval": "1m",
+          "intervalFactor": 1,
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Time Between Heartbeats",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "dtdurations",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 77
+      },
+      "hiddenSeries": false,
+      "id": 72,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sideWidth": 100,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(increase(atomix_heartbeat_miss_count_total{namespace=~\"$namespace\", partition=~\"$partition\", pod=~\"$pod\"}[1m])) by (pod, partition)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{pod}} - {{partition}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Heartbeat Miss Counts",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "cacheTimeout": null,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "$DS_PROMETHEUS",
+      "decimals": 0,
+      "description": "Shows when a role change has happened. \n1 = Follower\n2 = Candidate\n3 = Leader\n2 - ",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 85
+      },
+      "hiddenSeries": false,
+      "id": 95,
+      "interval": "1s",
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": true,
+        "hideEmpty": false,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": false,
+        "sideWidth": 300,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "atomix_role{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{pod}} p{{partition}} ",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Role changes over time",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "Role (3 = Leader)",
+          "logBase": 1,
+          "max": "3",
+          "min": "1",
+          "show": true
+        },
+        {
+          "decimals": null,
+          "format": "Misc",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": 1
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 85
+      },
+      "hiddenSeries": false,
+      "id": 180,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "atomix_segment_count{namespace=~\"$namespace\", pod=~\"$pod\"}",
+          "interval": "",
+          "legendFormat": "{{pod}} {{partition}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Number of log segements",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "columns": [
+        {
+          "text": "Current",
+          "value": "current"
+        }
+      ],
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 93
+      },
+      "id": 205,
+      "maxPerRow": 6,
+      "pageSize": null,
+      "pluginVersion": "6.7.1",
+      "repeat": "partition",
+      "repeatDirection": "h",
+      "showHeader": true,
+      "sort": {
+        "col": 0,
+        "desc": true
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "align": "auto",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "alias": "Commit index",
+          "align": "right",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Current",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "expr": "atomix_partition_raft_commit_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
+          "format": "time_series",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{pod}} p{{partition}} ",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Commit Index",
+      "transform": "timeseries_aggregations",
+      "type": "table-old"
+    },
+    {
+      "columns": [
+        {
+          "text": "Current",
+          "value": "current"
+        }
+      ],
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 98
+      },
+      "id": 209,
+      "maxPerRow": 6,
+      "pageSize": null,
+      "pluginVersion": "6.7.1",
+      "repeat": "partition",
+      "repeatDirection": "h",
+      "showHeader": true,
+      "sort": {
+        "col": 0,
+        "desc": true
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "align": "auto",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "alias": "Last appended index",
+          "align": "right",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Current",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "expr": "atomix_partition_raft_append_index{namespace=~\"$namespace\", pod=~\"$pod\", partition=~\"$partition\"}",
+          "format": "time_series",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{pod}}-p{{partition}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Index of last appended entry",
+      "transform": "timeseries_aggregations",
+      "type": "table-old"
+    },
+    {
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 98
+      },
+      "id": 217,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "7.4.5",
+      "repeat": null,
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "expr": "max(atomix_partition_raft_commit_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace) - min(atomix_partition_raft_commit_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace)",
+          "interval": "",
+          "legendFormat": "Partition {{partition}} ({{namespace}})",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Number of records by which the slowest follower is lagging behind",
+      "type": "gauge"
+    },
+    {
+      "datasource": "$DS_PROMETHEUS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 300
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 108
+      },
+      "id": 215,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "7.4.5",
+      "targets": [
+        {
+          "expr": "max(atomix_partition_raft_append_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace) - max(atomix_partition_raft_commit_index{namespace=~\"$namespace\",partition=~\"$partition\"}) by (partition, namespace)",
+          "interval": "",
+          "legendFormat": "Partition {{partition}} ({{namespace}})",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Number of records appended on the leader but not committed",
+      "type": "gauge"
     },
     {
       "collapsed": true,
@@ -8454,7 +8704,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 113
       },
       "id": 140,
       "panels": [
@@ -10101,7 +10351,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 114
       },
       "id": 50,
       "panels": [
@@ -10571,7 +10821,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 115
       },
       "id": 176,
       "panels": [
@@ -10942,7 +11192,7 @@
       "type": "row"
     }
   ],
-  "refresh": "10s",
+  "refresh": "",
   "schemaVersion": 27,
   "style": "dark",
   "tags": [],
@@ -11052,7 +11302,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {
@@ -11082,5 +11332,5 @@
   "timezone": "",
   "title": "Zeebe",
   "uid": "I4lo7_EZk",
-  "version": 26
+  "version": 27
 }
