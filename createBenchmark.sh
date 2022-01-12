@@ -64,9 +64,7 @@ cd "$benchmark"
 # calls OS specific sed inplace function
 sed_inplace 's/camunda\/zeebe/gcr.io\/zeebe-io\/zeebe/' zeebe-values.yaml
 sed_inplace "s/SNAPSHOT/$benchmark/" zeebe-values.yaml
-sed_inplace "s/starter:SNAPSHOT/starter:$benchmark/" starter.yaml
-sed_inplace "s/starter:SNAPSHOT/starter:$benchmark/" simpleStarter.yaml
-sed_inplace "s/starter:SNAPSHOT/starter:$benchmark/" timer.yaml
-sed_inplace "s/worker:SNAPSHOT/worker:$benchmark/" worker.yaml
+sed_inplace "s/starter:SNAPSHOT/starter:1.3.0/" starter.yaml
+sed_inplace "s/worker:SNAPSHOT/worker:1.3.0/" worker.yaml
 
 make zeebe starter worker
