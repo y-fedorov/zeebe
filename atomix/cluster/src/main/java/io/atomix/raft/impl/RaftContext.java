@@ -57,6 +57,7 @@ import io.atomix.raft.storage.RaftStorage;
 import io.atomix.raft.storage.StorageException;
 import io.atomix.raft.storage.log.IndexedRaftLogEntry;
 import io.atomix.raft.storage.log.RaftLog;
+import io.atomix.raft.storage.log.RaftLogReader;
 import io.atomix.raft.storage.system.MetaStore;
 import io.atomix.raft.zeebe.EntryValidator;
 import io.atomix.utils.concurrent.ComposableFuture;
@@ -111,6 +112,7 @@ public class RaftContext implements AutoCloseable, HealthMonitorable {
   private final RaftReplicationMetrics replicationMetrics;
   private final MetaStore meta;
   private final RaftLog raftLog;
+  private final RaftLogReader logReader;
   private final ReceivableSnapshotStore persistedSnapshotStore;
   private final LogCompactor logCompactor;
   private volatile State state = State.ACTIVE;
@@ -188,6 +190,7 @@ public class RaftContext implements AutoCloseable, HealthMonitorable {
 
     // Construct the core log, reader, writer, and compactor.
     raftLog = storage.openLog();
+    logReader = raftLog.openUncommittedReader();
 
     // Open the snapshot store.
     persistedSnapshotStore = storage.getPersistedSnapshotStore();
@@ -888,6 +891,15 @@ public class RaftContext implements AutoCloseable, HealthMonitorable {
   }
 
   /**
+   * Returns the server log reader.
+   *
+   * @return The log reader.
+   */
+  public RaftLogReader getLogReader() {
+    return logReader;
+  }
+
+  /**
    * Returns the cluster service.
    *
    * @return the cluster service
@@ -1119,7 +1131,7 @@ public class RaftContext implements AutoCloseable, HealthMonitorable {
     return partitionConfig.getPreferSnapshotReplicationThreshold();
   }
 
-  public void setPreferSnapshotReplicationThreshold(final int snapshotReplicationThreshold) {
+  public void setPreferSnapshotReplicationThreshold(int snapshotReplicationThreshold) {
     partitionConfig.setPreferSnapshotReplicationThreshold(snapshotReplicationThreshold);
   }
 
