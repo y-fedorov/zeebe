@@ -72,6 +72,11 @@ public final class ProcessInstanceClient {
           environmentRule, processInstanceCreationRecord);
     }
 
+    public ProcessInstanceCreationClient withElementId(final String elementId) {
+      processInstanceCreationRecord.setElementId(elementId);
+      return this;
+    }
+
     public long create() {
       final long position =
           environmentRule.writeCommand(

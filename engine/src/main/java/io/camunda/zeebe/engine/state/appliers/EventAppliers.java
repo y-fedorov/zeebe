@@ -25,6 +25,7 @@ import io.camunda.zeebe.protocol.record.intent.MessageIntent;
 import io.camunda.zeebe.protocol.record.intent.MessageStartEventSubscriptionIntent;
 import io.camunda.zeebe.protocol.record.intent.MessageSubscriptionIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessEventIntent;
+import io.camunda.zeebe.protocol.record.intent.ProcessInstanceCreationIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessMessageSubscriptionIntent;
@@ -106,6 +107,9 @@ public final class EventAppliers implements EventApplier {
     final var bufferedStartMessageEventStateApplier =
         new BufferedStartMessageEventStateApplier(processState, state.getMessageState());
 
+    register(
+        ProcessInstanceCreationIntent.CREATED,
+        new ProcessInstanceCreatedApplier(elementInstanceState));
     register(
         ProcessInstanceIntent.ELEMENT_ACTIVATING,
         new ProcessInstanceElementActivatingApplier(

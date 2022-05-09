@@ -12,6 +12,7 @@ import static io.camunda.zeebe.util.buffer.BufferUtil.bufferAsString;
 import io.camunda.zeebe.engine.Loggers;
 import io.camunda.zeebe.engine.processing.streamprocessor.CommandProcessor;
 import io.camunda.zeebe.engine.processing.streamprocessor.TypedRecord;
+import io.camunda.zeebe.engine.processing.streamprocessor.writers.StateWriter;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.TypedCommandWriter;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.Writers;
 import io.camunda.zeebe.engine.processing.variable.VariableBehavior;
@@ -25,6 +26,7 @@ import io.camunda.zeebe.protocol.record.RejectionType;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceCreationIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceIntent;
 import io.camunda.zeebe.protocol.record.value.BpmnElementType;
+import io.camunda.zeebe.util.buffer.BufferUtil;
 import org.agrona.DirectBuffer;
 
 public final class CreateProcessInstanceProcessor
@@ -50,6 +52,7 @@ public final class CreateProcessInstanceProcessor
   private final VariableBehavior variableBehavior;
   private final KeyGenerator keyGenerator;
   private final TypedCommandWriter commandWriter;
+  private final StateWriter stateWriter;
 
   public CreateProcessInstanceProcessor(
       final ProcessState processState,
@@ -60,6 +63,7 @@ public final class CreateProcessInstanceProcessor
     this.variableBehavior = variableBehavior;
     this.keyGenerator = keyGenerator;
     commandWriter = writers.command();
+    stateWriter = writers.state();
   }
 
   @Override
@@ -79,8 +83,26 @@ public final class CreateProcessInstanceProcessor
     }
 
     final var processInstance = initProcessInstanceRecord(process, processInstanceKey);
-    commandWriter.appendFollowUpCommand(
-        processInstanceKey, ProcessInstanceIntent.ACTIVATE_ELEMENT, processInstance);
+    if (BufferUtil.bufferAsString(record.getElementIdProperty()).isEmpty()) {
+      commandWriter.appendFollowUpCommand(
+          processInstanceKey, ProcessInstanceIntent.ACTIVATE_ELEMENT, processInstance);
+    } else {
+      stateWriter.appendFollowUpEvent(
+          processInstanceKey, ProcessInstanceIntent.ELEMENT_ACTIVATING, processInstance);
+      stateWriter.appendFollowUpEvent(
+          processInstanceKey, ProcessInstanceIntent.ELEMENT_ACTIVATED, processInstance);
+      final long elementKey = keyGenerator.nextKey();
+      final ProcessInstanceRecord elementProcessInstance = new ProcessInstanceRecord();
+      elementProcessInstance.setBpmnProcessId(process.getBpmnProcessId());
+      elementProcessInstance.setVersion(process.getVersion());
+      elementProcessInstance.setProcessDefinitionKey(process.getKey());
+      elementProcessInstance.setProcessInstanceKey(processInstanceKey);
+      elementProcessInstance.setBpmnElementType(BpmnElementType.END_EVENT);
+      elementProcessInstance.setElementId(record.getElementIdProperty());
+      elementProcessInstance.setFlowScopeKey(processInstanceKey);
+      commandWriter.appendFollowUpCommand(
+          elementKey, ProcessInstanceIntent.ACTIVATE_ELEMENT, elementProcessInstance);
+    }
 
     record
         .setProcessInstanceKey(processInstanceKey)

@@ -37,13 +37,16 @@ public final class ProcessInstanceCreationRecord extends UnifiedRecordValue
   private final ArrayProperty<StringValue> fetchVariablesProperty =
       new ArrayProperty<>("fetchVariables", new StringValue());
 
+  private final StringProperty elementIdProperty = new StringProperty("elementId", "");
+
   public ProcessInstanceCreationRecord() {
     declareProperty(bpmnProcessIdProperty)
         .declareProperty(processDefinitionKeyProperty)
         .declareProperty(processInstanceKeyProperty)
         .declareProperty(versionProperty)
         .declareProperty(variablesProperty)
-        .declareProperty(fetchVariablesProperty);
+        .declareProperty(fetchVariablesProperty)
+        .declareProperty(elementIdProperty);
   }
 
   @Override
@@ -51,6 +54,7 @@ public final class ProcessInstanceCreationRecord extends UnifiedRecordValue
     return BufferUtil.bufferAsString(bpmnProcessIdProperty.getValue());
   }
 
+  @Override
   public int getVersion() {
     return versionProperty.getValue();
   }
@@ -78,6 +82,15 @@ public final class ProcessInstanceCreationRecord extends UnifiedRecordValue
   public ProcessInstanceCreationRecord setBpmnProcessId(final DirectBuffer bpmnProcessId) {
     bpmnProcessIdProperty.setValue(bpmnProcessId);
     return this;
+  }
+
+  public ProcessInstanceCreationRecord setElementId(final String elementId) {
+    elementIdProperty.setValue(elementId);
+    return this;
+  }
+
+  public DirectBuffer getElementIdProperty() {
+    return elementIdProperty.getValue();
   }
 
   @Override
