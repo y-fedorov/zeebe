@@ -10,8 +10,12 @@ package io.camunda.zeebe.engine.processing.processinstance;
 import static io.camunda.zeebe.util.buffer.BufferUtil.bufferAsString;
 
 import io.camunda.zeebe.engine.Loggers;
+import io.camunda.zeebe.engine.processing.bpmn.BpmnElementContextImpl;
+import io.camunda.zeebe.engine.processing.common.CatchEventBehavior;
+import io.camunda.zeebe.engine.processing.deployment.model.element.AbstractFlowElement;
 import io.camunda.zeebe.engine.processing.streamprocessor.CommandProcessor;
 import io.camunda.zeebe.engine.processing.streamprocessor.TypedRecord;
+import io.camunda.zeebe.engine.processing.streamprocessor.sideeffect.SideEffectQueue;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.StateWriter;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.TypedCommandWriter;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.Writers;
@@ -53,17 +57,20 @@ public final class CreateProcessInstanceProcessor
   private final KeyGenerator keyGenerator;
   private final TypedCommandWriter commandWriter;
   private final StateWriter stateWriter;
+  private final CatchEventBehavior catchEventBehavior;
 
   public CreateProcessInstanceProcessor(
       final ProcessState processState,
       final KeyGenerator keyGenerator,
       final Writers writers,
-      final VariableBehavior variableBehavior) {
+      final VariableBehavior variableBehavior,
+      final CatchEventBehavior catchEventBehavior) {
     this.processState = processState;
     this.variableBehavior = variableBehavior;
     this.keyGenerator = keyGenerator;
     commandWriter = writers.command();
     stateWriter = writers.state();
+    this.catchEventBehavior = catchEventBehavior;
   }
 
   @Override
@@ -92,14 +99,19 @@ public final class CreateProcessInstanceProcessor
       stateWriter.appendFollowUpEvent(
           processInstanceKey, ProcessInstanceIntent.ELEMENT_ACTIVATED, processInstance);
       final long elementKey = keyGenerator.nextKey();
-      final ProcessInstanceRecord elementProcessInstance = new ProcessInstanceRecord();
-      elementProcessInstance.setBpmnProcessId(process.getBpmnProcessId());
-      elementProcessInstance.setVersion(process.getVersion());
-      elementProcessInstance.setProcessDefinitionKey(process.getKey());
-      elementProcessInstance.setProcessInstanceKey(processInstanceKey);
-      elementProcessInstance.setBpmnElementType(BpmnElementType.END_EVENT);
-      elementProcessInstance.setElementId(record.getElementIdProperty());
-      elementProcessInstance.setFlowScopeKey(processInstanceKey);
+      final ProcessInstanceRecord elementProcessInstance =
+          createProcessInstanceRecord(record, process, processInstanceKey);
+
+      final var bpmnElementContext = new BpmnElementContextImpl();
+      bpmnElementContext.init(
+          elementProcessInstance.getFlowScopeKey(),
+          processInstance,
+          ProcessInstanceIntent.ELEMENT_ACTIVATED);
+      final SideEffectQueue sideEffects = new SideEffectQueue();
+      catchEventBehavior.subscribeToEvents(
+          bpmnElementContext, process.getProcess(), sideEffects, commandWriter);
+      sideEffects.flush();
+
       commandWriter.appendFollowUpCommand(
           elementKey, ProcessInstanceIntent.ACTIVATE_ELEMENT, elementProcessInstance);
     }
@@ -111,6 +123,23 @@ public final class CreateProcessInstanceProcessor
         .setProcessDefinitionKey(process.getKey());
     controller.accept(ProcessInstanceCreationIntent.CREATED, record);
     return true;
+  }
+
+  private ProcessInstanceRecord createProcessInstanceRecord(
+      final ProcessInstanceCreationRecord record,
+      final DeployedProcess process,
+      final long processInstanceKey) {
+    final ProcessInstanceRecord elementProcessInstance = new ProcessInstanceRecord();
+    elementProcessInstance.setBpmnProcessId(process.getBpmnProcessId());
+    elementProcessInstance.setVersion(process.getVersion());
+    elementProcessInstance.setProcessDefinitionKey(process.getKey());
+    elementProcessInstance.setProcessInstanceKey(processInstanceKey);
+    final AbstractFlowElement element =
+        process.getProcess().getElementById(record.getElementIdProperty());
+    elementProcessInstance.setBpmnElementType(element.getElementType());
+    elementProcessInstance.setElementId(record.getElementIdProperty());
+    elementProcessInstance.setFlowScopeKey(processInstanceKey);
+    return elementProcessInstance;
   }
 
   private boolean isValidProcess(
