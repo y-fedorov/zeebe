@@ -49,6 +49,8 @@ import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.TopologyResponse;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.UpdateJobRetriesRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.UpdateJobRetriesResponse;
 import io.camunda.zeebe.util.VersionUtil;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +62,7 @@ public final class EndpointManager {
   private final BrokerTopologyManager topologyManager;
   private final ActivateJobsHandler activateJobsHandler;
   private final RequestRetryHandler requestRetryHandler;
+  private final Tracer tracer;
 
   public EndpointManager(
       final BrokerClient brokerClient, final ActivateJobsHandler activateJobsHandler) {
@@ -67,6 +70,8 @@ public final class EndpointManager {
     topologyManager = brokerClient.getTopologyManager();
     this.activateJobsHandler = activateJobsHandler;
     requestRetryHandler = new RequestRetryHandler(brokerClient, topologyManager);
+
+    tracer = GlobalOpenTelemetry.getTracer(EndpointManager.class.getName());
   }
 
   private void addBrokerInfo(
@@ -162,20 +167,42 @@ public final class EndpointManager {
   public void completeJob(
       final CompleteJobRequest request,
       final ServerStreamObserver<CompleteJobResponse> responseObserver) {
+
+    final var span =
+        tracer.spanBuilder("completeJob").setAttribute("jobKey", request.getJobKey()).startSpan();
+
     sendRequest(
         request,
         RequestMapper::toCompleteJobRequest,
-        ResponseMapper::toCompleteJobResponse,
+        (key, response) -> {
+          final var jobResponse = ResponseMapper.toCompleteJobResponse(key, response);
+          span.setAttribute("processInstanceKey", response.getProcessInstanceKey())
+              .setAttribute("processId", response.getBpmnProcessId())
+              .setAttribute("key", request.getJobKey())
+              .end();
+          return jobResponse;
+        },
         responseObserver);
   }
 
   public void createProcessInstance(
       final CreateProcessInstanceRequest request,
       final ServerStreamObserver<CreateProcessInstanceResponse> responseObserver) {
+    final var span =
+        tracer
+            .spanBuilder("createProcessInstance")
+            .setAttribute("processId", request.getBpmnProcessId())
+            .startSpan();
+
     sendRequestWithRetryPartitions(
         request,
         RequestMapper::toCreateProcessInstanceRequest,
-        ResponseMapper::toCreateProcessInstanceResponse,
+        (key, response) -> {
+          final var instanceResponse =
+              ResponseMapper.toCreateProcessInstanceResponse(key, response);
+          span.setAttribute("processInstanceKey", key).setAttribute("key", key).end();
+          return instanceResponse;
+        },
         responseObserver);
   }
 

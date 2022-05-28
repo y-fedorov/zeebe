@@ -7,6 +7,8 @@
  */
 package io.camunda.zeebe.broker;
 
+import com.google.cloud.opentelemetry.trace.TraceConfiguration;
+import com.google.cloud.opentelemetry.trace.TraceExporter;
 import io.camunda.zeebe.broker.bootstrap.BrokerContext;
 import io.camunda.zeebe.broker.bootstrap.BrokerStartupContextImpl;
 import io.camunda.zeebe.broker.bootstrap.BrokerStartupProcess;
@@ -15,6 +17,7 @@ import io.camunda.zeebe.broker.exporter.repo.ExporterRepository;
 import io.camunda.zeebe.broker.system.SystemContext;
 import io.camunda.zeebe.broker.system.configuration.BrokerCfg;
 import io.camunda.zeebe.broker.system.monitoring.BrokerHealthCheckService;
+import io.camunda.zeebe.engine.processing.streamprocessor.StreamProcessor;
 import io.camunda.zeebe.protocol.impl.encoding.BrokerInfo;
 import io.camunda.zeebe.util.LogUtil;
 import io.camunda.zeebe.util.VersionUtil;
@@ -24,6 +27,9 @@ import io.camunda.zeebe.util.sched.Actor;
 import io.camunda.zeebe.util.sched.ActorScheduler;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.netty.util.NetUtil;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -32,14 +38,11 @@ import org.slf4j.Logger;
 public final class Broker implements AutoCloseable {
 
   public static final Logger LOG = Loggers.SYSTEM_LOGGER;
-
   private final SystemContext systemContext;
   private boolean isClosed = false;
-
   private CompletableFuture<Broker> startFuture;
   private final ActorScheduler scheduler;
   private BrokerHealthCheckService healthCheckService;
-
   // TODO make Broker class itself the actor
   private final BrokerStartupActor brokerStartupActor;
   private final BrokerInfo localBroker;
@@ -76,6 +79,20 @@ public final class Broker implements AutoCloseable {
   }
 
   public synchronized CompletableFuture<Broker> start() {
+    try (final TraceExporter traceExporter =
+        TraceExporter.createWithConfiguration(
+            TraceConfiguration.builder().setProjectId("zeebe-io").build())) {
+      // Register the TraceExporter with OpenTelemetry
+      StreamProcessor.openTelemetrySdk =
+          OpenTelemetrySdk.builder()
+              .setTracerProvider(
+                  SdkTracerProvider.builder()
+                      .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
+                      .build())
+              .buildAndRegisterGlobal();
+    } catch (final Exception e) {
+      return CompletableFuture.failedFuture(e);
+    }
     if (startFuture == null) {
       logBrokerStart();
 
@@ -168,6 +185,7 @@ public final class Broker implements AutoCloseable {
                 .thenAccept(
                     b -> {
                       brokerStartupActor.stop().join();
+                      StreamProcessor.openTelemetrySdk.getSdkTracerProvider().shutdown();
                       healthCheckService = null;
                       isClosed = true;
                       LOG.info("Broker shut down.");

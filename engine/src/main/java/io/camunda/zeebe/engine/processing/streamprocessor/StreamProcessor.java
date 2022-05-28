@@ -28,6 +28,7 @@ import io.camunda.zeebe.util.sched.ActorSchedulingService;
 import io.camunda.zeebe.util.sched.clock.ActorClock;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +77,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
 
   public static final long UNSET_POSITION = -1L;
   public static final Duration HEALTH_CHECK_TICK_DURATION = Duration.ofSeconds(5);
+  public static OpenTelemetrySdk openTelemetrySdk;
 
   private static final String ERROR_MESSAGE_RECOVER_FROM_SNAPSHOT_FAILED =
       "Expected to find event with the snapshot position %s in log stream, but nothing was found. Failed to recover '%s'.";

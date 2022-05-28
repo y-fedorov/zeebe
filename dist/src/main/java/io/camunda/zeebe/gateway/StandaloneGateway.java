@@ -7,6 +7,8 @@
  */
 package io.camunda.zeebe.gateway;
 
+import com.google.cloud.opentelemetry.trace.TraceConfiguration;
+import com.google.cloud.opentelemetry.trace.TraceExporter;
 import io.atomix.cluster.AtomixCluster;
 import io.atomix.cluster.AtomixClusterBuilder;
 import io.atomix.cluster.discovery.BootstrapDiscoveryProvider;
@@ -26,6 +28,9 @@ import io.camunda.zeebe.util.CloseableSilently;
 import io.camunda.zeebe.util.VersionUtil;
 import io.camunda.zeebe.util.error.FatalErrorHandler;
 import io.camunda.zeebe.util.sched.ActorScheduler;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
@@ -54,12 +59,11 @@ import org.springframework.context.event.ContextClosedEvent;
 @ConfigurationPropertiesScan(basePackages = {"io.camunda.zeebe.gateway", "io.camunda.zeebe.shared"})
 public class StandaloneGateway
     implements CommandLineRunner, ApplicationListener<ContextClosedEvent>, CloseableSilently {
+  public static OpenTelemetrySdk openTelemetrySdk;
   private static final Logger LOG = Loggers.GATEWAY_LOGGER;
-
   private final GatewayCfg configuration;
   private final SpringGatewayBridge springGatewayBridge;
   private final ActorClockConfiguration clockConfig;
-
   private AtomixCluster atomixCluster;
   private Gateway gateway;
   private ActorScheduler actorScheduler;
@@ -75,6 +79,7 @@ public class StandaloneGateway
   }
 
   public static void main(final String[] args) {
+
     Thread.setDefaultUncaughtExceptionHandler(
         FatalErrorHandler.uncaughtExceptionHandler(Loggers.GATEWAY_LOGGER));
 
@@ -91,6 +96,17 @@ public class StandaloneGateway
 
   @Override
   public void run(final String... args) throws Exception {
+    final TraceExporter traceExporter =
+        TraceExporter.createWithConfiguration(
+            TraceConfiguration.builder().setProjectId("zeebe-io").build());
+    // Register the TraceExporter with OpenTelemetry
+    openTelemetrySdk =
+        OpenTelemetrySdk.builder()
+            .setTracerProvider(
+                SdkTracerProvider.builder()
+                    .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
+                    .build())
+            .buildAndRegisterGlobal();
     configuration.init();
 
     if (LOG.isInfoEnabled()) {
@@ -147,6 +163,7 @@ public class StandaloneGateway
     }
 
     LogManager.shutdown();
+    openTelemetrySdk.getSdkTracerProvider().shutdown();
   }
 
   private BrokerClient createBrokerClient(final GatewayCfg config) {

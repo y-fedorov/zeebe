@@ -32,6 +32,9 @@ import io.camunda.zeebe.util.retry.RetryStrategy;
 import io.camunda.zeebe.util.sched.ActorControl;
 import io.camunda.zeebe.util.sched.clock.ActorClock;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.prometheus.client.Histogram;
 import java.time.Duration;
 import java.util.function.BooleanSupplier;
@@ -146,6 +149,9 @@ public final class ProcessingStateMachine {
   // Used for processing duration metrics
   private Histogram.Timer processingTimer;
   private boolean reachedEnd = true;
+  private final Tracer tracer;
+  private Span currentProcessSpan;
+  private Scope currentScope;
 
   public ProcessingStateMachine(
       final ProcessingContext context, final BooleanSupplier shouldProcessNext) {
@@ -160,7 +166,10 @@ public final class ProcessingStateMachine {
     transactionContext = context.getTransactionContext();
     abortCondition = context.getAbortCondition();
     lastProcessedPositionState = context.getLastProcessedPositionState();
-
+    tracer =
+        StreamProcessor.openTelemetrySdk
+            .getTracerProvider()
+            .get((ProcessingStateMachine.class.getName()));
     writeRetryStrategy = new AbortableRetryStrategy(actor);
     sideEffectsRetryStrategy = new AbortableRetryStrategy(actor);
     updateStateRetryStrategy = new RecoverableRetryStrategy(actor);
@@ -229,6 +238,12 @@ public final class ProcessingStateMachine {
   }
 
   private void processCommand(final LoggedEvent command) {
+    if (currentProcessSpan != null) {
+      if (currentScope != null) {
+        currentScope.close();
+      }
+      currentProcessSpan.setAttribute("key", currentRecord.getKey()).end();
+    }
     metadata.reset();
     command.readMetadata(metadata);
 
@@ -237,6 +252,9 @@ public final class ProcessingStateMachine {
       skipRecord();
       return;
     }
+
+    currentProcessSpan = tracer.spanBuilder("processInTransaction").setNoParent().startSpan();
+    currentScope = currentProcessSpan.makeCurrent();
 
     // Here we need to get the current time, since we want to calculate
     // how long it took between writing to the dispatcher and processing.
@@ -250,7 +268,21 @@ public final class ProcessingStateMachine {
 
       metrics.processingLatency(command.getTimestamp(), processingStartTime);
 
-      processInTransaction(typedCommand);
+      final var span =
+          tracer
+              .spanBuilder("processInTransaction")
+              .setAttribute("key", typedCommand.getKey())
+              .setAttribute("intent", typedCommand.getIntent().name())
+              .setAttribute("recordType", typedCommand.getRecordType().name())
+              .setAttribute("valueType", typedCommand.getValueType().name())
+              .setAttribute("partition", typedCommand.getPartitionId())
+              .startSpan();
+
+      try (final var scope = span.makeCurrent()) {
+        processInTransaction(typedCommand);
+      } finally {
+        span.end();
+      }
 
       metrics.commandsProcessed();
 
@@ -304,7 +336,6 @@ public final class ProcessingStateMachine {
                 logStreamWriter,
                 this::setSideEffectProducer);
           }
-
           lastProcessedPositionState.markAsProcessed(position);
         });
   }
@@ -378,6 +409,10 @@ public final class ProcessingStateMachine {
   }
 
   private void writeRecords() {
+    final var span =
+        tracer.spanBuilder("writeRecords").setAttribute("key", currentRecord.getKey()).startSpan();
+
+    final var scope = span.makeCurrent();
     final ActorFuture<Boolean> retryFuture =
         writeRetryStrategy.runWithRetry(
             () -> {
@@ -395,6 +430,8 @@ public final class ProcessingStateMachine {
     actor.runOnCompletion(
         retryFuture,
         (bool, t) -> {
+          scope.close();
+          span.end();
           if (t != null) {
             LOG.error(ERROR_MESSAGE_WRITE_RECORD_ABORTED, currentRecord, metadata, t);
             onError(t, this::writeRecords);
@@ -410,6 +447,13 @@ public final class ProcessingStateMachine {
   }
 
   private void updateState() {
+    final var span =
+        tracer
+            .spanBuilder("commitTransaction")
+            .setAttribute("key", currentRecord.getKey())
+            .startSpan();
+
+    final var scope = span.makeCurrent();
     final ActorFuture<Boolean> retryFuture =
         updateStateRetryStrategy.runWithRetry(
             () -> {
@@ -417,6 +461,7 @@ public final class ProcessingStateMachine {
               lastSuccessfulProcessedRecordPosition = currentRecord.getPosition();
               metrics.setLastProcessedPosition(lastSuccessfulProcessedRecordPosition);
               lastWrittenPosition = writtenPosition;
+
               return true;
             },
             abortCondition);
@@ -424,6 +469,8 @@ public final class ProcessingStateMachine {
     actor.runOnCompletion(
         retryFuture,
         (bool, throwable) -> {
+          scope.close();
+          span.end();
           if (throwable != null) {
             LOG.error(ERROR_MESSAGE_UPDATE_STATE_FAILED, currentRecord, metadata, throwable);
             onError(throwable, this::updateState);
@@ -434,6 +481,10 @@ public final class ProcessingStateMachine {
   }
 
   private void executeSideEffects() {
+    final var span =
+        tracer.spanBuilder("sideEffects").setAttribute("key", currentRecord.getKey()).startSpan();
+
+    final var scope = span.makeCurrent();
     final ActorFuture<Boolean> retryFuture =
         sideEffectsRetryStrategy.runWithRetry(sideEffectProducer::flush, abortCondition);
 
@@ -452,6 +503,9 @@ public final class ProcessingStateMachine {
 
           // continue with next record
           currentProcessor = null;
+
+          scope.close();
+          span.end();
           actor.submit(this::readNextRecord);
         });
   }

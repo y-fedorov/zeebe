@@ -12,6 +12,7 @@ import io.camunda.zeebe.broker.transport.ApiRequestHandler;
 import io.camunda.zeebe.broker.transport.ErrorResponseWriter;
 import io.camunda.zeebe.broker.transport.backpressure.BackpressureMetrics;
 import io.camunda.zeebe.broker.transport.backpressure.RequestLimiter;
+import io.camunda.zeebe.engine.processing.streamprocessor.StreamProcessor;
 import io.camunda.zeebe.logstreams.log.LogStreamRecordWriter;
 import io.camunda.zeebe.msgpack.UnpackedObject;
 import io.camunda.zeebe.protocol.impl.record.RecordMetadata;
@@ -19,6 +20,7 @@ import io.camunda.zeebe.protocol.record.ExecuteCommandRequestDecoder;
 import io.camunda.zeebe.protocol.record.RecordType;
 import io.camunda.zeebe.protocol.record.intent.Intent;
 import io.camunda.zeebe.util.Either;
+import io.opentelemetry.api.trace.Tracer;
 import org.agrona.collections.Int2ObjectHashMap;
 import org.slf4j.Logger;
 
@@ -31,9 +33,16 @@ final class CommandApiRequestHandler
       new Int2ObjectHashMap<>();
   private final BackpressureMetrics metrics = new BackpressureMetrics();
   private boolean isDiskSpaceAvailable = true;
+  private final Tracer tracer;
 
   CommandApiRequestHandler() {
     super(new CommandApiRequestReader(), new CommandApiResponseWriter());
+
+    tracer =
+        StreamProcessor.openTelemetrySdk
+            .getTracerProvider()
+            .tracerBuilder(CommandApiRequestHandler.class.getName())
+            .build();
   }
 
   @Override
@@ -102,7 +111,16 @@ final class CommandApiRequestHandler
 
     boolean written = false;
     try {
-      written = writeCommand(command.key(), metadata, event, logStreamWriter);
+      final var span =
+          tracer
+              .spanBuilder("commandApiWriteCommand")
+              .setAttribute("key", command.key())
+              .setAttribute("partition", command.partitionId())
+              .startSpan();
+      try (final var scope = span.makeCurrent()) {
+        written = writeCommand(command.key(), metadata, event, logStreamWriter);
+      }
+      span.end();
       return Either.right(responseWriter);
     } catch (final Exception ex) {
       LOG.error("Unexpected error on writing {} command", intent, ex);

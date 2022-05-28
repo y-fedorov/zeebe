@@ -13,6 +13,7 @@ import io.camunda.zeebe.shared.ActorClockConfiguration;
 import io.camunda.zeebe.shared.Profile;
 import io.camunda.zeebe.util.FileUtil;
 import io.camunda.zeebe.util.error.FatalErrorHandler;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -41,13 +42,12 @@ import org.springframework.core.env.Profiles;
 @ConfigurationPropertiesScan(basePackages = {"io.camunda.zeebe.broker", "io.camunda.zeebe.shared"})
 public class StandaloneBroker
     implements CommandLineRunner, ApplicationListener<ContextClosedEvent> {
+  public static OpenTelemetrySdk openTelemetrySdk;
   private static final Logger LOG = Loggers.SYSTEM_LOGGER;
-
   private final BrokerCfg configuration;
   private final Environment springEnvironment;
   private final SpringBrokerBridge springBrokerBridge;
   private final ActorClockConfiguration clockConfig;
-
   private String tempFolder;
   private SystemContext systemContext;
   private Broker broker;
@@ -80,7 +80,7 @@ public class StandaloneBroker
   }
 
   @Override
-  public void run(final String... args) {
+  public void run(final String... args) throws Exception {
     if (shouldUseTemporaryFolder()) {
       LOG.info("Launching broker in temporary folder.");
       systemContext = createSystemContextInTempDirectory();
