@@ -10,12 +10,12 @@ package io.camunda.zeebe.gateway.impl.job;
 import io.camunda.zeebe.gateway.grpc.ServerStreamObserver;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsResponse;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 /** Can handle an 'activate jobs' request from a client. */
-public interface ActivateJobsHandler extends Consumer<ActorContext> {
+public interface ActivateJobsHandler extends Consumer<ExecutionContext> {
 
   static final AtomicLong ACTIVATE_JOBS_REQUEST_ID_GENERATOR = new AtomicLong(1);
 

@@ -38,7 +38,7 @@ import io.camunda.zeebe.protocol.impl.record.value.deployment.ProcessMetadata;
 import io.camunda.zeebe.protocol.record.RejectionType;
 import io.camunda.zeebe.protocol.record.intent.DeploymentIntent;
 import io.camunda.zeebe.util.Either;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import java.util.List;
 import java.util.function.Consumer;
 import org.agrona.DirectBuffer;
@@ -66,7 +66,7 @@ public final class DeploymentCreateProcessor implements TypedRecordProcessor<Dep
       final ExpressionProcessor expressionProcessor,
       final int partitionsCount,
       final Writers writers,
-      final ActorContext actor,
+      final ExecutionContext actor,
       final DeploymentDistributor deploymentDistributor,
       final KeyGenerator keyGenerator) {
     processState = zeebeState.getProcessState();

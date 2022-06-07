@@ -57,7 +57,7 @@ import io.camunda.zeebe.test.util.record.RecordingExporterTestWatcher;
 import io.camunda.zeebe.util.FeatureFlags;
 import io.camunda.zeebe.util.buffer.BufferUtil;
 import io.camunda.zeebe.util.buffer.BufferWriter;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.clock.ControlledActorClock;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
@@ -442,7 +442,7 @@ public final class EngineRule extends ExternalResource {
     public void onRecovered(final ReadonlyProcessingContext context) {
       final int partitionId = context.getLogStream().getPartitionId();
       typedEvent = new TypedEventImpl(partitionId);
-      final ActorContext actor = context.getActor();
+      final ExecutionContext actor = context.getActor();
 
       final LogStream logStream = context.getLogStream();
       logStream.registerRecordAvailableListener(() -> actor.run(this::onNewEventCommitted));

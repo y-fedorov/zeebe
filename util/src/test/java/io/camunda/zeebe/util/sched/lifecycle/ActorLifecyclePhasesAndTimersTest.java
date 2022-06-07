@@ -30,7 +30,7 @@ public final class ActorLifecyclePhasesAndTimersTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            actorContext.runDelayed(Duration.ofMillis(10), action);
+            executionContext.runDelayed(Duration.ofMillis(10), action);
             blockPhase();
           }
         };
@@ -55,7 +55,7 @@ public final class ActorLifecyclePhasesAndTimersTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            actorContext.runDelayed(Duration.ofMillis(10), action);
+            executionContext.runDelayed(Duration.ofMillis(10), action);
             blockPhase(future);
           }
         };
@@ -82,7 +82,7 @@ public final class ActorLifecyclePhasesAndTimersTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarted() {
-            actorContext.runDelayed(Duration.ofMillis(10), action);
+            executionContext.runDelayed(Duration.ofMillis(10), action);
           }
         };
     schedulerRule.submitActor(actor);
@@ -106,7 +106,7 @@ public final class ActorLifecyclePhasesAndTimersTest {
           @Override
           public void onActorCloseRequested() {
             blockPhase();
-            actorContext.runDelayed(Duration.ofMillis(10), action);
+            executionContext.runDelayed(Duration.ofMillis(10), action);
           }
         };
     schedulerRule.submitActor(actor);
@@ -131,7 +131,7 @@ public final class ActorLifecyclePhasesAndTimersTest {
           @Override
           public void onActorClosing() {
             blockPhase();
-            actorContext.runDelayed(Duration.ofMillis(10), action);
+            executionContext.runDelayed(Duration.ofMillis(10), action);
           }
         };
     schedulerRule.submitActor(actor);

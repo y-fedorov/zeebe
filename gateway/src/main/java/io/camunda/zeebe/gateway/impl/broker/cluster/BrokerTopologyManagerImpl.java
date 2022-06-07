@@ -73,7 +73,7 @@ public final class BrokerTopologyManagerImpl extends Actor
   @Override
   protected void onActorStarted() {
     // to make gateway topology more robust we need to check for missing events periodically
-    actorContext.runAtFixedRate(Duration.ofSeconds(5), this::checkForMissingEvents);
+    executionContext.runAtFixedRate(Duration.ofSeconds(5), this::checkForMissingEvents);
   }
 
   @Override
@@ -83,7 +83,7 @@ public final class BrokerTopologyManagerImpl extends Actor
     final BrokerInfo brokerInfo = BrokerInfo.fromProperties(subject.properties());
 
     if (brokerInfo != null) {
-      actorContext.call(
+      executionContext.call(
           () -> {
             final BrokerClusterStateImpl newTopology = new BrokerClusterStateImpl(topology.get());
 

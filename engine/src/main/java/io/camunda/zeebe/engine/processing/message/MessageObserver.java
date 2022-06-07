@@ -12,7 +12,7 @@ import io.camunda.zeebe.engine.processing.streamprocessor.ReadonlyProcessingCont
 import io.camunda.zeebe.engine.processing.streamprocessor.StreamProcessorLifecycleAware;
 import io.camunda.zeebe.engine.state.immutable.MessageState;
 import io.camunda.zeebe.engine.state.mutable.MutablePendingMessageSubscriptionState;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import java.time.Duration;
 
 public final class MessageObserver implements StreamProcessorLifecycleAware {
@@ -37,7 +37,7 @@ public final class MessageObserver implements StreamProcessorLifecycleAware {
 
   @Override
   public void onRecovered(final ReadonlyProcessingContext context) {
-    final ActorContext actor = context.getActor();
+    final ExecutionContext actor = context.getActor();
     // it is safe to reuse the write because we running in the same actor/thread
     final MessageTimeToLiveChecker timeToLiveChecker =
         new MessageTimeToLiveChecker(context.getLogStreamWriter(), messageState);

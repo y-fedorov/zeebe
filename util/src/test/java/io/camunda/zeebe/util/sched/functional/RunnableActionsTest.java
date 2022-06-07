@@ -16,8 +16,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorThread;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.testing.ControlledActorSchedulerRule;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,7 +131,7 @@ public final class RunnableActionsTest {
   public void shouldRunUntilDoneCalled() {
     // given
     final Runner actor = new Runner();
-    final Consumer<ActorContext> runnable =
+    final Consumer<ExecutionContext> runnable =
         (ctr) -> {
           if (actor.runs == 5) {
             ctr.done();
@@ -154,11 +154,11 @@ public final class RunnableActionsTest {
     // given
     final Runnable otherAction = mock(Runnable.class);
     final Runner actor = new Runner();
-    final Consumer<ActorContext> runUntilDoneAction =
+    final Consumer<ExecutionContext> runUntilDoneAction =
         spy(
-            new Consumer<ActorContext>() {
+            new Consumer<ExecutionContext>() {
               @Override
-              public void accept(final ActorContext ctr) {
+              public void accept(final ExecutionContext ctr) {
                 ctr.run(otherAction); // does not interrupt this action
 
                 if (actor.runs == 5) {
@@ -215,7 +215,7 @@ public final class RunnableActionsTest {
 
   class Submitter extends Actor {
     public void submit(final Runnable r) {
-      actorContext.submit(r);
+      executionContext.submit(r);
     }
   }
 
@@ -232,7 +232,7 @@ public final class RunnableActionsTest {
     }
 
     public void doRun() {
-      actorContext.run(
+      executionContext.run(
           () -> {
             if (onExecution != null) {
               onExecution.run();
@@ -241,13 +241,13 @@ public final class RunnableActionsTest {
           });
     }
 
-    public void doRunUntilDone(final Consumer<ActorContext> runnable) {
-      actorContext.run(
+    public void doRunUntilDone(final Consumer<ExecutionContext> runnable) {
+      executionContext.run(
           () -> {
-            actorContext.runUntilDone(
+            executionContext.runUntilDone(
                 () -> {
                   runs++;
-                  runnable.accept(actorContext);
+                  runnable.accept(executionContext);
                 });
           });
     }

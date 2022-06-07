@@ -24,7 +24,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   public static final String ACTOR_PROP_PARTITION_ID = "partitionId";
 
   private static final int MAX_CLOSE_TIMEOUT = 300;
-  protected final ActorContext actorContext = new ActorContext(this);
+  protected final ExecutionContext executionContext = new ExecutionContext(this);
   private Map<String, String> context;
 
   /**
@@ -63,7 +63,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   }
 
   public boolean isActorClosed() {
-    return actorContext.isClosed();
+    return executionContext.isClosed();
   }
 
   protected void onActorStarting() {
@@ -86,7 +86,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
     // notification that timers, conditions, etc. will no longer trigger from now on
   }
 
-  public static Actor wrap(final Consumer<ActorContext> r) {
+  public static Actor wrap(final Consumer<ExecutionContext> r) {
     return new Actor() {
       @Override
       public String getName() {
@@ -95,7 +95,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
 
       @Override
       protected void onActorStarted() {
-        r.accept(actorContext);
+        r.accept(executionContext);
       }
     };
   }
@@ -107,7 +107,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
 
   @Override
   public ActorFuture<Void> closeAsync() {
-    return actorContext.close();
+    return executionContext.close();
   }
 
   public static String buildActorName(final int nodeId, final String name) {
@@ -123,7 +123,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
     Loggers.ACTOR_LOGGER.error(
         "Uncaught exception in '{}' in phase '{}'. Continuing with next job.",
         getName(),
-        actorContext.getLifecyclePhase(),
+        executionContext.getLifecyclePhase(),
         failure);
   }
 
@@ -134,12 +134,12 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   @Override
   public <T> void runOnCompletion(
       final ActorFuture<T> future, final BiConsumer<T, Throwable> callback) {
-    actorContext.runOnCompletion(future, callback);
+    executionContext.runOnCompletion(future, callback);
   }
 
   @Override
   public void run(final Runnable action) {
-    actorContext.run(action);
+    executionContext.run(action);
   }
 
   public static ActorBuilder newActor() {
@@ -149,21 +149,21 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   public static class ActorBuilder {
 
     private String name;
-    private Consumer<ActorContext> actorStartedHandler;
+    private Consumer<ExecutionContext> actorStartedHandler;
 
     public ActorBuilder name(final String name) {
       this.name = name;
       return this;
     }
 
-    public ActorBuilder actorStartedHandler(final Consumer<ActorContext> actorStartedHandler) {
+    public ActorBuilder actorStartedHandler(final Consumer<ExecutionContext> actorStartedHandler) {
       this.actorStartedHandler = actorStartedHandler;
       return this;
     }
 
     public Actor build() {
       final var wrapper =
-          new Consumer<ActorContext>() {
+          new Consumer<ExecutionContext>() {
 
             @Override
             public String toString() {
@@ -177,7 +177,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
             }
 
             @Override
-            public void accept(final ActorContext t) {
+            public void accept(final ExecutionContext t) {
               if (actorStartedHandler != null) {
                 actorStartedHandler.accept(t);
               }

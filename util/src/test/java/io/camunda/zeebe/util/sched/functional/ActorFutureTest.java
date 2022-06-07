@@ -43,7 +43,8 @@ public final class ActorFutureTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actorContext.runOnCompletion(future, (r, t) -> callbackInvocations.incrementAndGet());
+            executionContext.runOnCompletion(
+                future, (r, t) -> callbackInvocations.incrementAndGet());
           }
         };
 
@@ -76,7 +77,7 @@ public final class ActorFutureTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actorContext.runOnCompletionBlockingCurrentPhase(
+            executionContext.runOnCompletionBlockingCurrentPhase(
                 future, (r, t) -> callbackInvocations.incrementAndGet());
           }
         };
@@ -113,7 +114,7 @@ public final class ActorFutureTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actorContext.runOnCompletion(
+            executionContext.runOnCompletion(
                 Arrays.asList(future1, future2),
                 t -> {
                   invocations.add(t);
@@ -156,7 +157,7 @@ public final class ActorFutureTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actorContext.runOnCompletion(
+            executionContext.runOnCompletion(
                 futures,
                 t -> {
                   invocations.add(t);
@@ -183,7 +184,8 @@ public final class ActorFutureTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actorContext.runOnCompletion(Arrays.asList(future1, future2), t -> invocations.add(t));
+            executionContext.runOnCompletion(
+                Arrays.asList(future1, future2), t -> invocations.add(t));
           }
         };
 
@@ -251,7 +253,7 @@ public final class ActorFutureTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actorContext.runOnCompletion(
+            executionContext.runOnCompletion(
                 CompletableActorFuture.completed("foo"), (r, t) -> futureResult.set(r));
           }
         });
@@ -272,7 +274,7 @@ public final class ActorFutureTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actorContext.runOnCompletionBlockingCurrentPhase(
+            executionContext.runOnCompletionBlockingCurrentPhase(
                 CompletableActorFuture.completed("foo"), (r, t) -> futureResult.set(r));
           }
         });
@@ -546,7 +548,7 @@ public final class ActorFutureTest {
     ActorFuture<Integer> sumValues() {
 
       final CompletableActorFuture<Integer> future = new CompletableActorFuture<>();
-      actorContext.call(
+      executionContext.call(
           () -> {
             actorB
                 .getValue()
@@ -567,15 +569,15 @@ public final class ActorFutureTest {
 
   private static class ActorB extends Actor {
     public ActorFuture<Integer> getValue() {
-      return actorContext.call(() -> 0xCAFE);
+      return executionContext.call(() -> 0xCAFE);
     }
   }
 
   class BlockedCallActor extends Actor {
     public void waitOnFuture() {
-      actorContext.call(
+      executionContext.call(
           () -> {
-            actorContext.runOnCompletionBlockingCurrentPhase(
+            executionContext.runOnCompletionBlockingCurrentPhase(
                 new CompletableActorFuture<>(),
                 (r, t) -> {
                   // never called since future is never completed
@@ -584,15 +586,15 @@ public final class ActorFutureTest {
     }
 
     public ActorFuture<Integer> call(final int returnValue) {
-      return actorContext.call(() -> returnValue);
+      return executionContext.call(() -> returnValue);
     }
   }
 
   class BlockedCallActorWithRunOnCompletion extends Actor {
     public void waitOnFuture() {
-      actorContext.call(
+      executionContext.call(
           () -> {
-            actorContext.runOnCompletion(
+            executionContext.runOnCompletion(
                 new CompletableActorFuture<>(),
                 (r, t) -> {
                   // never called since future is never completed
@@ -601,7 +603,7 @@ public final class ActorFutureTest {
     }
 
     public ActorFuture<Integer> call(final int returnValue) {
-      return actorContext.call(() -> returnValue);
+      return executionContext.call(() -> returnValue);
     }
   }
 
@@ -609,12 +611,13 @@ public final class ActorFutureTest {
 
     public <T> void awaitFuture(
         final ActorFuture<T> f, final BiConsumer<T, Throwable> onCompletion) {
-      actorContext.call(() -> actorContext.runOnCompletionBlockingCurrentPhase(f, onCompletion));
+      executionContext.call(
+          () -> executionContext.runOnCompletionBlockingCurrentPhase(f, onCompletion));
     }
 
     @Override
     public void close() {
-      actorContext.close();
+      executionContext.close();
     }
   }
 }

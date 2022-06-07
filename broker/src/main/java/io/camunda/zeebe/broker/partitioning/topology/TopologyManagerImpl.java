@@ -82,7 +82,7 @@ public final class TopologyManagerImpl extends Actor
   }
 
   public ActorFuture<Void> setLeader(final long term, final int partitionId) {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           partitionLeaders.put(partitionId, localBroker);
           localBroker.setLeaderForPartition(partitionId, term);
@@ -92,7 +92,7 @@ public final class TopologyManagerImpl extends Actor
   }
 
   public ActorFuture<Void> setFollower(final int partitionId) {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           removeIfLeader(localBroker, partitionId);
           localBroker.setFollowerForPartition(partitionId);
@@ -101,7 +101,7 @@ public final class TopologyManagerImpl extends Actor
   }
 
   public ActorFuture<Void> setInactive(final int partitionId) {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           removeIfLeader(localBroker, partitionId);
           localBroker.setInactiveForPartition(partitionId);
@@ -116,7 +116,7 @@ public final class TopologyManagerImpl extends Actor
     final BrokerInfo brokerInfo = readBrokerInfo(eventSource);
 
     if (brokerInfo != null && brokerInfo.getNodeId() != localBroker.getNodeId()) {
-      actorContext.run(
+      executionContext.run(
           () -> {
             switch (clusterMembershipEvent.type()) {
               case METADATA_CHANGED:
@@ -237,12 +237,12 @@ public final class TopologyManagerImpl extends Actor
 
   @Override
   public void removeTopologyPartitionListener(final TopologyPartitionListener listener) {
-    actorContext.run(() -> topologyPartitionListeners.remove(listener));
+    executionContext.run(() -> topologyPartitionListeners.remove(listener));
   }
 
   @Override
   public void addTopologyPartitionListener(final TopologyPartitionListener listener) {
-    actorContext.run(
+    executionContext.run(
         () -> {
           topologyPartitionListeners.add(listener);
 
@@ -261,7 +261,7 @@ public final class TopologyManagerImpl extends Actor
   }
 
   public void onHealthChanged(final int partitionId, final HealthStatus status) {
-    actorContext.run(
+    executionContext.run(
         () -> {
           if (status == HealthStatus.HEALTHY) {
             localBroker.setPartitionHealthy(partitionId);

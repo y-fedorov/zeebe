@@ -200,7 +200,7 @@ public final class Broker implements AutoCloseable {
 
     private BrokerStartupActor(final BrokerStartupContextImpl startupContext) {
       nodeId = startupContext.getBrokerInfo().getNodeId();
-      startupContext.setConcurrencyControl(actorContext);
+      startupContext.setConcurrencyControl(executionContext);
       brokerStartupProcess = new BrokerStartupProcess(startupContext);
     }
 
@@ -211,13 +211,15 @@ public final class Broker implements AutoCloseable {
 
     private ActorFuture<BrokerContext> start() {
       final ActorFuture<BrokerContext> result = createFuture();
-      actorContext.run(() -> actorContext.runOnCompletion(brokerStartupProcess.start(), result));
+      executionContext.run(
+          () -> executionContext.runOnCompletion(brokerStartupProcess.start(), result));
       return result;
     }
 
     private ActorFuture<Void> stop() {
       final ActorFuture<Void> result = createFuture();
-      actorContext.run(() -> actorContext.runOnCompletion(brokerStartupProcess.stop(), result));
+      executionContext.run(
+          () -> executionContext.runOnCompletion(brokerStartupProcess.stop(), result));
       return result;
     }
   }

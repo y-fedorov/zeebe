@@ -37,9 +37,9 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(runnable(ONE));
-            actorContext.run(runnable(TWO));
-            actorContext.run(runnable(THREE));
+            executionContext.run(runnable(ONE));
+            executionContext.run(runnable(TWO));
+            executionContext.run(runnable(THREE));
           }
         };
 
@@ -59,14 +59,14 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.run(
+                  executionContext.run(
                       runnable(TWO)); // this is executed after the current runnable returns
                   actions.add(ONE);
                 });
 
-            actorContext.run(runnable(THREE));
+            executionContext.run(runnable(THREE));
           }
         };
 
@@ -86,14 +86,14 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.submit(runnable(TWO));
+                  executionContext.submit(runnable(TWO));
                   actions.add(ONE);
                 });
 
-            actorContext.run(runnable(THREE));
-            actorContext.submit(runnable(FOUR));
+            executionContext.run(runnable(THREE));
+            executionContext.submit(runnable(FOUR));
           }
         };
 
@@ -118,14 +118,14 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.runOnCompletion(future, futureConsumer(TWO));
+                  executionContext.runOnCompletion(future, futureConsumer(TWO));
                   actions.add(ONE);
                 });
 
-            actorContext.run(runnable(THREE));
-            actorContext.runOnCompletion(future, futureConsumer(FOUR));
+            executionContext.run(runnable(THREE));
+            executionContext.runOnCompletion(future, futureConsumer(FOUR));
           }
         };
 
@@ -150,14 +150,14 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.runOnCompletionBlockingCurrentPhase(future, futureConsumer(TWO));
+                  executionContext.runOnCompletionBlockingCurrentPhase(future, futureConsumer(TWO));
                   actions.add(ONE);
                 });
 
-            actorContext.run(runnable(THREE));
-            actorContext.runOnCompletionBlockingCurrentPhase(future, futureConsumer(FOUR));
+            executionContext.run(runnable(THREE));
+            executionContext.runOnCompletionBlockingCurrentPhase(future, futureConsumer(FOUR));
           }
         };
 
@@ -182,20 +182,20 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(runnable(TWO));
+            executionContext.run(runnable(TWO));
             final AtomicInteger count = new AtomicInteger();
-            actorContext.runUntilDone(
+            executionContext.runUntilDone(
                 () -> {
                   final int couter = count.incrementAndGet();
                   if (couter > 2) {
-                    actorContext.done();
+                    executionContext.done();
                   } else {
-                    actorContext.runOnCompletion(future, futureConsumer(FOUR));
+                    executionContext.runOnCompletion(future, futureConsumer(FOUR));
                   }
 
                   actions.add(ONE);
                 });
-            actorContext.run(runnable(THREE));
+            executionContext.run(runnable(THREE));
           }
         };
 
@@ -221,20 +221,21 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(runnable(TWO));
+            executionContext.run(runnable(TWO));
             final AtomicInteger count = new AtomicInteger();
-            actorContext.runUntilDone(
+            executionContext.runUntilDone(
                 () -> {
                   final int couter = count.incrementAndGet();
                   if (couter > 2) {
-                    actorContext.done();
+                    executionContext.done();
                   } else {
-                    actorContext.runOnCompletionBlockingCurrentPhase(future, futureConsumer(FOUR));
+                    executionContext.runOnCompletionBlockingCurrentPhase(
+                        future, futureConsumer(FOUR));
                   }
 
                   actions.add(ONE);
                 });
-            actorContext.run(runnable(THREE));
+            executionContext.run(runnable(THREE));
           }
         };
 
@@ -264,21 +265,21 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.consume(
+                  executionContext.consume(
                       ch,
                       () -> {
                         ch.poll();
                         actions.add(THREE);
-                        actorContext.run(
+                        executionContext.run(
                             runnable(
                                 FOUR)); // this is done before the consumer fired for the second
                         // time
                       });
                   actions.add(ONE);
                 });
-            actorContext.run(runnable(TWO));
+            executionContext.run(runnable(TWO));
           }
         };
 
@@ -300,14 +301,14 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
                   final ActorCondition condition =
-                      actorContext.onCondition(
+                      executionContext.onCondition(
                           "cond",
                           () -> {
                             actions.add(THREE);
-                            actorContext.run(
+                            executionContext.run(
                                 runnable(
                                     FOUR)); // this is done before the condition is fired for the
                             // second time
@@ -315,7 +316,7 @@ public final class RunnableOrderingTests {
                   conditionFuture.complete(condition);
                   actions.add(ONE);
                 });
-            actorContext.run(runnable(TWO));
+            executionContext.run(runnable(TWO));
           }
         };
 
@@ -342,20 +343,20 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.runAtFixedRate(
+                  executionContext.runAtFixedRate(
                       Duration.ofMillis(10),
                       () -> {
                         actions.add(THREE);
-                        actorContext.run(
+                        executionContext.run(
                             runnable(
                                 FOUR)); // this is done before the timer is fired for the second
                         // time
                       });
                   actions.add(ONE);
                 });
-            actorContext.run(runnable(TWO));
+            executionContext.run(runnable(TWO));
           }
         };
 
@@ -381,17 +382,17 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.runOnCompletion(
+                  executionContext.runOnCompletion(
                       future,
                       (v, t) -> {
                         actions.add(THREE);
-                        actorContext.run(runnable(FOUR));
+                        executionContext.run(runnable(FOUR));
                       });
                   actions.add(ONE);
                 });
-            actorContext.run(runnable(TWO));
+            executionContext.run(runnable(TWO));
           }
         };
 
@@ -425,17 +426,17 @@ public final class RunnableOrderingTests {
         new ActionRecordingActor() {
           @Override
           protected void onActorStarted() {
-            actorContext.run(
+            executionContext.run(
                 () -> {
-                  actorContext.runOnCompletionBlockingCurrentPhase(
+                  executionContext.runOnCompletionBlockingCurrentPhase(
                       future,
                       (v, t) -> {
                         actions.add(THREE);
-                        actorContext.run(runnable(FOUR));
+                        executionContext.run(runnable(FOUR));
                       });
                   actions.add(ONE);
                 });
-            actorContext.run(runnable(TWO));
+            executionContext.run(runnable(TWO));
           }
         };
 

@@ -41,7 +41,7 @@ import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.DeploymentDistributionIntent;
 import io.camunda.zeebe.protocol.record.intent.DeploymentIntent;
 import io.camunda.zeebe.util.FeatureFlags;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import java.util.function.Consumer;
 
 public final class EngineProcessors {
@@ -178,7 +178,7 @@ public final class EngineProcessors {
       final ExpressionProcessor expressionProcessor,
       final Writers writers,
       final int partitionsCount,
-      final ActorContext actor,
+      final ExecutionContext actor,
       final DeploymentDistributor deploymentDistributor,
       final KeyGenerator keyGenerator) {
 

@@ -10,7 +10,7 @@ package io.camunda.zeebe.util.retry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.clock.ActorClock;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.testing.ControlledActorSchedulerRule;
@@ -29,7 +29,7 @@ public final class BackOffRetryStrategyTest {
   public final ControlledActorSchedulerRule schedulerRule = new ControlledActorSchedulerRule();
 
   private BackOffRetryStrategy retryStrategy;
-  private ActorContext actorControl;
+  private ExecutionContext actorControl;
   private ActorFuture<Boolean> resultFuture;
 
   @Before
@@ -186,8 +186,8 @@ public final class BackOffRetryStrategyTest {
   }
 
   private final class ControllableActor extends Actor {
-    public ActorContext getActor() {
-      return actorContext;
+    public ExecutionContext getActor() {
+      return executionContext;
     }
   }
 }

@@ -8,19 +8,19 @@
 package io.camunda.zeebe.util.retry;
 
 import io.camunda.zeebe.util.exception.RecoverableException;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.util.function.BooleanSupplier;
 
 public final class RecoverableRetryStrategy implements RetryStrategy {
 
-  private final ActorContext actor;
+  private final ExecutionContext actor;
   private final ActorRetryMechanism retryMechanism;
   private CompletableActorFuture<Boolean> currentFuture;
   private BooleanSupplier terminateCondition;
 
-  public RecoverableRetryStrategy(final ActorContext actor) {
+  public RecoverableRetryStrategy(final ExecutionContext actor) {
     this.actor = actor;
     retryMechanism = new ActorRetryMechanism(actor);
   }

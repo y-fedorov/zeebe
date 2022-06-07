@@ -122,7 +122,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
         processorBuilder
             .getProcessingContext()
             .eventCache(new RecordValues())
-            .actor(actorContext)
+            .actor(executionContext)
             .abortCondition(this::isClosed);
     logStream = processingContext.getLogStream();
     partitionId = logStream.getPartitionId();
@@ -148,7 +148,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
 
   @Override
   protected void onActorStarting() {
-    actorContext.runOnCompletionBlockingCurrentPhase(
+    executionContext.runOnCompletionBlockingCurrentPhase(
         logStream.newLogStreamReader(), this::onRetrievingReader);
   }
 
@@ -224,7 +224,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
   @Override
   public ActorFuture<Void> closeAsync() {
     isOpened.set(false);
-    actorContext.close();
+    executionContext.close();
     return closeFuture;
   }
 
@@ -254,7 +254,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
 
   private void healthCheckTick() {
     lastTickTime = ActorClock.currentTimeMillis();
-    actorContext.runDelayed(HEALTH_CHECK_TICK_DURATION, this::healthCheckTick);
+    executionContext.runDelayed(HEALTH_CHECK_TICK_DURATION, this::healthCheckTick);
   }
 
   private void onRetrievingWriter(
@@ -295,7 +295,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
       processingContext.logStreamReader(reader);
     } else {
       LOG.error("Unexpected error on retrieving reader from log stream.", errorOnReceivingReader);
-      actorContext.close();
+      executionContext.close();
     }
   }
 
@@ -360,8 +360,8 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
 
   private void onFailure(final Throwable throwable) {
     LOG.error(
-        "Actor {} failed in phase {}.", actorName, actorContext.getLifecyclePhase(), throwable);
-    actorContext.fail();
+        "Actor {} failed in phase {}.", actorName, executionContext.getLifecyclePhase(), throwable);
+    executionContext.fail();
     if (!openFuture.isDone()) {
       openFuture.completeExceptionally(throwable);
     }
@@ -388,7 +388,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
   }
 
   public ActorFuture<Long> getLastProcessedPositionAsync() {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           if (isInReplayOnlyMode()) {
             return replayStateMachine.getLastSourceEventPosition();
@@ -406,7 +406,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
   }
 
   public ActorFuture<Long> getLastWrittenPositionAsync() {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           if (isInReplayOnlyMode()) {
             return replayStateMachine.getLastReplayedEventPosition();
@@ -421,7 +421,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
 
   @Override
   public HealthReport getHealthReport() {
-    if (actorContext.isClosed()) {
+    if (executionContext.isClosed()) {
       return HealthReport.unhealthy(this).withMessage("actor is closed");
     }
 
@@ -441,20 +441,20 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
 
   @Override
   public void addFailureListener(final FailureListener failureListener) {
-    actorContext.run(() -> failureListeners.add(failureListener));
+    executionContext.run(() -> failureListeners.add(failureListener));
   }
 
   @Override
   public void removeFailureListener(final FailureListener failureListener) {
-    actorContext.run(() -> failureListeners.remove(failureListener));
+    executionContext.run(() -> failureListeners.remove(failureListener));
   }
 
   public ActorFuture<Phase> getCurrentPhase() {
-    return actorContext.call(() -> phase);
+    return executionContext.call(() -> phase);
   }
 
   public ActorFuture<Void> pauseProcessing() {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           if (shouldProcess) {
             setStateToPausedAndNotifyListeners();
@@ -463,7 +463,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
   }
 
   public ActorFuture<Boolean> hasProcessingReachedTheEnd() {
-    return actorContext.call(
+    return executionContext.call(
         () ->
             processingStateMachine != null
                 && !isInReplayOnlyMode()
@@ -483,14 +483,14 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
   }
 
   public void resumeProcessing() {
-    actorContext.call(
+    executionContext.call(
         () -> {
           if (!shouldProcess) {
             shouldProcess = true;
 
             if (isInReplayOnlyMode() || !replayCompletedFuture.isDone()) {
               phase = Phase.REPLAY;
-              actorContext.submit(replayStateMachine::replayNextEvent);
+              executionContext.submit(replayStateMachine::replayNextEvent);
               LOG.debug("Resumed replay for partition {}", partitionId);
             } else {
               // we only want to call the lifecycle listeners on processing resume
@@ -498,7 +498,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
               lifecycleAwareListeners.forEach(StreamProcessorLifecycleAware::onResumed);
               phase = Phase.PROCESSING;
               if (processingStateMachine != null) {
-                actorContext.submit(processingStateMachine::readNextRecord);
+                executionContext.submit(processingStateMachine::readNextRecord);
               }
               LOG.debug("Resumed processing for partition {}", partitionId);
             }
@@ -508,7 +508,7 @@ public class StreamProcessor extends Actor implements HealthMonitorable, LogReco
 
   @Override
   public void onRecordAvailable() {
-    actorContext.run(processingStateMachine::readNextRecord);
+    executionContext.run(processingStateMachine::readNextRecord);
   }
 
   public enum Phase {

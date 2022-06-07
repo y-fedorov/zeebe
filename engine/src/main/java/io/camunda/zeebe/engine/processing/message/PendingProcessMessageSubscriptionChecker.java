@@ -12,7 +12,7 @@ import io.camunda.zeebe.engine.processing.streamprocessor.ReadonlyProcessingCont
 import io.camunda.zeebe.engine.processing.streamprocessor.StreamProcessorLifecycleAware;
 import io.camunda.zeebe.engine.state.message.ProcessMessageSubscription;
 import io.camunda.zeebe.engine.state.mutable.MutablePendingProcessMessageSubscriptionState;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.ScheduledTimer;
 import io.camunda.zeebe.util.sched.clock.ActorClock;
 import java.time.Duration;
@@ -27,7 +27,7 @@ public final class PendingProcessMessageSubscriptionChecker
   private final MutablePendingProcessMessageSubscriptionState pendingState;
   private final long subscriptionTimeoutInMillis;
 
-  private ActorContext actor;
+  private ExecutionContext actor;
   private ScheduledTimer timer;
 
   public PendingProcessMessageSubscriptionChecker(

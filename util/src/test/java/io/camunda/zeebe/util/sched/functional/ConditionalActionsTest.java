@@ -33,7 +33,7 @@ public final class ConditionalActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            condition.set(actorContext.onCondition("test", action));
+            condition.set(executionContext.onCondition("test", action));
           }
         };
 
@@ -54,7 +54,7 @@ public final class ConditionalActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            condition.set(actorContext.onCondition("test", action));
+            condition.set(executionContext.onCondition("test", action));
           }
         };
 
@@ -77,7 +77,7 @@ public final class ConditionalActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            condition.set(actorContext.onCondition("test", action));
+            condition.set(executionContext.onCondition("test", action));
           }
         };
 
@@ -112,7 +112,7 @@ public final class ConditionalActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            condition.set(actorContext.onCondition("test", action));
+            condition.set(executionContext.onCondition("test", action));
           }
         };
 
@@ -140,13 +140,13 @@ public final class ConditionalActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            condition.set(actorContext.onCondition("foo", this::onCondition));
+            condition.set(executionContext.onCondition("foo", this::onCondition));
           }
 
           protected void onCondition() {
             invocations.incrementAndGet();
-            actorContext.run(this::doNothing);
-            actorContext.yieldThread();
+            executionContext.run(this::doNothing);
+            executionContext.yieldThread();
           }
 
           protected void doNothing() {}

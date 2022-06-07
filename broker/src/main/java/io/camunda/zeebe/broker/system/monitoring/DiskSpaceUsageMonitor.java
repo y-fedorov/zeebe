@@ -41,7 +41,7 @@ public class DiskSpaceUsageMonitor extends Actor {
   @Override
   protected void onActorStarted() {
     checkDiskUsageAndNotifyListeners();
-    actorContext.runAtFixedRate(monitoringDelay, this::checkDiskUsageAndNotifyListeners);
+    executionContext.runAtFixedRate(monitoringDelay, this::checkDiskUsageAndNotifyListeners);
   }
 
   private void checkDiskUsageAndNotifyListeners() {
@@ -63,7 +63,7 @@ public class DiskSpaceUsageMonitor extends Actor {
   }
 
   public void addDiskUsageListener(final DiskSpaceUsageListener listener) {
-    actorContext.call(
+    executionContext.call(
         () -> {
           diskSpaceUsageListeners.add(listener);
           // Listeners always assumes diskspace is available on start. So notify them if it is not.
@@ -74,7 +74,7 @@ public class DiskSpaceUsageMonitor extends Actor {
   }
 
   public void removeDiskUsageListener(final DiskSpaceUsageListener listener) {
-    actorContext.call(() -> diskSpaceUsageListeners.remove(listener));
+    executionContext.call(() -> diskSpaceUsageListeners.remove(listener));
   }
 
   // Used only for testing

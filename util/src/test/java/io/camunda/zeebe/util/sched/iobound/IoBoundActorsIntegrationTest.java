@@ -60,7 +60,7 @@ public final class IoBoundActorsIntegrationTest {
           @Override
           protected void onActorStarting() {
             for (int i = 0; i < 1_000; i++) {
-              actorContext.runOnCompletion(callableActor.doCall(), this::callback);
+              executionContext.runOnCompletion(callableActor.doCall(), this::callback);
             }
           }
 
@@ -92,7 +92,7 @@ public final class IoBoundActorsIntegrationTest {
           @Override
           protected void onActorStarting() {
             for (int i = 0; i < 1_000; i++) {
-              actorContext.runOnCompletionBlockingCurrentPhase(
+              executionContext.runOnCompletionBlockingCurrentPhase(
                   callableActor.doCall(), this::callback);
             }
           }
@@ -120,7 +120,7 @@ public final class IoBoundActorsIntegrationTest {
     }
 
     public ActorFuture<Void> doCall() {
-      return actorContext.call(
+      return executionContext.call(
           () -> {
             if (!(ActorThread.current().getActorThreadGroup() instanceof CpuThreadGroup)) {
               isOnWrongThreadGroup.set(true);

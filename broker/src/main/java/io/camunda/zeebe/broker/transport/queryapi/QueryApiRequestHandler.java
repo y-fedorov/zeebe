@@ -57,11 +57,11 @@ public final class QueryApiRequestHandler
   }
 
   public void addPartition(final int partitionId, final QueryService queryService) {
-    actorContext.run(() -> queryServicePerPartition.put(partitionId, queryService));
+    executionContext.run(() -> queryServicePerPartition.put(partitionId, queryService));
   }
 
   public void removePartition(final int partitionId) {
-    actorContext.run(() -> queryServicePerPartition.remove(partitionId));
+    executionContext.run(() -> queryServicePerPartition.remove(partitionId));
   }
 
   @Override

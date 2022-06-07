@@ -18,7 +18,7 @@ import io.camunda.zeebe.engine.processing.deployment.distribute.DeploymentDistri
 import io.camunda.zeebe.protocol.impl.encoding.ErrorResponse;
 import io.camunda.zeebe.protocol.record.ErrorCode;
 import io.camunda.zeebe.util.buffer.BufferUtil;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.nio.ByteOrder;
@@ -40,7 +40,7 @@ public final class DeploymentDistributorImpl implements DeploymentDistributor {
   private final ErrorResponse errorResponse = new ErrorResponse();
 
   private final TopologyPartitionListenerImpl partitionListener;
-  private final ActorContext actor;
+  private final ExecutionContext actor;
 
   private final ClusterCommunicationService communicationService;
   private final ClusterEventService eventService;
@@ -49,7 +49,7 @@ public final class DeploymentDistributorImpl implements DeploymentDistributor {
       final ClusterCommunicationService communicationService,
       final ClusterEventService eventService,
       final TopologyPartitionListenerImpl partitionListener,
-      final ActorContext actor) {
+      final ExecutionContext actor) {
 
     this.communicationService = communicationService;
     this.eventService = eventService;

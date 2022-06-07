@@ -100,17 +100,17 @@ public final class AsyncSnapshotDirector extends Actor
 
   @Override
   protected void onActorStarting() {
-    actorContext.setSchedulingHints(SchedulingHints.ioBound());
+    executionContext.setSchedulingHints(SchedulingHints.ioBound());
     final var firstSnapshotTime =
         RandomDuration.getRandomDurationMinuteBased(MINIMUM_SNAPSHOT_PERIOD, snapshotRate);
-    actorContext.runDelayed(firstSnapshotTime, this::scheduleSnapshotOnRate);
+    executionContext.runDelayed(firstSnapshotTime, this::scheduleSnapshotOnRate);
 
     lastWrittenPosition = null;
   }
 
   @Override
   public ActorFuture<Void> closeAsync() {
-    if (actorContext.isClosed()) {
+    if (executionContext.isClosed()) {
       return CompletableActorFuture.completed(null);
     }
 
@@ -186,7 +186,7 @@ public final class AsyncSnapshotDirector extends Actor
   }
 
   private void scheduleSnapshotOnRate() {
-    actorContext.runAtFixedRate(
+    executionContext.runAtFixedRate(
         snapshotRate, () -> prepareTakingSnapshot(new CompletableActorFuture<>()));
     prepareTakingSnapshot(new CompletableActorFuture<>());
   }
@@ -199,7 +199,7 @@ public final class AsyncSnapshotDirector extends Actor
    */
   public CompletableActorFuture<PersistedSnapshot> forceSnapshot() {
     final var newSnapshotFuture = new CompletableActorFuture<PersistedSnapshot>();
-    actorContext.call(() -> prepareTakingSnapshot(newSnapshotFuture));
+    executionContext.call(() -> prepareTakingSnapshot(newSnapshotFuture));
     return newSnapshotFuture;
   }
 
@@ -210,12 +210,12 @@ public final class AsyncSnapshotDirector extends Actor
 
   @Override
   public void addFailureListener(final FailureListener listener) {
-    actorContext.run(() -> listeners.add(listener));
+    executionContext.run(() -> listeners.add(listener));
   }
 
   @Override
   public void removeFailureListener(final FailureListener failureListener) {
-    actorContext.run(() -> listeners.remove(failureListener));
+    executionContext.run(() -> listeners.remove(failureListener));
   }
 
   private void prepareTakingSnapshot(
@@ -228,7 +228,7 @@ public final class AsyncSnapshotDirector extends Actor
 
     snapshotFuture = newSnapshotFuture;
     final var futureLastProcessedPosition = streamProcessor.getLastProcessedPositionAsync();
-    actorContext.runOnCompletion(
+    executionContext.runOnCompletion(
         futureLastProcessedPosition,
         (lastProcessedPosition, error) -> {
           if (error == null) {
@@ -276,7 +276,7 @@ public final class AsyncSnapshotDirector extends Actor
     onRecovered();
 
     final ActorFuture<Long> lastWrittenPosition = streamProcessor.getLastWrittenPositionAsync();
-    actorContext.runOnCompletion(lastWrittenPosition, this::onLastWrittenPositionReceived);
+    executionContext.runOnCompletion(lastWrittenPosition, this::onLastWrittenPositionReceived);
   }
 
   private void onLastWrittenPositionReceived(final Long endPosition, final Throwable error) {
@@ -309,7 +309,7 @@ public final class AsyncSnapshotDirector extends Actor
   }
 
   public void newPositionCommitted(final long currentCommitPosition) {
-    actorContext.run(
+    executionContext.run(
         () -> {
           commitPosition = currentCommitPosition;
           persistSnapshotIfLastWrittenPositionCommitted();

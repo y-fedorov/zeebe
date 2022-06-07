@@ -49,13 +49,13 @@ public class AtomixServerTransport extends Actor implements ServerTransport {
 
   @Override
   public void close() {
-    actorContext
+    executionContext
         .call(
             () -> {
               for (final int partitionId : partitionsRequestMap.keySet()) {
                 removePartition(partitionId);
               }
-              actorContext.close();
+              executionContext.close();
             })
         .join();
   }
@@ -63,7 +63,7 @@ public class AtomixServerTransport extends Actor implements ServerTransport {
   @Override
   public ActorFuture<Void> subscribe(
       final int partitionId, final RequestType requestType, final RequestHandler requestHandler) {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           final var topicName = topicName(partitionId, requestType);
           LOG.trace("Subscribe for topic {}", topicName);
@@ -77,7 +77,7 @@ public class AtomixServerTransport extends Actor implements ServerTransport {
 
   @Override
   public ActorFuture<Void> unsubscribe(final int partitionId, final RequestType requestType) {
-    return actorContext.call(() -> removeRequestHandlers(partitionId, requestType));
+    return executionContext.call(() -> removeRequestHandlers(partitionId, requestType));
   }
 
   private void removePartition(final int partitionId) {
@@ -103,7 +103,7 @@ public class AtomixServerTransport extends Actor implements ServerTransport {
       final RequestType requestType,
       final RequestHandler requestHandler) {
     final var completableFuture = new CompletableFuture<byte[]>();
-    actorContext.call(
+    executionContext.call(
         () -> {
           final var requestId = requestCount.getAndIncrement();
           final var requestMap = partitionsRequestMap.get(partitionId);
@@ -153,7 +153,7 @@ public class AtomixServerTransport extends Actor implements ServerTransport {
     final var unsafeBuffer = new UnsafeBuffer(bytes);
     response.write(unsafeBuffer, 0);
 
-    actorContext.run(
+    executionContext.run(
         () -> {
           final var requestMap = partitionsRequestMap.get(partitionId);
           if (requestMap == null) {

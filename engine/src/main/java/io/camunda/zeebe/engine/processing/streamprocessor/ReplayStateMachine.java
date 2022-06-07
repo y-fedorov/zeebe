@@ -27,7 +27,7 @@ import io.camunda.zeebe.protocol.impl.record.UnifiedRecordValue;
 import io.camunda.zeebe.protocol.record.RecordType;
 import io.camunda.zeebe.util.retry.RecoverableRetryStrategy;
 import io.camunda.zeebe.util.retry.RetryStrategy;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.util.function.BooleanSupplier;
@@ -51,7 +51,7 @@ public final class ReplayStateMachine implements LogRecordAwaiter {
   private final MutableZeebeState zeebeState;
   private final KeyGeneratorControls keyGeneratorControls;
   private final MutableLastProcessedPositionState lastProcessedPositionState;
-  private final ActorContext actor;
+  private final ExecutionContext actor;
   private final TypedEventImpl typedEvent;
 
   private final RecordValues recordValues;

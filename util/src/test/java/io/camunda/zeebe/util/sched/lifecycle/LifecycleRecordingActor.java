@@ -16,8 +16,8 @@ import static org.assertj.core.util.Lists.newArrayList;
 import static org.mockito.Mockito.mock;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorTask.ActorLifecyclePhase;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.util.ArrayList;
@@ -32,32 +32,32 @@ class LifecycleRecordingActor extends Actor {
 
   @Override
   public void onActorStarting() {
-    phases.add(actorContext.getLifecyclePhase());
+    phases.add(executionContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorStarted() {
-    phases.add(actorContext.getLifecyclePhase());
+    phases.add(executionContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorClosing() {
-    phases.add(actorContext.getLifecyclePhase());
+    phases.add(executionContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorClosed() {
-    phases.add(actorContext.getLifecyclePhase());
+    phases.add(executionContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorCloseRequested() {
-    phases.add(actorContext.getLifecyclePhase());
+    phases.add(executionContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorFailed() {
-    phases.add(actorContext.getLifecyclePhase());
+    phases.add(executionContext.getLifecyclePhase());
   }
 
   protected void blockPhase() {
@@ -70,20 +70,20 @@ class LifecycleRecordingActor extends Actor {
 
   @SuppressWarnings("unchecked")
   protected void blockPhase(final ActorFuture<Void> future, final BiConsumer consumer) {
-    actorContext.runOnCompletionBlockingCurrentPhase(future, consumer);
+    executionContext.runOnCompletionBlockingCurrentPhase(future, consumer);
   }
 
   @SuppressWarnings("unchecked")
   protected void runOnCompletion() {
-    actorContext.runOnCompletion(new CompletableActorFuture<>(), mock(BiConsumer.class));
+    executionContext.runOnCompletion(new CompletableActorFuture<>(), mock(BiConsumer.class));
   }
 
   @SuppressWarnings("unchecked")
   protected void runOnCompletion(final ActorFuture<Void> future) {
-    actorContext.runOnCompletion(future, mock(BiConsumer.class));
+    executionContext.runOnCompletion(future, mock(BiConsumer.class));
   }
 
-  public ActorContext control() {
-    return actorContext;
+  public ExecutionContext control() {
+    return executionContext;
   }
 }

@@ -18,7 +18,7 @@ import io.camunda.zeebe.exporter.api.context.ScheduledTask;
 import io.camunda.zeebe.protocol.impl.record.RecordMetadata;
 import io.camunda.zeebe.protocol.record.Record;
 import io.camunda.zeebe.util.jar.ThreadContextUtil;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import java.time.Duration;
 import org.slf4j.Logger;
 
@@ -36,7 +36,7 @@ final class ExporterContainer implements Controller {
   private long lastUnacknowledgedPosition;
   private ExportersState exportersState;
   private ExporterMetrics metrics;
-  private ActorContext actor;
+  private ExecutionContext actor;
 
   ExporterContainer(final ExporterDescriptor descriptor) {
     context =
@@ -47,7 +47,7 @@ final class ExporterContainer implements Controller {
   }
 
   void initContainer(
-      final ActorContext actor, final ExporterMetrics metrics, final ExportersState state) {
+      final ExecutionContext actor, final ExporterMetrics metrics, final ExportersState state) {
     this.actor = actor;
     this.metrics = metrics;
     exportersState = state;

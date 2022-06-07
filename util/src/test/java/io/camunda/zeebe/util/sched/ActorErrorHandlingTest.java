@@ -57,7 +57,7 @@ public final class ActorErrorHandlingTest {
     }
 
     private void throwError() {
-      actorContext.run(() -> LangUtil.rethrowUnchecked(throwable));
+      executionContext.run(() -> LangUtil.rethrowUnchecked(throwable));
     }
 
     @Override

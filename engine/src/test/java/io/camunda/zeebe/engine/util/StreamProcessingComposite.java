@@ -289,7 +289,7 @@ public class StreamProcessingComposite {
   /** Used to run writes within an actor thread. */
   private static final class WriteActor extends Actor {
     public ActorFuture<Long> submit(final Callable<Long> write) {
-      return actorContext.call(write);
+      return executionContext.call(write);
     }
   }
 

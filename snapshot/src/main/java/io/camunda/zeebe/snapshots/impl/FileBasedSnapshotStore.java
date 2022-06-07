@@ -229,13 +229,13 @@ public final class FileBasedSnapshotStore extends Actor
   @Override
   public ActorFuture<Void> purgePendingSnapshots() {
     final CompletableActorFuture<Void> abortFuture = new CompletableActorFuture<>();
-    actorContext.run(
+    executionContext.run(
         () -> {
           final var abortedAll =
               pendingSnapshots.stream()
                   .map(PersistableSnapshot::abort)
                   .collect(Collectors.toList());
-          actorContext.runOnCompletion(
+          executionContext.runOnCompletion(
               abortedAll,
               error -> {
                 if (error == null) {
@@ -250,12 +250,12 @@ public final class FileBasedSnapshotStore extends Actor
 
   @Override
   public ActorFuture<Boolean> addSnapshotListener(final PersistedSnapshotListener listener) {
-    return actorContext.call(() -> listeners.add(listener));
+    return executionContext.call(() -> listeners.add(listener));
   }
 
   @Override
   public ActorFuture<Boolean> removeSnapshotListener(final PersistedSnapshotListener listener) {
-    return actorContext.call(() -> listeners.remove(listener));
+    return executionContext.call(() -> listeners.remove(listener));
   }
 
   @Override
@@ -265,7 +265,7 @@ public final class FileBasedSnapshotStore extends Actor
 
   @Override
   public ActorFuture<Void> delete() {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           currentPersistedSnapshotRef.set(null);
 
@@ -294,7 +294,7 @@ public final class FileBasedSnapshotStore extends Actor
   public ActorFuture<Void> copySnapshot(
       final PersistedSnapshot snapshot, final Path targetDirectory) {
     final CompletableActorFuture<Void> result = new CompletableActorFuture<>();
-    actorContext.run(
+    executionContext.run(
         () -> {
           if (!Files.exists(snapshot.getPath())) {
             result.completeExceptionally(
@@ -336,7 +336,7 @@ public final class FileBasedSnapshotStore extends Actor
         String.format(RECEIVING_DIR_FORMAT, metadata.getSnapshotIdAsString(), nextStartCount);
     final var pendingSnapshotDir = pendingDirectory.resolve(pendingDirectoryName);
     final var newPendingSnapshot =
-        new FileBasedReceivedSnapshot(metadata, pendingSnapshotDir, this, actorContext);
+        new FileBasedReceivedSnapshot(metadata, pendingSnapshotDir, this, executionContext);
     addPendingSnapshot(newPendingSnapshot);
     return newPendingSnapshot;
   }
@@ -361,7 +361,7 @@ public final class FileBasedSnapshotStore extends Actor
     final var directory = buildPendingSnapshotDirectory(newSnapshotId);
 
     final var newPendingSnapshot =
-        new FileBasedTransientSnapshot(newSnapshotId, directory, this, actorContext);
+        new FileBasedTransientSnapshot(newSnapshotId, directory, this, executionContext);
     addPendingSnapshot(newPendingSnapshot);
     return Either.right(newPendingSnapshot);
   }
@@ -370,7 +370,7 @@ public final class FileBasedSnapshotStore extends Actor
     final Runnable action = () -> pendingSnapshots.add(pendingSnapshot);
 
     if (!isCurrentActor()) {
-      actorContext.submit(action);
+      executionContext.submit(action);
     } else {
       action.run();
     }

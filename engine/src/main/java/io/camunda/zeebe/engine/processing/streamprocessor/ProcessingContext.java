@@ -22,7 +22,7 @@ import io.camunda.zeebe.engine.state.mutable.MutableLastProcessedPositionState;
 import io.camunda.zeebe.engine.state.mutable.MutableZeebeState;
 import io.camunda.zeebe.logstreams.log.LogStream;
 import io.camunda.zeebe.logstreams.log.LogStreamReader;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import java.util.function.BooleanSupplier;
 
 public final class ProcessingContext implements ReadonlyProcessingContext {
@@ -32,7 +32,7 @@ public final class ProcessingContext implements ReadonlyProcessingContext {
   private final TypedStreamWriterProxy streamWriterProxy = new TypedStreamWriterProxy();
   private final NoopTypedStreamWriter noopTypedStreamWriter = new NoopTypedStreamWriter();
 
-  private ActorContext actor;
+  private ExecutionContext actor;
   private LogStream logStream;
   private LogStreamReader logStreamReader;
   private TypedStreamWriter logStreamWriter = noopTypedStreamWriter;
@@ -55,7 +55,7 @@ public final class ProcessingContext implements ReadonlyProcessingContext {
     streamWriterProxy.wrap(logStreamWriter);
   }
 
-  public ProcessingContext actor(final ActorContext actor) {
+  public ProcessingContext actor(final ExecutionContext actor) {
     this.actor = actor;
     return this;
   }
@@ -141,7 +141,7 @@ public final class ProcessingContext implements ReadonlyProcessingContext {
   }
 
   @Override
-  public ActorContext getActor() {
+  public ExecutionContext getActor() {
     return actor;
   }
 

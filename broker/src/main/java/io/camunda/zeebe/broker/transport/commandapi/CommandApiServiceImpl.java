@@ -72,14 +72,14 @@ public final class CommandApiServiceImpl extends Actor
       removeLeaderHandlers(leadPartition);
     }
     leadPartitions.clear();
-    actorContext.runOnCompletion(
+    executionContext.runOnCompletion(
         commandHandler.closeAsync(),
         (ok, error) -> {
           if (error != null) {
             Loggers.TRANSPORT_LOGGER.error("Error closing command api request handler", error);
           }
         });
-    actorContext.runOnCompletion(
+    executionContext.runOnCompletion(
         queryHandler.closeAsync(),
         (ok, error) -> {
           if (error != null) {
@@ -100,7 +100,7 @@ public final class CommandApiServiceImpl extends Actor
       final LogStream logStream,
       final QueryService queryService) {
     final CompletableActorFuture<Void> future = new CompletableActorFuture<>();
-    actorContext.call(
+    executionContext.call(
         () -> {
           leadPartitions.add(partitionId);
           limiter.addPartition(partitionId);
@@ -135,7 +135,7 @@ public final class CommandApiServiceImpl extends Actor
   }
 
   private ActorFuture<Void> removeLeaderHandlersAsync(final int partitionId) {
-    return actorContext.call(() -> removeLeaderHandlers(partitionId));
+    return executionContext.call(() -> removeLeaderHandlers(partitionId));
   }
 
   private void removeLeaderHandlers(final int partitionId) {
@@ -172,11 +172,11 @@ public final class CommandApiServiceImpl extends Actor
 
   @Override
   public void onDiskSpaceNotAvailable() {
-    actorContext.run(commandHandler::onDiskSpaceNotAvailable);
+    executionContext.run(commandHandler::onDiskSpaceNotAvailable);
   }
 
   @Override
   public void onDiskSpaceAvailable() {
-    actorContext.run(commandHandler::onDiskSpaceAvailable);
+    executionContext.run(commandHandler::onDiskSpaceAvailable);
   }
 }

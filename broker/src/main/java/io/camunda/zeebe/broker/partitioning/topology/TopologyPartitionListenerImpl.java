@@ -9,15 +9,15 @@ package io.camunda.zeebe.broker.partitioning.topology;
 
 import io.camunda.zeebe.protocol.impl.encoding.BrokerInfo;
 import io.camunda.zeebe.protocol.record.PartitionRole;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import org.agrona.collections.Int2IntHashMap;
 
 public final class TopologyPartitionListenerImpl implements TopologyPartitionListener {
 
   private final Int2IntHashMap partitionLeaders = new Int2IntHashMap(-1);
-  private final ActorContext actor;
+  private final ExecutionContext actor;
 
-  public TopologyPartitionListenerImpl(final ActorContext actor) {
+  public TopologyPartitionListenerImpl(final ExecutionContext actor) {
     this.actor = actor;
   }
 

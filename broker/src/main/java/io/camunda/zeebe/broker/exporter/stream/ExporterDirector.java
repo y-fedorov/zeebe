@@ -93,8 +93,8 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
     partitionId = logStream.getPartitionId();
     metrics = new ExporterMetrics(partitionId);
     recordExporter = new RecordExporter(metrics, containers, partitionId);
-    exportingRetryStrategy = new BackOffRetryStrategy(actorContext, Duration.ofSeconds(10));
-    recordWrapStrategy = new EndlessRetryStrategy(actorContext);
+    exportingRetryStrategy = new BackOffRetryStrategy(executionContext, Duration.ofSeconds(10));
+    recordWrapStrategy = new EndlessRetryStrategy(executionContext);
     zeebeDb = context.getZeebeDb();
     isPaused = shouldPauseOnStart;
     partitionMessagingService = context.getPartitionMessagingService();
@@ -108,11 +108,11 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
   }
 
   public ActorFuture<Void> stopAsync() {
-    return actorContext.close();
+    return executionContext.close();
   }
 
   public ActorFuture<Void> pauseExporting() {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           isPaused = true;
           exporterPhase = ExporterPhase.PAUSED;
@@ -120,21 +120,21 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
   }
 
   public ActorFuture<Void> resumeExporting() {
-    return actorContext.call(
+    return executionContext.call(
         () -> {
           isPaused = false;
           exporterPhase = ExporterPhase.EXPORTING;
           if (exporterMode == ExporterMode.ACTIVE) {
-            actorContext.submit(this::readNextEvent);
+            executionContext.submit(this::readNextEvent);
           }
         });
   }
 
   public ActorFuture<ExporterPhase> getPhase() {
-    if (actorContext.isClosed()) {
+    if (executionContext.isClosed()) {
       return CompletableActorFuture.completed(ExporterPhase.CLOSED);
     }
-    return actorContext.call(() -> exporterPhase);
+    return executionContext.call(() -> exporterPhase);
   }
 
   @Override
@@ -153,7 +153,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
   protected void onActorStarting() {
     if (exporterMode == ExporterMode.ACTIVE) {
       final ActorFuture<LogStreamReader> newReaderFuture = logStream.newLogStreamReader();
-      actorContext.runOnCompletionBlockingCurrentPhase(
+      executionContext.runOnCompletionBlockingCurrentPhase(
           newReaderFuture,
           (reader, errorOnReceivingReader) -> {
             if (errorOnReceivingReader == null) {
@@ -166,7 +166,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
                   "Unexpected error on retrieving reader from log {}",
                   logStream.getLogName(),
                   errorOnReceivingReader);
-              actorContext.close();
+              executionContext.close();
             }
           });
     }
@@ -231,10 +231,10 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
     LOG.error(
         "Actor '{}' failed in phase {} with: {} .",
         name,
-        actorContext.getLifecyclePhase(),
+        executionContext.getLifecyclePhase(),
         failure,
         failure);
-    actorContext.fail();
+    executionContext.fail();
 
     if (failure instanceof UnrecoverableException) {
       healthReport = HealthReport.dead(this).withIssue(failure);
@@ -259,7 +259,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
 
   private void initContainers() throws Exception {
     for (final ExporterContainer container : containers) {
-      container.initContainer(actorContext, metrics, state);
+      container.initContainer(executionContext, metrics, state);
       container.configureExporter();
     }
 
@@ -300,7 +300,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
 
   private void onFailure() {
     isOpened.set(false);
-    actorContext.close();
+    executionContext.close();
   }
 
   private void startActiveExportingMode() {
@@ -321,15 +321,15 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
       }
       if (!isPaused) {
         exporterPhase = ExporterPhase.EXPORTING;
-        actorContext.submit(this::readNextEvent);
+        executionContext.submit(this::readNextEvent);
       } else {
         exporterPhase = ExporterPhase.PAUSED;
       }
 
-      actorContext.runAtFixedRate(distributionInterval, this::distributeExporterPositions);
+      executionContext.runAtFixedRate(distributionInterval, this::distributeExporterPositions);
 
     } else {
-      actorContext.close();
+      executionContext.close();
     }
   }
 
@@ -340,9 +340,9 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
     }
 
     if (state.hasExporters()) {
-      exporterDistributionService.subscribeForExporterPositions(actorContext::run);
+      exporterDistributionService.subscribeForExporterPositions(executionContext::run);
     } else {
-      actorContext.close();
+      executionContext.close();
     }
   }
 
@@ -365,7 +365,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
       container.updatePositionOnSkipIfUpToDate(eventPosition);
     }
 
-    actorContext.submit(this::readNextEvent);
+    executionContext.submit(this::readNextEvent);
   }
 
   private void readNextEvent() {
@@ -393,7 +393,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
             },
             this::isClosed);
 
-    actorContext.runOnCompletion(
+    executionContext.runOnCompletion(
         wrapRetryFuture,
         (b, t) -> {
           assert t == null : "Throwable must be null";
@@ -401,7 +401,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
           final ActorFuture<Boolean> retryFuture =
               exportingRetryStrategy.runWithRetry(recordExporter::export, this::isClosed);
 
-          actorContext.runOnCompletion(
+          executionContext.runOnCompletion(
               retryFuture,
               (bool, throwable) -> {
                 if (throwable != null) {
@@ -410,7 +410,7 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
                 } else {
                   metrics.eventExported(recordExporter.getTypedEvent().getValueType());
                   inExportingPhase = false;
-                  actorContext.submit(this::readNextEvent);
+                  executionContext.submit(this::readNextEvent);
                 }
               });
         });
@@ -442,24 +442,24 @@ public final class ExporterDirector extends Actor implements HealthMonitorable, 
 
   @Override
   public void addFailureListener(final FailureListener listener) {
-    actorContext.run(() -> listeners.add(listener));
+    executionContext.run(() -> listeners.add(listener));
   }
 
   @Override
   public void removeFailureListener(final FailureListener failureListener) {
-    actorContext.run(() -> listeners.remove(failureListener));
+    executionContext.run(() -> listeners.remove(failureListener));
   }
 
   @Override
   public void onRecordAvailable() {
-    actorContext.run(this::readNextEvent);
+    executionContext.run(this::readNextEvent);
   }
 
   public ActorFuture<Long> getLowestPosition() {
-    if (actorContext.isClosed()) {
+    if (executionContext.isClosed()) {
       return CompletableActorFuture.completed(ExportersState.VALUE_NOT_FOUND);
     }
-    return actorContext.call(() -> state.getLowestPosition());
+    return executionContext.call(() -> state.getLowestPosition());
   }
 
   private static class RecordExporter {

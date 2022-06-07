@@ -10,7 +10,7 @@ package io.camunda.zeebe.util.retry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.testing.ControlledActorSchedulerRule;
 import java.lang.reflect.Constructor;
@@ -31,7 +31,7 @@ public final class RetryStrategyTest {
 
   @Parameter public Class<RetryStrategy> retryStrategyClass;
   private RetryStrategy retryStrategy;
-  private ActorContext actorControl;
+  private ExecutionContext actorControl;
   private ActorFuture<Boolean> resultFuture;
 
   @Parameters(name = "{index}: {0}")
@@ -48,7 +48,7 @@ public final class RetryStrategyTest {
 
     try {
       final Constructor<RetryStrategy> constructor =
-          retryStrategyClass.getConstructor(ActorContext.class);
+          retryStrategyClass.getConstructor(ExecutionContext.class);
       retryStrategy = constructor.newInstance(actorControl);
     } catch (final Exception e) {
       throw new RuntimeException(e);
@@ -117,8 +117,8 @@ public final class RetryStrategyTest {
   }
 
   private static final class ControllableActor extends Actor {
-    public ActorContext getActor() {
-      return actorContext;
+    public ExecutionContext getActor() {
+      return executionContext;
     }
   }
 }

@@ -81,10 +81,10 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
             responseValidator,
             shouldRetry,
             timeout);
-    actorContext.call(
+    executionContext.call(
         () -> {
           final var scheduledTimer =
-              actorContext.runDelayed(timeout, () -> timeoutFuture(requestContext));
+              executionContext.runDelayed(timeout, () -> timeoutFuture(requestContext));
           requestContext.setScheduledTimer(scheduledTimer);
           tryToSend(requestContext);
         });
@@ -133,7 +133,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
               requestContext.hashCode(),
               RETRY_DELAY);
         }
-        actorContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
+        executionContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       } else {
         if (LOG.isTraceEnabled()) {
           LOG.trace(
@@ -160,7 +160,8 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         .sendAndReceive(nodeAddress, requestContext.getTopicName(), requestBytes, calculateTimeout)
         .whenComplete(
             (response, errorOnRequest) ->
-                actorContext.run(() -> handleResponse(requestContext, response, errorOnRequest)));
+                executionContext.run(
+                    () -> handleResponse(requestContext, response, errorOnRequest)));
   }
 
   private void handleResponse(
@@ -188,7 +189,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
               RETRY_DELAY);
         }
         // no valid response - retry in respect of the timeout
-        actorContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
+        executionContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       }
     } else {
       // normally the root exception is a completion exception
@@ -206,7 +207,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         }
 
         // no registered subscription yet
-        actorContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
+        executionContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       } else {
         if (LOG.isTraceEnabled()) {
           LOG.trace(

@@ -7,7 +7,7 @@
  */
 package io.camunda.zeebe.util.health;
 
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +23,7 @@ public class CriticalComponentsHealthMonitor implements HealthMonitor {
   private final Map<String, MonitoredComponent> monitoredComponents = new HashMap<>();
   private final Map<String, HealthReport> componentHealth = new HashMap<>();
   private final Set<FailureListener> failureListeners = new HashSet<>();
-  private final ActorContext actor;
+  private final ExecutionContext actor;
   private final Logger log;
 
   @SuppressWarnings("java:S3077") // allow volatile here, health is immutable
@@ -33,7 +33,7 @@ public class CriticalComponentsHealthMonitor implements HealthMonitor {
   private final String name;
 
   public CriticalComponentsHealthMonitor(
-      final String name, final ActorContext actor, final Logger log) {
+      final String name, final ExecutionContext actor, final Logger log) {
     this.name = name;
     this.actor = actor;
     this.log = log;

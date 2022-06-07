@@ -13,8 +13,8 @@ import io.camunda.zeebe.db.ZeebeDb;
 import io.camunda.zeebe.engine.state.ZbColumnFamilies;
 import io.camunda.zeebe.snapshots.ConstructableSnapshotStore;
 import io.camunda.zeebe.snapshots.ReceivableSnapshotStore;
-import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorSchedulingService;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.ScheduledTimer;
 
 public interface PartitionStartupContext {
@@ -34,13 +34,13 @@ public interface PartitionStartupContext {
 
   // injected before bootstrap
   /**
-   * Returns the {@link ActorContext} of {@link ZeebePartition}
+   * Returns the {@link ExecutionContext} of {@link ZeebePartition}
    *
-   * @return {@link ActorContext} of {@link ZeebePartition}
+   * @return {@link ExecutionContext} of {@link ZeebePartition}
    */
-  ActorContext getActorControl();
+  ExecutionContext getActorControl();
 
-  void setActorControl(ActorContext actorContext);
+  void setActorControl(ExecutionContext executionContext);
 
   LogDeletionService getLogDeletionService();
 

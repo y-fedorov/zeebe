@@ -12,7 +12,7 @@ import io.camunda.zeebe.snapshots.ReceivedSnapshot;
 import io.camunda.zeebe.snapshots.SnapshotChunk;
 import io.camunda.zeebe.snapshots.SnapshotId;
 import io.camunda.zeebe.util.FileUtil;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class FileBasedReceivedSnapshot implements ReceivedSnapshot {
   private static final int BLOCK_SIZE = 512 * 1024;
 
   private final Path directory;
-  private final ActorContext actor;
+  private final ExecutionContext actor;
   private final FileBasedSnapshotStore snapshotStore;
 
   private final FileBasedSnapshotMetadata metadata;
@@ -43,7 +43,7 @@ public class FileBasedReceivedSnapshot implements ReceivedSnapshot {
       final FileBasedSnapshotMetadata metadata,
       final Path directory,
       final FileBasedSnapshotStore snapshotStore,
-      final ActorContext actor) {
+      final ExecutionContext actor) {
     this.metadata = metadata;
     this.snapshotStore = snapshotStore;
     this.directory = directory;

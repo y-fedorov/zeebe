@@ -9,9 +9,9 @@ package io.camunda.zeebe.util.sched.future;
 
 import static org.agrona.UnsafeAccess.UNSAFE;
 
-import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorTask;
 import io.camunda.zeebe.util.sched.ActorThread;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.FutureUtil;
 import java.util.Queue;
 import java.util.concurrent.ExecutionException;
@@ -208,7 +208,7 @@ public final class CompletableActorFuture<V> implements ActorFuture<V> {
 
   @Override
   public void onComplete(final BiConsumer<V, Throwable> consumer) {
-    final ActorContext actorControl = ActorContext.current();
+    final ExecutionContext actorControl = ExecutionContext.current();
     actorControl.runOnCompletion(this, consumer);
   }
 

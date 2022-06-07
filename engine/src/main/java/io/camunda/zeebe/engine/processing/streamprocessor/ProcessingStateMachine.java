@@ -29,7 +29,7 @@ import io.camunda.zeebe.util.exception.UnrecoverableException;
 import io.camunda.zeebe.util.retry.AbortableRetryStrategy;
 import io.camunda.zeebe.util.retry.RecoverableRetryStrategy;
 import io.camunda.zeebe.util.retry.RetryStrategy;
-import io.camunda.zeebe.util.sched.ActorContext;
+import io.camunda.zeebe.util.sched.ExecutionContext;
 import io.camunda.zeebe.util.sched.clock.ActorClock;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.prometheus.client.Histogram;
@@ -116,7 +116,7 @@ public final class ProcessingStateMachine {
   private final MutableLastProcessedPositionState lastProcessedPositionState;
   private final RecordMetadata metadata = new RecordMetadata();
   private final TypedResponseWriter responseWriter;
-  private final ActorContext actor;
+  private final ExecutionContext actor;
   private final LogStream logStream;
   private final LogStreamReader logStreamReader;
   private final TypedStreamWriter logStreamWriter;

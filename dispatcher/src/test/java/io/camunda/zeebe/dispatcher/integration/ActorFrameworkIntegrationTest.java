@@ -71,11 +71,11 @@ public final class ActorFrameworkIntegrationTest {
     protected void onActorStarted() {
       final ActorFuture<Subscription> future =
           dispatcher.openSubscriptionAsync("consumerSubscription-" + hashCode());
-      actorContext.runOnCompletion(
+      executionContext.runOnCompletion(
           future,
           (s, t) -> {
             subscription = s;
-            actorContext.consume(subscription, this::consume);
+            executionContext.consume(subscription, this::consume);
           });
     }
 
@@ -114,17 +114,17 @@ public final class ActorFrameworkIntegrationTest {
     protected void onActorStarted() {
       final ActorFuture<Subscription> future =
           dispatcher.openSubscriptionAsync("consumerSubscription-" + hashCode());
-      actorContext.runOnCompletion(
+      executionContext.runOnCompletion(
           future,
           (s, t) -> {
             subscription = s;
-            actorContext.consume(subscription, this::consume);
+            executionContext.consume(subscription, this::consume);
           });
     }
 
     void consume() {
       if (subscription.peekBlock(peek, Integer.MAX_VALUE, true) > 0) {
-        actorContext.runUntilDone(processPeek);
+        executionContext.runUntilDone(processPeek);
       }
     }
 
@@ -139,7 +139,7 @@ public final class ActorFrameworkIntegrationTest {
         counter = newCounter;
       }
       peek.markCompleted();
-      actorContext.done();
+      executionContext.done();
     }
 
     @Override
@@ -166,14 +166,15 @@ public final class ActorFrameworkIntegrationTest {
     final Dispatcher dispatcher;
     final ClaimedFragment claim = new ClaimedFragment();
     int counter = 1;
+
     ClaimingProducer(final Dispatcher dispatcher) {
       this.dispatcher = dispatcher;
-    }    final Runnable produce = this::produce;
+    }
 
     @Override
     protected void onActorStarted() {
-      actorContext.run(produce);
-    }
+      executionContext.run(produce);
+    }    final Runnable produce = this::produce;
 
     void produce() {
       if (dispatcher.claimSingleFragment(claim, 4534) >= 0) {
@@ -182,8 +183,8 @@ public final class ActorFrameworkIntegrationTest {
       }
 
       if (counter < totalWork) {
-        actorContext.yieldThread();
-        actorContext.run(produce);
+        executionContext.yieldThread();
+        executionContext.run(produce);
       } else {
         latch.countDown();
       }

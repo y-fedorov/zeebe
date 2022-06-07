@@ -35,7 +35,7 @@ public final class ActorLifecyclePhasesAndConsumeTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            actorContext.consume(queue, consumerRunnable(queue, runnable));
+            executionContext.consume(queue, consumerRunnable(queue, runnable));
             blockPhase();
           }
         };
@@ -61,7 +61,7 @@ public final class ActorLifecyclePhasesAndConsumeTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            actorContext.consume(queue, consumerRunnable(queue, runnable));
+            executionContext.consume(queue, consumerRunnable(queue, runnable));
             blockPhase(future);
           }
         };
@@ -90,7 +90,7 @@ public final class ActorLifecyclePhasesAndConsumeTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarted() {
-            actorContext.consume(queue, consumerRunnable(queue, runnable));
+            executionContext.consume(queue, consumerRunnable(queue, runnable));
           }
         };
 
@@ -114,7 +114,7 @@ public final class ActorLifecyclePhasesAndConsumeTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorCloseRequested() {
-            actorContext.consume(queue, consumerRunnable(queue, runnable));
+            executionContext.consume(queue, consumerRunnable(queue, runnable));
             blockPhase();
           }
         };
@@ -140,7 +140,7 @@ public final class ActorLifecyclePhasesAndConsumeTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorClosing() {
-            actorContext.consume(queue, consumerRunnable(queue, runnable));
+            executionContext.consume(queue, consumerRunnable(queue, runnable));
             blockPhase();
           }
         };
@@ -166,7 +166,7 @@ public final class ActorLifecyclePhasesAndConsumeTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorClosed() {
-            actorContext.consume(queue, consumerRunnable(queue, runnable));
+            executionContext.consume(queue, consumerRunnable(queue, runnable));
             blockPhase();
           }
         };
