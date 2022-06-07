@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.agrona.concurrent.ManyToOneConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +45,7 @@ public class ActorTask {
   private final CompletableActorFuture<Void> jobStartingTaskFuture = new CompletableActorFuture<>();
   private ActorExecutor actorExecutor;
   private ActorThreadGroup actorThreadGroup;
-  private Deque<ActorJob> fastLaneJobs = new ClosedQueue();
+  private final Deque<ActorJob> fastLaneJobs = new ArrayDeque<>();
   private volatile ActorLifecyclePhase lifecyclePhase = ActorLifecyclePhase.CLOSED;
   private List<ActorSubscription> subscriptions = new ArrayList<>();
   /**
@@ -54,7 +56,7 @@ public class ActorTask {
    * jobs that are submitted to this task externally. A job is submitted "internally" if it is
    * submitted from a job within the same actor while the task is in RUNNING state.
    */
-  private volatile Queue<ActorJob> submittedJobs = new ClosedQueue();
+  private final Queue<ActorJob> submittedJobs = new ManyToOneConcurrentLinkedQueue<>();
 
   public ActorTask(final Actor actor) {
     this.actor = actor;
@@ -78,8 +80,6 @@ public class ActorTask {
     jobStartingTaskFuture.close();
     jobStartingTaskFuture.setAwaitingResult();
 
-    submittedJobs = new ManyToOneConcurrentLinkedQueue<>();
-    fastLaneJobs = new ArrayDeque<>();
     lifecyclePhase = ActorLifecyclePhase.STARTING;
 
     // create initial job to invoke on start callback
@@ -91,6 +91,22 @@ public class ActorTask {
 
     currentJob = j;
     return startingFuture;
+  }
+
+  public List<ActorJob> jobs() {
+    // we can't use the stream API since ManyToOneQueue from agrona doesn't implement iterator() :o
+    // return Stream.concat(fastLaneJobs.stream(), submittedJobs.stream())
+    //        .collect(Collectors.toList());
+
+    // since this code is expected to be accessed by tests we can claim some details like we are not
+    // adding new jobs in between
+    final List<ActorJob> jobs = new ArrayList<>();
+    while (!submittedJobs.isEmpty()) {
+      jobs.add(submittedJobs.poll());
+    }
+    jobs.forEach(submittedJobs::add);
+
+    return Stream.concat(fastLaneJobs.stream(), jobs.stream()).collect(Collectors.toList());
   }
 
   /** Used to externally submit a job. */
@@ -252,7 +268,6 @@ public class ActorTask {
     subscriptions = new ArrayList<>();
 
     final Queue<ActorJob> activeJobsQueue = submittedJobs;
-    submittedJobs = new ClosedQueue();
 
     ActorJob j;
 

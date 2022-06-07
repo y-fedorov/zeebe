@@ -40,7 +40,11 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   }
 
   public List<ActorJob> getCurrentJobs() {
-    actorContext.
+    return executionContext.task.jobs();
+  }
+
+  public void executeNext() {
+    getCurrentJobs().stream().findAny().ifPresent(j -> j.execute(null));
   }
 
   public String getName() {
