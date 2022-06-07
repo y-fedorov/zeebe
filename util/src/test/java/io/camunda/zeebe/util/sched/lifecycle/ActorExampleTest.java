@@ -7,55 +7,50 @@
  */
 package io.camunda.zeebe.util.sched.lifecycle;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.testing.ControlledActorSchedulerRule;
-import org.junit.Rule;
 import org.junit.Test;
 
 public final class ActorExampleTest {
-  @Rule
-  public final ControlledActorSchedulerRule schedulerRule = new ControlledActorSchedulerRule();
 
   @Test
-  public void shouldNotExecuteSubmittedJobsInStartingPhase() throws Exception {
+  public void shouldAddJobToQueue() {
     // given
     final var fakeActor = new FakeActor();
 
     // when
-    fakeActor.doSomething();
+    fakeActor.someMagicActorMethod();
 
     // then
+    final var currentJobs = fakeActor.getCurrentJobs();
+    assertThat(currentJobs).hasSize(1);
+    assertThat(currentJobs.get(0).toString()).contains("FakeActor");
+    assertThat(fakeActor.runs).isEqualTo(0);
+  }
 
-    final Runnable runnable = mock(Runnable.class);
-    final LifecycleRecordingActor actor =
-        new LifecycleRecordingActor() {
-          @Override
-          public void onActorStarting() {
-            actorContext.submit(runnable);
-            blockPhase();
-          }
-        };
+  @Test
+  public void shouldRunJob() {
+    // given
+    final var fakeActor = new FakeActor();
+    fakeActor.someMagicActorMethod();
 
     // when
-    schedulerRule.submitActor(actor);
-    schedulerRule.workUntilDone();
+    fakeActor.executeNext();
 
     // then
-    verify(runnable, times(0)).run();
+    assertThat(fakeActor.runs).isEqualTo(1);
   }
 
   public class FakeActor extends Actor {
+    public int runs = 0;
 
     private void internalDo() {
-      // todo
+      runs++;
     }
 
-    public void doSomething() {
-      actorContext.submit(this::internalDo);
+    public void someMagicActorMethod() {
+      executionContext.submit(this::internalDo);
     }
   }
 }
