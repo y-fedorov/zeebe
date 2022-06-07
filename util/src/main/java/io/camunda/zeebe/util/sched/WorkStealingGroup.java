@@ -42,11 +42,11 @@ public final class WorkStealingGroup {
    */
   protected ActorTask getNextTask() {
     final ActorThread currentThread = ActorThread.current();
-    ActorTask nextTask = taskQueues[currentThread.getRunnerId()].pop();
+    final ActorTask nextTask = taskQueues[currentThread.getRunnerId()].pop();
 
-    if (nextTask == null) {
-      nextTask = trySteal(currentThread);
-    }
+    //    if (nextTask == null) {
+    //      nextTask = trySteal(currentThread);
+    //    }
 
     return nextTask;
   }
