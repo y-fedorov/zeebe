@@ -13,7 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ScheduledTimer;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.testing.ControlledActorSchedulerRule;
@@ -34,7 +34,7 @@ public final class TimedActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actor.runDelayed(Duration.ofMillis(10), action);
+            actorContext.runDelayed(Duration.ofMillis(10), action);
           }
         };
 
@@ -55,7 +55,7 @@ public final class TimedActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actor.runDelayed(Duration.ofMillis(10), action);
+            actorContext.runDelayed(Duration.ofMillis(10), action);
           }
         };
 
@@ -78,7 +78,7 @@ public final class TimedActionsTest {
         new Actor() {
           @Override
           protected void onActorStarted() {
-            actor.runAtFixedRate(Duration.ofMillis(10), action);
+            actorContext.runAtFixedRate(Duration.ofMillis(10), action);
           }
         };
 
@@ -166,21 +166,21 @@ public final class TimedActionsTest {
 
   private static final class TimerActor extends Actor {
 
-    private final Function<ActorControl, ScheduledTimer> action;
+    private final Function<ActorContext, ScheduledTimer> action;
 
     private ScheduledTimer scheduledTimer;
 
-    private TimerActor(final Function<ActorControl, ScheduledTimer> action) {
+    private TimerActor(final Function<ActorContext, ScheduledTimer> action) {
       this.action = action;
     }
 
     @Override
     protected void onActorStarted() {
-      scheduledTimer = action.apply(actor);
+      scheduledTimer = action.apply(actorContext);
     }
 
     public ActorFuture<Void> cancelTimer() {
-      return actor.call(() -> scheduledTimer.cancel());
+      return actorContext.call(() -> scheduledTimer.cancel());
     }
   }
 }

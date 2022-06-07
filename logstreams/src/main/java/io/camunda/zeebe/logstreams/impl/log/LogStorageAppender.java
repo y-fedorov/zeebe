@@ -158,7 +158,7 @@ final class LogStorageAppender extends Actor implements HealthMonitorable {
 
   @Override
   protected void onActorStarting() {
-    actor.consume(writeBufferSubscription, this::onWriteBufferAvailable);
+    actorContext.consume(writeBufferSubscription, this::onWriteBufferAvailable);
   }
 
   @Override
@@ -168,7 +168,7 @@ final class LogStorageAppender extends Actor implements HealthMonitorable {
 
   @Override
   public ActorFuture<Void> closeAsync() {
-    if (actor.isClosed()) {
+    if (actorContext.isClosed()) {
       return closeFuture;
     }
     super.closeAsync();
@@ -197,7 +197,7 @@ final class LogStorageAppender extends Actor implements HealthMonitorable {
     }
 
     if (!canAppend || !appendBlockSucceeded) {
-      actor.yieldThread();
+      actorContext.yieldThread();
     }
   }
 
@@ -230,38 +230,38 @@ final class LogStorageAppender extends Actor implements HealthMonitorable {
 
   @Override
   public HealthReport getHealthReport() {
-    return actor.isClosed()
+    return actorContext.isClosed()
         ? HealthReport.unhealthy(this).withMessage("actor is closed")
         : HealthReport.healthy(this);
   }
 
   @Override
   public void addFailureListener(final FailureListener failureListener) {
-    actor.run(() -> failureListeners.add(failureListener));
+    actorContext.run(() -> failureListeners.add(failureListener));
   }
 
   @Override
   public void removeFailureListener(final FailureListener failureListener) {
-    actor.run(() -> failureListeners.remove(failureListener));
+    actorContext.run(() -> failureListeners.remove(failureListener));
   }
 
   private void onFailure(final Throwable error) {
-    LOG.error("Actor {} failed in phase {}.", name, actor.getLifecyclePhase(), error);
-    actor.fail();
+    LOG.error("Actor {} failed in phase {}.", name, actorContext.getLifecyclePhase(), error);
+    actorContext.fail();
     final var report = HealthReport.unhealthy(this).withIssue(error);
     failureListeners.forEach(l -> l.onFailure(report));
   }
 
   void runOnFailure(final Throwable error) {
-    actor.run(() -> onFailure(error));
+    actorContext.run(() -> onFailure(error));
   }
 
   void releaseBackPressure(final long highestPosition) {
-    actor.run(() -> appendEntryLimiter.onCommit(highestPosition));
+    actorContext.run(() -> appendEntryLimiter.onCommit(highestPosition));
   }
 
   void notifyWritePosition(final long highestPosition, final Timer appendLatencyTimer) {
-    actor.run(
+    actorContext.run(
         () -> {
           appenderMetrics.setLastAppendedPosition(highestPosition);
           // observe append latency
@@ -270,7 +270,7 @@ final class LogStorageAppender extends Actor implements HealthMonitorable {
   }
 
   void notifyCommitPosition(final long highestPosition, final Timer commitLatencyTimer) {
-    actor.run(
+    actorContext.run(
         () -> {
           appenderMetrics.setLastCommittedPosition(highestPosition);
           // observe commit latency

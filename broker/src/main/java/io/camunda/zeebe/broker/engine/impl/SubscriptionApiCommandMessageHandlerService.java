@@ -47,13 +47,14 @@ public final class SubscriptionApiCommandMessageHandlerService extends Actor
 
   @Override
   protected void onActorStarting() {
-    messageHandler = new SubscriptionCommandMessageHandler(actor::call, leaderPartitions::get);
+    messageHandler =
+        new SubscriptionCommandMessageHandler(actorContext::call, leaderPartitions::get);
     communicationService.subscribe(SUBSCRIPTION_TOPIC, messageHandler);
   }
 
   @Override
   public ActorFuture<Void> onBecomingFollower(final int partitionId, final long term) {
-    return actor.call(
+    return actorContext.call(
         () -> {
           leaderPartitions.remove(partitionId);
           return null;
@@ -67,7 +68,7 @@ public final class SubscriptionApiCommandMessageHandlerService extends Actor
       final LogStream logStream,
       final QueryService queryService) {
     final CompletableActorFuture<Void> future = new CompletableActorFuture<>();
-    actor.submit(
+    actorContext.submit(
         () ->
             logStream
                 .newLogStreamRecordWriter()
@@ -89,7 +90,7 @@ public final class SubscriptionApiCommandMessageHandlerService extends Actor
 
   @Override
   public ActorFuture<Void> onBecomingInactive(final int partitionId, final long term) {
-    return actor.call(
+    return actorContext.call(
         () -> {
           leaderPartitions.remove(partitionId);
           return null;
@@ -98,7 +99,7 @@ public final class SubscriptionApiCommandMessageHandlerService extends Actor
 
   @Override
   public void onDiskSpaceNotAvailable() {
-    actor.call(
+    actorContext.call(
         () -> {
           LOG.debug(
               "Broker is out of disk space. All requests with topic {} will be rejected.",
@@ -112,7 +113,7 @@ public final class SubscriptionApiCommandMessageHandlerService extends Actor
 
   @Override
   public void onDiskSpaceAvailable() {
-    actor.call(
+    actorContext.call(
         () -> {
           LOG.debug(
               "Broker has disk space available again. All requests with topic {} will be accepted.",

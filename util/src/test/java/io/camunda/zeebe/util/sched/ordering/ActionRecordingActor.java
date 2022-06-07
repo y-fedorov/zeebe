@@ -8,7 +8,7 @@
 package io.camunda.zeebe.util.sched.ordering;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -36,7 +36,7 @@ public class ActionRecordingActor extends Actor {
     };
   }
 
-  public ActorControl actorControl() {
-    return actor;
+  public ActorContext actorControl() {
+    return actorContext;
   }
 }

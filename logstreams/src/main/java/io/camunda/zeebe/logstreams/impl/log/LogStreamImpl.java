@@ -119,17 +119,17 @@ public final class LogStreamImpl extends Actor
 
   @Override
   public ActorFuture<Void> closeAsync() {
-    if (actor.isClosed()) {
+    if (actorContext.isClosed()) {
       return closeFuture;
     }
 
-    actor.run(
+    actorContext.run(
         () ->
             closeAppender()
                 .onComplete(
                     (nothing, appenderError) -> {
                       closeError = appenderError;
-                      actor.close();
+                      actorContext.close();
                     }));
     return closeFuture;
   }
@@ -143,7 +143,7 @@ public final class LogStreamImpl extends Actor
     LOG.error(
         "Unexpected error in Log Stream {} in phase {}.",
         getName(),
-        actor.getLifecyclePhase(),
+        actorContext.getLifecyclePhase(),
         failure);
 
     if (appenderFuture != null && !appenderFuture.isDone()) {
@@ -173,7 +173,7 @@ public final class LogStreamImpl extends Actor
 
   @Override
   public ActorFuture<LogStreamReader> newLogStreamReader() {
-    return actor.call(this::createLogStreamReader);
+    return actorContext.call(this::createLogStreamReader);
   }
 
   @Override
@@ -186,26 +186,26 @@ public final class LogStreamImpl extends Actor
     return newLogStreamWriter(LogStreamBatchWriterImpl::new);
   }
 
-  private <T extends LogStreamWriter> ActorFuture<T> newLogStreamWriter(
-      final WriterCreator<T> logStreamCreator) {
-    // this should be replaced after refactoring the actor control
-    if (actor.isClosed()) {
-      return CompletableActorFuture.completedExceptionally(new RuntimeException("Actor is closed"));
-    }
-
-    final var writerFuture = new CompletableActorFuture<T>();
-    actor.run(() -> createWriter(writerFuture, logStreamCreator));
-    return writerFuture;
-  }
-
   @Override
   public void registerRecordAvailableListener(final LogRecordAwaiter recordAwaiter) {
-    actor.call(() -> recordAwaiters.add(recordAwaiter));
+    actorContext.call(() -> recordAwaiters.add(recordAwaiter));
   }
 
   @Override
   public void removeRecordAvailableListener(final LogRecordAwaiter recordAwaiter) {
-    actor.call(() -> recordAwaiters.remove(recordAwaiter));
+    actorContext.call(() -> recordAwaiters.remove(recordAwaiter));
+  }
+
+  private <T extends LogStreamWriter> ActorFuture<T> newLogStreamWriter(
+      final WriterCreator<T> logStreamCreator) {
+    // this should be replaced after refactoring the actor control
+    if (actorContext.isClosed()) {
+      return CompletableActorFuture.completedExceptionally(new RuntimeException("Actor is closed"));
+    }
+
+    final var writerFuture = new CompletableActorFuture<T>();
+    actorContext.run(() -> createWriter(writerFuture, logStreamCreator));
+    return writerFuture;
   }
 
   private void notifyRecordAwaiters() {
@@ -214,7 +214,7 @@ public final class LogStreamImpl extends Actor
 
   @Override
   public void onCommit() {
-    actor.call(this::notifyRecordAwaiters);
+    actorContext.call(this::notifyRecordAwaiters);
   }
 
   private LogStreamReader createLogStreamReader() {
@@ -291,7 +291,7 @@ public final class LogStreamImpl extends Actor
     }
 
     appenderFuture = new CompletableActorFuture<>();
-    actor.run(
+    actorContext.run(
         () -> {
           final var initialPosition = getWriteBuffersInitialPosition();
           writeBuffer = createAndScheduleWriteBuffer(initialPosition);
@@ -365,17 +365,17 @@ public final class LogStreamImpl extends Actor
 
   @Override
   public void addFailureListener(final FailureListener failureListener) {
-    actor.run(() -> failureListeners.add(failureListener));
+    actorContext.run(() -> failureListeners.add(failureListener));
   }
 
   @Override
   public void removeFailureListener(final FailureListener failureListener) {
-    actor.run(() -> failureListeners.remove(failureListener));
+    actorContext.run(() -> failureListeners.remove(failureListener));
   }
 
   @Override
   public void onFailure(final HealthReport report) {
-    actor.run(
+    actorContext.run(
         () -> {
           healthReport = HealthReport.unhealthy(this).withIssue(report);
           failureListeners.forEach((l) -> l.onFailure(healthReport));
@@ -385,7 +385,7 @@ public final class LogStreamImpl extends Actor
 
   @Override
   public void onRecovered() {
-    actor.run(
+    actorContext.run(
         () -> {
           healthReport = HealthReport.healthy(this);
           failureListeners.forEach(FailureListener::onRecovered);
@@ -394,7 +394,7 @@ public final class LogStreamImpl extends Actor
 
   @Override
   public void onUnrecoverableFailure(final HealthReport report) {
-    actor.run(
+    actorContext.run(
         () -> {
           healthReport = HealthReport.dead(this).withIssue(report);
           failureListeners.forEach(l -> l.onUnrecoverableFailure(healthReport));
@@ -402,15 +402,15 @@ public final class LogStreamImpl extends Actor
         });
   }
 
-  @FunctionalInterface
-  private interface WriterCreator<T extends LogStreamWriter> {
-
-    T create(int partitionId, Dispatcher dispatcher);
-  }
-
   private static final class LogStorageAppenderClosedException extends RuntimeException {
     private LogStorageAppenderClosedException() {
       super("LogStorageAppender was closed before opening succeeded");
     }
+  }
+
+  @FunctionalInterface
+  private interface WriterCreator<T extends LogStreamWriter> {
+
+    T create(int partitionId, Dispatcher dispatcher);
   }
 }

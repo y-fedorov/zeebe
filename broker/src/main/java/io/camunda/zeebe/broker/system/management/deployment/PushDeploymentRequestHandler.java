@@ -24,7 +24,7 @@ import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.DeploymentIntent;
 import io.camunda.zeebe.protocol.record.intent.Intent;
 import io.camunda.zeebe.util.buffer.BufferUtil;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.agrona.DirectBuffer;
@@ -42,12 +42,12 @@ public final class PushDeploymentRequestHandler
   private final RecordMetadata recordMetadata = new RecordMetadata();
 
   private final Int2ObjectHashMap<LogStreamRecordWriter> leaderPartitions;
-  private final ActorControl actor;
+  private final ActorContext actor;
   private final ClusterEventService eventService;
 
   public PushDeploymentRequestHandler(
       final Int2ObjectHashMap<LogStreamRecordWriter> leaderPartitions,
-      final ActorControl actor,
+      final ActorContext actor,
       final ClusterEventService eventService) {
     this.leaderPartitions = leaderPartitions;
     this.actor = actor;

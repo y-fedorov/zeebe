@@ -11,7 +11,7 @@ import io.camunda.zeebe.engine.processing.streamprocessor.ReadonlyProcessingCont
 import io.camunda.zeebe.engine.processing.streamprocessor.StreamProcessorLifecycleAware;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.TypedCommandWriter;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.TypedStreamWriter;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ScheduledTimer;
 import io.camunda.zeebe.util.sched.clock.ActorClock;
 import java.time.Duration;
@@ -19,7 +19,7 @@ import java.util.function.Function;
 
 public final class DueDateChecker implements StreamProcessorLifecycleAware {
 
-  private ActorControl actor;
+  private ActorContext actor;
   private TypedStreamWriter streamWriter;
 
   private ScheduledTimer scheduledTimer;

@@ -14,7 +14,7 @@ import io.camunda.zeebe.engine.state.EventApplier;
 import io.camunda.zeebe.engine.state.mutable.MutableZeebeState;
 import io.camunda.zeebe.logstreams.log.LogStream;
 import io.camunda.zeebe.logstreams.log.LogStreamReader;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import java.util.function.BooleanSupplier;
 
 public interface ReadonlyProcessingContext {
@@ -22,7 +22,7 @@ public interface ReadonlyProcessingContext {
   /**
    * @return the actor on which the processing runs
    */
-  ActorControl getActor();
+  ActorContext getActor();
 
   /**
    * @return the logstream, on which the processor runs

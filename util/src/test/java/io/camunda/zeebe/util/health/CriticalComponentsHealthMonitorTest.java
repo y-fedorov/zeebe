@@ -11,7 +11,7 @@ import static io.camunda.zeebe.util.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.testing.ActorSchedulerRule;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +24,7 @@ public class CriticalComponentsHealthMonitorTest {
 
   @Rule public ActorSchedulerRule actorSchedulerRule = new ActorSchedulerRule();
   private CriticalComponentsHealthMonitor monitor;
-  private ActorControl actorControl;
+  private ActorContext actorControl;
 
   @Before
   public void setup() {
@@ -39,8 +39,8 @@ public class CriticalComponentsHealthMonitorTest {
           protected void onActorStarting() {
             monitor =
                 new CriticalComponentsHealthMonitor(
-                    "TestMonitor", actor, LoggerFactory.getLogger("test"));
-            actorControl = actor;
+                    "TestMonitor", actorContext, LoggerFactory.getLogger("test"));
+            actorControl = actorContext;
           }
 
           @Override

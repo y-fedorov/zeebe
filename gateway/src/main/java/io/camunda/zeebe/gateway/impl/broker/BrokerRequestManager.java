@@ -103,7 +103,7 @@ final class BrokerRequestManager extends Actor {
       final Duration requestTimeout) {
     final CompletableFuture<BrokerResponse<T>> responseFuture = new CompletableFuture<>();
     request.serializeValue();
-    actor.run(() -> sendRequestInternal(request, responseFuture, sender, requestTimeout));
+    actorContext.run(() -> sendRequestInternal(request, responseFuture, sender, requestTimeout));
     return responseFuture;
   }
 
@@ -132,7 +132,7 @@ final class BrokerRequestManager extends Actor {
         sender.send(clientTransport, nodeIdProvider, request, requestTimeout);
     final long startTime = System.currentTimeMillis();
 
-    actor.runOnCompletion(
+    actorContext.runOnCompletion(
         responseFuture,
         (clientResponse, error) -> {
           RequestResult result = null;

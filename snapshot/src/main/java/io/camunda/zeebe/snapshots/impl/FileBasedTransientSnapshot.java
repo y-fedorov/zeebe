@@ -12,7 +12,7 @@ import io.camunda.zeebe.snapshots.SnapshotException.SnapshotNotFoundException;
 import io.camunda.zeebe.snapshots.SnapshotId;
 import io.camunda.zeebe.snapshots.TransientSnapshot;
 import io.camunda.zeebe.util.FileUtil;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.io.IOException;
@@ -29,7 +29,7 @@ public final class FileBasedTransientSnapshot implements TransientSnapshot {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedTransientSnapshot.class);
 
   private final Path directory;
-  private final ActorControl actor;
+  private final ActorContext actor;
   private final FileBasedSnapshotStore snapshotStore;
   private final FileBasedSnapshotMetadata metadata;
   private final ActorFuture<Void> takenFuture = new CompletableActorFuture<>();
@@ -41,7 +41,7 @@ public final class FileBasedTransientSnapshot implements TransientSnapshot {
       final FileBasedSnapshotMetadata metadata,
       final Path directory,
       final FileBasedSnapshotStore snapshotStore,
-      final ActorControl actor) {
+      final ActorContext actor) {
     this.metadata = metadata;
     this.snapshotStore = snapshotStore;
     this.directory = directory;

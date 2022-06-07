@@ -7,19 +7,19 @@
  */
 package io.camunda.zeebe.util.retry;
 
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import java.util.function.BooleanSupplier;
 
 public final class ActorRetryMechanism {
 
-  private final ActorControl actor;
+  private final ActorContext actor;
 
   private OperationToRetry currentCallable;
   private BooleanSupplier currentTerminateCondition;
   private ActorFuture<Boolean> currentFuture;
 
-  public ActorRetryMechanism(final ActorControl actor) {
+  public ActorRetryMechanism(final ActorContext actor) {
     this.actor = actor;
   }
 

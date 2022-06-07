@@ -28,7 +28,7 @@ import io.camunda.zeebe.logstreams.log.LogStream;
 import io.camunda.zeebe.snapshots.ConstructableSnapshotStore;
 import io.camunda.zeebe.snapshots.ReceivableSnapshotStore;
 import io.camunda.zeebe.util.health.HealthMonitor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorSchedulingService;
 import io.camunda.zeebe.util.sched.ConcurrencyControl;
 import io.camunda.zeebe.util.sched.ScheduledTimer;
@@ -72,7 +72,7 @@ public class PartitionStartupAndTransitionContextImpl
   private AsyncSnapshotDirector snapshotDirector;
   private HealthMonitor criticalComponentsHealthMonitor;
   private ZeebeDb zeebeDb;
-  private ActorControl actorControl;
+  private ActorContext actorControl;
   private ScheduledTimer metricsTimer;
   private ExporterDirector exporterDirector;
   private AtomixLogStorage logStorage;
@@ -312,12 +312,12 @@ public class PartitionStartupAndTransitionContextImpl
   }
 
   @Override
-  public ActorControl getActorControl() {
+  public ActorContext getActorControl() {
     return actorControl;
   }
 
   @Override
-  public void setActorControl(final ActorControl actorControl) {
+  public void setActorControl(final ActorContext actorControl) {
     this.actorControl = actorControl;
   }
 

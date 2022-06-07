@@ -16,7 +16,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorThread;
 import io.camunda.zeebe.util.sched.testing.ControlledActorSchedulerRule;
 import java.util.ArrayList;
@@ -131,7 +131,7 @@ public final class RunnableActionsTest {
   public void shouldRunUntilDoneCalled() {
     // given
     final Runner actor = new Runner();
-    final Consumer<ActorControl> runnable =
+    final Consumer<ActorContext> runnable =
         (ctr) -> {
           if (actor.runs == 5) {
             ctr.done();
@@ -154,11 +154,11 @@ public final class RunnableActionsTest {
     // given
     final Runnable otherAction = mock(Runnable.class);
     final Runner actor = new Runner();
-    final Consumer<ActorControl> runUntilDoneAction =
+    final Consumer<ActorContext> runUntilDoneAction =
         spy(
-            new Consumer<ActorControl>() {
+            new Consumer<ActorContext>() {
               @Override
-              public void accept(final ActorControl ctr) {
+              public void accept(final ActorContext ctr) {
                 ctr.run(otherAction); // does not interrupt this action
 
                 if (actor.runs == 5) {
@@ -215,7 +215,7 @@ public final class RunnableActionsTest {
 
   class Submitter extends Actor {
     public void submit(final Runnable r) {
-      actor.submit(r);
+      actorContext.submit(r);
     }
   }
 
@@ -232,7 +232,7 @@ public final class RunnableActionsTest {
     }
 
     public void doRun() {
-      actor.run(
+      actorContext.run(
           () -> {
             if (onExecution != null) {
               onExecution.run();
@@ -241,13 +241,13 @@ public final class RunnableActionsTest {
           });
     }
 
-    public void doRunUntilDone(final Consumer<ActorControl> runnable) {
-      actor.run(
+    public void doRunUntilDone(final Consumer<ActorContext> runnable) {
+      actorContext.run(
           () -> {
-            actor.runUntilDone(
+            actorContext.runUntilDone(
                 () -> {
                   runs++;
-                  runnable.accept(actor);
+                  runnable.accept(actorContext);
                 });
           });
     }

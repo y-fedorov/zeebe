@@ -60,7 +60,7 @@ public final class CallableExecutionTest {
 
   class CloseableActor extends Actor {
     ActorFuture<Void> doCall() {
-      return actor.call(() -> {});
+      return actorContext.call(() -> {});
     }
   }
 }

@@ -16,7 +16,7 @@ import static org.assertj.core.util.Lists.newArrayList;
 import static org.mockito.Mockito.mock;
 
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorTask.ActorLifecyclePhase;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
@@ -32,32 +32,32 @@ class LifecycleRecordingActor extends Actor {
 
   @Override
   public void onActorStarting() {
-    phases.add(actor.getLifecyclePhase());
+    phases.add(actorContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorStarted() {
-    phases.add(actor.getLifecyclePhase());
+    phases.add(actorContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorClosing() {
-    phases.add(actor.getLifecyclePhase());
+    phases.add(actorContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorClosed() {
-    phases.add(actor.getLifecyclePhase());
+    phases.add(actorContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorCloseRequested() {
-    phases.add(actor.getLifecyclePhase());
+    phases.add(actorContext.getLifecyclePhase());
   }
 
   @Override
   public void onActorFailed() {
-    phases.add(actor.getLifecyclePhase());
+    phases.add(actorContext.getLifecyclePhase());
   }
 
   protected void blockPhase() {
@@ -70,20 +70,20 @@ class LifecycleRecordingActor extends Actor {
 
   @SuppressWarnings("unchecked")
   protected void blockPhase(final ActorFuture<Void> future, final BiConsumer consumer) {
-    actor.runOnCompletionBlockingCurrentPhase(future, consumer);
+    actorContext.runOnCompletionBlockingCurrentPhase(future, consumer);
   }
 
   @SuppressWarnings("unchecked")
   protected void runOnCompletion() {
-    actor.runOnCompletion(new CompletableActorFuture<>(), mock(BiConsumer.class));
+    actorContext.runOnCompletion(new CompletableActorFuture<>(), mock(BiConsumer.class));
   }
 
   @SuppressWarnings("unchecked")
   protected void runOnCompletion(final ActorFuture<Void> future) {
-    actor.runOnCompletion(future, mock(BiConsumer.class));
+    actorContext.runOnCompletion(future, mock(BiConsumer.class));
   }
 
-  public ActorControl control() {
-    return actor;
+  public ActorContext control() {
+    return actorContext;
   }
 }

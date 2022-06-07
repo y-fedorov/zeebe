@@ -29,7 +29,7 @@ import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivatedJob;
 import io.camunda.zeebe.protocol.impl.record.value.job.JobBatchRecord;
 import io.camunda.zeebe.protocol.record.ErrorCode;
 import io.camunda.zeebe.util.Either;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.grpc.protobuf.StatusProto;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,7 @@ public final class RoundRobinActivateJobsHandler implements ActivateJobsHandler 
   private final BrokerClient brokerClient;
   private final BrokerTopologyManager topologyManager;
 
-  private ActorControl actor;
+  private ActorContext actor;
 
   public RoundRobinActivateJobsHandler(final BrokerClient brokerClient) {
     this.brokerClient = brokerClient;
@@ -60,7 +60,7 @@ public final class RoundRobinActivateJobsHandler implements ActivateJobsHandler 
   }
 
   @Override
-  public void accept(ActorControl actor) {
+  public void accept(final ActorContext actor) {
     this.actor = actor;
   }
 

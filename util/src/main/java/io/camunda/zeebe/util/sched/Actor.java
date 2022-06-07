@@ -12,6 +12,7 @@ import io.camunda.zeebe.util.Loggers;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -23,7 +24,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   public static final String ACTOR_PROP_PARTITION_ID = "partitionId";
 
   private static final int MAX_CLOSE_TIMEOUT = 300;
-  protected final ActorControl actor = new ActorControl(this);
+  protected final ActorContext actorContext = new ActorContext(this);
   private Map<String, String> context;
 
   /**
@@ -36,6 +37,10 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
     final var baseContext = new HashMap<String, String>();
     baseContext.put(ACTOR_PROP_NAME, getName());
     return baseContext;
+  }
+
+  public List<ActorJob> getCurrentJobs() {
+    actorContext.
   }
 
   public String getName() {
@@ -54,7 +59,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   }
 
   public boolean isActorClosed() {
-    return actor.isClosed();
+    return actorContext.isClosed();
   }
 
   protected void onActorStarting() {
@@ -77,7 +82,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
     // notification that timers, conditions, etc. will no longer trigger from now on
   }
 
-  public static Actor wrap(final Consumer<ActorControl> r) {
+  public static Actor wrap(final Consumer<ActorContext> r) {
     return new Actor() {
       @Override
       public String getName() {
@@ -86,7 +91,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
 
       @Override
       protected void onActorStarted() {
-        r.accept(actor);
+        r.accept(actorContext);
       }
     };
   }
@@ -98,7 +103,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
 
   @Override
   public ActorFuture<Void> closeAsync() {
-    return actor.close();
+    return actorContext.close();
   }
 
   public static String buildActorName(final int nodeId, final String name) {
@@ -114,7 +119,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
     Loggers.ACTOR_LOGGER.error(
         "Uncaught exception in '{}' in phase '{}'. Continuing with next job.",
         getName(),
-        actor.getLifecyclePhase(),
+        actorContext.getLifecyclePhase(),
         failure);
   }
 
@@ -125,12 +130,12 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   @Override
   public <T> void runOnCompletion(
       final ActorFuture<T> future, final BiConsumer<T, Throwable> callback) {
-    actor.runOnCompletion(future, callback);
+    actorContext.runOnCompletion(future, callback);
   }
 
   @Override
   public void run(final Runnable action) {
-    actor.run(action);
+    actorContext.run(action);
   }
 
   public static ActorBuilder newActor() {
@@ -140,21 +145,21 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
   public static class ActorBuilder {
 
     private String name;
-    private Consumer<ActorControl> actorStartedHandler;
+    private Consumer<ActorContext> actorStartedHandler;
 
     public ActorBuilder name(final String name) {
       this.name = name;
       return this;
     }
 
-    public ActorBuilder actorStartedHandler(final Consumer<ActorControl> actorStartedHandler) {
+    public ActorBuilder actorStartedHandler(final Consumer<ActorContext> actorStartedHandler) {
       this.actorStartedHandler = actorStartedHandler;
       return this;
     }
 
     public Actor build() {
       final var wrapper =
-          new Consumer<ActorControl>() {
+          new Consumer<ActorContext>() {
 
             @Override
             public String toString() {
@@ -168,7 +173,7 @@ public abstract class Actor implements CloseableSilently, AsyncClosable, Concurr
             }
 
             @Override
-            public void accept(ActorControl t) {
+            public void accept(final ActorContext t) {
               if (actorStartedHandler != null) {
                 actorStartedHandler.accept(t);
               }

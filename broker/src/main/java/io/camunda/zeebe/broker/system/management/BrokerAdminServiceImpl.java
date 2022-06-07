@@ -56,34 +56,34 @@ public final class BrokerAdminServiceImpl extends Actor implements BrokerAdminSe
 
   @Override
   public void pauseStreamProcessing() {
-    actor.call(this::pauseStreamProcessingOnAllPartitions);
+    actorContext.call(this::pauseStreamProcessingOnAllPartitions);
   }
 
   @Override
   public void resumeStreamProcessing() {
     LOG.info("Resuming paused StreamProcessor on all partitions.");
-    actor.call(() -> adminAccess.resumeProcessing());
+    actorContext.call(() -> adminAccess.resumeProcessing());
   }
 
   @Override
   public void pauseExporting() {
-    actor.call(this::pauseExportingOnAllPartitions);
+    actorContext.call(this::pauseExportingOnAllPartitions);
   }
 
   @Override
   public void resumeExporting() {
     LOG.info("Resuming exporting on all partitions.");
-    actor.call(() -> adminAccess.resumeExporting());
+    actorContext.call(() -> adminAccess.resumeExporting());
   }
 
   @Override
   public void takeSnapshot() {
-    actor.call(this::takeSnapshotOnAllPartitions);
+    actorContext.call(this::takeSnapshotOnAllPartitions);
   }
 
   @Override
   public void prepareForUpgrade() {
-    actor.call(this::prepareAllPartitionsForSafeUpgrade);
+    actorContext.call(this::prepareAllPartitionsForSafeUpgrade);
   }
 
   @Override
@@ -91,7 +91,7 @@ public final class BrokerAdminServiceImpl extends Actor implements BrokerAdminSe
     final CompletableFuture<Map<Integer, PartitionStatus>> future = new CompletableFuture<>();
     final Map<Integer, PartitionStatus> partitionStatuses = new ConcurrentHashMap<>();
 
-    actor.call(
+    actorContext.call(
         () -> {
           if (partitions.isEmpty()) {
             // can happen before partitions are injected
@@ -127,7 +127,7 @@ public final class BrokerAdminServiceImpl extends Actor implements BrokerAdminSe
     final var currentRoleFuture = partition.getCurrentRole();
     final var streamProcessorFuture = partition.getStreamProcessor();
     final var exporterDirectorFuture = partition.getExporterDirector();
-    actor.runOnCompletion(
+    actorContext.runOnCompletion(
         List.of((ActorFuture) streamProcessorFuture, (ActorFuture) exporterDirectorFuture),
         error -> {
           if (error != null) {
@@ -183,7 +183,7 @@ public final class BrokerAdminServiceImpl extends Actor implements BrokerAdminSe
             .map(FileBasedSnapshotMetadata::getProcessedPosition)
             .orElse(null);
 
-    actor.runOnCompletion(
+    actorContext.runOnCompletion(
         List.of(
             (ActorFuture) positionFuture,
             (ActorFuture) currentPhaseFuture,
@@ -222,7 +222,7 @@ public final class BrokerAdminServiceImpl extends Actor implements BrokerAdminSe
     final var pauseAll =
         Stream.of(pauseProcessingCompleted, pauseExportingCompleted).collect(Collectors.toList());
 
-    actor.runOnCompletion(pauseAll, t -> takeSnapshotOnAllPartitions());
+    actorContext.runOnCompletion(pauseAll, t -> takeSnapshotOnAllPartitions());
   }
 
   private ActorFuture<Void> pauseStreamProcessingOnAllPartitions() {

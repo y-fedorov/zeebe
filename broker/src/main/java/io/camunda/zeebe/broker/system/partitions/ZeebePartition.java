@@ -71,17 +71,17 @@ public final class ZeebePartition extends Actor
 
     startupProcess = new StartupProcess<>(LOG, startupSteps);
 
-    transitionContext.setActorControl(actor);
+    transitionContext.setActorControl(actorContext);
     transitionContext.setDiskSpaceAvailable(true);
 
-    transition.setConcurrencyControl(actor);
+    transition.setConcurrencyControl(actorContext);
 
     actorName =
         buildActorName(
             transitionContext.getNodeId(), "ZeebePartition", transitionContext.getPartitionId());
     transitionContext.setComponentHealthMonitor(
         new CriticalComponentsHealthMonitor(
-            "Partition-" + transitionContext.getPartitionId(), actor, LOG));
+            "Partition-" + transitionContext.getPartitionId(), actorContext, LOG));
     zeebePartitionHealth = new ZeebePartitionHealth(transitionContext.getPartitionId());
     healthMetrics = new HealthMetrics(transitionContext.getPartitionId());
     healthMetrics.setUnhealthy();
@@ -90,7 +90,7 @@ public final class ZeebePartition extends Actor
   }
 
   public PartitionAdminAccess createAdminAccess() {
-    return new ZeebePartitionAdminAccess(actor, adminControl);
+    return new ZeebePartitionAdminAccess(actorContext, adminControl);
   }
 
   @Override
@@ -108,7 +108,7 @@ public final class ZeebePartition extends Actor
   @Override
   public void onActorStarting() {
     startupProcess
-        .startup(actor, startupContext)
+        .startup(actorContext, startupContext)
         .onComplete(
             (newStartupContext, error) -> {
               if (error != null) {
@@ -146,7 +146,7 @@ public final class ZeebePartition extends Actor
   protected void onActorClosing() {
     // Already transitioned to inactive
     startupProcess
-        .shutdown(actor, startupContext)
+        .shutdown(actorContext, startupContext)
         .onComplete(
             (newStartupContext, error) -> {
               if (error != null) {
@@ -170,7 +170,7 @@ public final class ZeebePartition extends Actor
 
     closeFuture = new CompletableActorFuture<>();
 
-    actor.run(
+    actorContext.run(
         () -> {
           LOG.debug("Closing ZeebePartition {}", context.getPartitionId());
           closing = true;
@@ -204,7 +204,7 @@ public final class ZeebePartition extends Actor
   @Override
   @Deprecated // will be removed from public API of ZeebePartition
   public void onNewRole(final Role newRole, final long newTerm) {
-    actor.run(
+    actorContext.run(
         () -> {
           if (!closing) {
             onRoleChange(newRole, newTerm);
@@ -241,7 +241,7 @@ public final class ZeebePartition extends Actor
             latencyTimer.close();
             final List<ActorFuture<Void>> listenerFutures =
                 context.notifyListenersOfBecomingLeader(newTerm);
-            actor.runOnCompletion(
+            actorContext.runOnCompletion(
                 listenerFutures,
                 t -> {
                   if (t != null) {
@@ -264,7 +264,7 @@ public final class ZeebePartition extends Actor
           if (error == null) {
             final List<ActorFuture<Void>> listenerFutures =
                 context.notifyListenersOfBecomingFollower(newTerm);
-            actor.runOnCompletion(
+            actorContext.runOnCompletion(
                 listenerFutures,
                 t -> {
                   // Compare with the current term in case a new role transition happened
@@ -301,7 +301,7 @@ public final class ZeebePartition extends Actor
   @Override
   @Deprecated // will be removed from public API of ZeebePartition
   public void onFailure(final HealthReport report) {
-    actor.run(
+    actorContext.run(
         () -> {
           healthMetrics.setUnhealthy();
           failureListeners.forEach((l) -> l.onFailure(report));
@@ -311,7 +311,7 @@ public final class ZeebePartition extends Actor
   @Override
   @Deprecated // will be removed from public API of ZeebePartition
   public void onRecovered() {
-    actor.run(
+    actorContext.run(
         () -> {
           healthMetrics.setHealthy();
           failureListeners.forEach(FailureListener::onRecovered);
@@ -322,7 +322,7 @@ public final class ZeebePartition extends Actor
   @Deprecated // will be removed from public API of ZeebePartition
   public void onUnrecoverableFailure(final HealthReport report) {
     // TODO: Can't use null here
-    actor.run(() -> handleUnrecoverableFailure(null));
+    actorContext.run(() -> handleUnrecoverableFailure(null));
   }
 
   private void onInstallFailure(final Throwable error) {
@@ -391,7 +391,7 @@ public final class ZeebePartition extends Actor
 
   @Override
   public void addFailureListener(final FailureListener failureListener) {
-    actor.run(
+    actorContext.run(
         () -> {
           failureListeners.add(failureListener);
           if (getHealthReport().getStatus() == HealthStatus.HEALTHY) {
@@ -404,14 +404,14 @@ public final class ZeebePartition extends Actor
 
   @Override
   public void removeFailureListener(final FailureListener failureListener) {
-    actor.run(() -> failureListeners.remove(failureListener));
+    actorContext.run(() -> failureListeners.remove(failureListener));
   }
 
   @Override
   @Deprecated // currently the implementation forwards this to other components inside the
   // partition; these components will be directly registered as listeners in the future
   public void onDiskSpaceNotAvailable() {
-    actor.call(
+    actorContext.call(
         () -> {
           context.setDiskSpaceAvailable(false);
           zeebePartitionHealth.setDiskSpaceAvailable(false);
@@ -426,7 +426,7 @@ public final class ZeebePartition extends Actor
   @Deprecated // currently the implementation forwards this to other components inside the
   // partition; these components will be directly registered as listeners in the future
   public void onDiskSpaceAvailable() {
-    actor.call(
+    actorContext.call(
         () -> {
           context.setDiskSpaceAvailable(true);
           zeebePartitionHealth.setDiskSpaceAvailable(false);
@@ -446,11 +446,11 @@ public final class ZeebePartition extends Actor
   }
 
   public ActorFuture<Optional<StreamProcessor>> getStreamProcessor() {
-    return actor.call(() -> Optional.ofNullable(context.getStreamProcessor()));
+    return actorContext.call(() -> Optional.ofNullable(context.getStreamProcessor()));
   }
 
   public ActorFuture<Optional<ExporterDirector>> getExporterDirector() {
-    return actor.call(() -> Optional.ofNullable(context.getExporterDirector()));
+    return actorContext.call(() -> Optional.ofNullable(context.getExporterDirector()));
   }
 
   @Override
@@ -459,7 +459,7 @@ public final class ZeebePartition extends Actor
     // restart from a new state. So we transition to Inactive to close existing services. The
     // services will be reinstalled when snapshot replication is completed.
     // We do not want to mark it as unhealthy, hence we don't reuse transitionToInactive()
-    actor.run(
+    actorContext.run(
         () -> {
           if (!closing) {
             transition.toInactive(context.getCurrentTerm());
@@ -471,7 +471,7 @@ public final class ZeebePartition extends Actor
   public void onSnapshotReplicationCompleted(final long term) {
     // Snapshot is received only by the followers. Hence we can safely assume that we have to
     // re-install follower services.
-    actor.run(
+    actorContext.run(
         () -> {
           if (!closing) {
             followerTransition(term);
@@ -480,6 +480,6 @@ public final class ZeebePartition extends Actor
   }
 
   public ActorFuture<Role> getCurrentRole() {
-    return actor.call(() -> context.getCurrentRole());
+    return actorContext.call(() -> context.getCurrentRole());
   }
 }

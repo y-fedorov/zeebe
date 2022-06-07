@@ -19,7 +19,7 @@ import io.camunda.zeebe.gateway.impl.broker.cluster.BrokerClusterState;
 import io.camunda.zeebe.gateway.metrics.LongPollingMetrics;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsResponse;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ScheduledTimer;
 import io.grpc.protobuf.StatusProto;
 import java.time.Duration;
@@ -52,7 +52,7 @@ public final class LongPollingActivateJobsHandler implements ActivateJobsHandler
 
   private final LongPollingMetrics metrics;
 
-  private ActorControl actor;
+  private ActorContext actor;
 
   private LongPollingActivateJobsHandler(
       final BrokerClient brokerClient,
@@ -68,7 +68,7 @@ public final class LongPollingActivateJobsHandler implements ActivateJobsHandler
   }
 
   @Override
-  public void accept(ActorControl actor) {
+  public void accept(final ActorContext actor) {
     this.actor = actor;
     activateJobsHandler.accept(actor);
     onActorStarted();

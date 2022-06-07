@@ -18,7 +18,7 @@ import io.camunda.zeebe.engine.state.mutable.MutableJobState;
 import io.camunda.zeebe.engine.util.ZeebeStateRule;
 import io.camunda.zeebe.protocol.impl.record.value.job.JobRecord;
 import io.camunda.zeebe.protocol.record.intent.JobIntent;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,7 +31,7 @@ public final class JobTimeoutTriggerTest {
 
   @Rule public final ZeebeStateRule stateRule = new ZeebeStateRule();
 
-  @Mock private ActorControl someActor;
+  @Mock private ActorContext someActor;
 
   @Mock private TypedStreamWriter typedStreamWriter;
   private JobTimeoutTrigger jobTimeoutTrigger;

@@ -85,7 +85,7 @@ public final class ControlledActorSchedulerRule extends ExternalResource {
 
     @Override
     protected void onActorStarted() {
-      actor.run(
+      actorContext.run(
           () -> {
             try {
               future.complete(callable.call());

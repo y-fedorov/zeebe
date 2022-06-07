@@ -134,7 +134,7 @@ public final class LogStorageAppenderHealthTest {
         final long highestPosition,
         final ByteBuffer blockBuffer,
         final AppendListener listener) {
-      actor.run(() -> onAppend.accept(highestPosition, listener));
+      actorContext.run(() -> onAppend.accept(highestPosition, listener));
     }
 
     @Override
@@ -149,7 +149,7 @@ public final class LogStorageAppenderHealthTest {
 
     @Override
     public void close() {
-      actor.close();
+      actorContext.close();
     }
   }
 }

@@ -138,7 +138,7 @@ final class CommandApiRequestHandler
       final int partitionId,
       final LogStreamRecordWriter logStreamWriter,
       final RequestLimiter<Intent> limiter) {
-    actor.submit(
+    actorContext.submit(
         () -> {
           leadingStreams.put(partitionId, logStreamWriter);
           partitionLimiters.put(partitionId, limiter);
@@ -146,7 +146,7 @@ final class CommandApiRequestHandler
   }
 
   void removePartition(final int partitionId) {
-    actor.submit(
+    actorContext.submit(
         () -> {
           leadingStreams.remove(partitionId);
           partitionLimiters.remove(partitionId);
@@ -154,7 +154,7 @@ final class CommandApiRequestHandler
   }
 
   void onDiskSpaceNotAvailable() {
-    actor.submit(
+    actorContext.submit(
         () -> {
           isDiskSpaceAvailable = false;
           LOG.debug("Broker is out of disk space. All client requests will be rejected");
@@ -162,6 +162,6 @@ final class CommandApiRequestHandler
   }
 
   void onDiskSpaceAvailable() {
-    actor.submit(() -> isDiskSpaceAvailable = true);
+    actorContext.submit(() -> isDiskSpaceAvailable = true);
   }
 }

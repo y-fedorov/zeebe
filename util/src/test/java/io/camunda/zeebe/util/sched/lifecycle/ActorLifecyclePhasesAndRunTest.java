@@ -28,7 +28,7 @@ public final class ActorLifecyclePhasesAndRunTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            actor.run(runnable);
+            actorContext.run(runnable);
             blockPhase();
           }
         };
@@ -51,7 +51,7 @@ public final class ActorLifecyclePhasesAndRunTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            actor.run(runnable);
+            actorContext.run(runnable);
             blockPhase(future);
           }
         };
@@ -76,7 +76,7 @@ public final class ActorLifecyclePhasesAndRunTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarted() {
-            actor.run(runnable);
+            actorContext.run(runnable);
           }
         };
 
@@ -96,7 +96,7 @@ public final class ActorLifecyclePhasesAndRunTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorCloseRequested() {
-            actor.run(runnable);
+            actorContext.run(runnable);
             blockPhase();
           }
         };
@@ -118,7 +118,7 @@ public final class ActorLifecyclePhasesAndRunTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorClosing() {
-            actor.run(runnable);
+            actorContext.run(runnable);
             blockPhase();
           }
         };
@@ -140,7 +140,7 @@ public final class ActorLifecyclePhasesAndRunTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorClosed() {
-            actor.run(runnable);
+            actorContext.run(runnable);
             blockPhase();
           }
         };

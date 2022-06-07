@@ -81,9 +81,10 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
             responseValidator,
             shouldRetry,
             timeout);
-    actor.call(
+    actorContext.call(
         () -> {
-          final var scheduledTimer = actor.runDelayed(timeout, () -> timeoutFuture(requestContext));
+          final var scheduledTimer =
+              actorContext.runDelayed(timeout, () -> timeoutFuture(requestContext));
           requestContext.setScheduledTimer(scheduledTimer);
           tryToSend(requestContext);
         });
@@ -132,7 +133,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
               requestContext.hashCode(),
               RETRY_DELAY);
         }
-        actor.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
+        actorContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       } else {
         if (LOG.isTraceEnabled()) {
           LOG.trace(
@@ -159,7 +160,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         .sendAndReceive(nodeAddress, requestContext.getTopicName(), requestBytes, calculateTimeout)
         .whenComplete(
             (response, errorOnRequest) ->
-                actor.run(() -> handleResponse(requestContext, response, errorOnRequest)));
+                actorContext.run(() -> handleResponse(requestContext, response, errorOnRequest)));
   }
 
   private void handleResponse(
@@ -187,7 +188,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
               RETRY_DELAY);
         }
         // no valid response - retry in respect of the timeout
-        actor.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
+        actorContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       }
     } else {
       // normally the root exception is a completion exception
@@ -205,7 +206,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         }
 
         // no registered subscription yet
-        actor.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
+        actorContext.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       } else {
         if (LOG.isTraceEnabled()) {
           LOG.trace(

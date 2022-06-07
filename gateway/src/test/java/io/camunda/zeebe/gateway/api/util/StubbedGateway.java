@@ -17,7 +17,7 @@ import io.camunda.zeebe.gateway.impl.job.RoundRobinActivateJobsHandler;
 import io.camunda.zeebe.gateway.protocol.GatewayGrpc;
 import io.camunda.zeebe.gateway.protocol.GatewayGrpc.GatewayBlockingStub;
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorScheduler;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
@@ -48,7 +48,7 @@ public final class StubbedGateway {
 
   public void start() throws IOException {
     final var activateJobsHandler = buildActivateJobsHandler(brokerClient);
-    submitActorToActivateJobs((Consumer<ActorControl>) activateJobsHandler);
+    submitActorToActivateJobs((Consumer<ActorContext>) activateJobsHandler);
 
     final EndpointManager endpointManager = new EndpointManager(brokerClient, activateJobsHandler);
     final GatewayGrpcService gatewayGrpcService = new GatewayGrpcService(endpointManager);
@@ -76,7 +76,7 @@ public final class StubbedGateway {
     return GatewayGrpc.newBlockingStub(channel);
   }
 
-  private void submitActorToActivateJobs(final Consumer<ActorControl> consumer) {
+  private void submitActorToActivateJobs(final Consumer<ActorContext> consumer) {
     final var future = new CompletableFuture<>();
     final var actor =
         Actor.newActor()

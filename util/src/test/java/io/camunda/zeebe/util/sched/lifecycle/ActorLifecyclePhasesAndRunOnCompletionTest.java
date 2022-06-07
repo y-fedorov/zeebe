@@ -223,7 +223,7 @@ public final class ActorLifecyclePhasesAndRunOnCompletionTest {
 
           @Override
           public void onActorStarted() {
-            actor.runOnCompletion(
+            actorContext.runOnCompletion(
                 futureInStarted,
                 (r1, t1) -> {
                   futureInStartedCompleted.complete(null);
@@ -273,10 +273,10 @@ public final class ActorLifecyclePhasesAndRunOnCompletionTest {
           public void onActorStarting() {
             super.onActorStarting();
 
-            actor.runOnCompletion(
+            actorContext.runOnCompletion(
                 future1,
                 (r1, t1) -> {
-                  actor.runOnCompletion(
+                  actorContext.runOnCompletion(
                       future2,
                       (r2, t2) -> {
                         future3.complete(null);

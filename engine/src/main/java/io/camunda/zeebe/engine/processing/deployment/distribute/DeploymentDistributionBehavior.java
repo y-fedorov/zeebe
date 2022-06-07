@@ -16,7 +16,7 @@ import io.camunda.zeebe.protocol.impl.record.value.deployment.DeploymentRecord;
 import io.camunda.zeebe.protocol.record.intent.DeploymentDistributionIntent;
 import io.camunda.zeebe.protocol.record.intent.DeploymentIntent;
 import io.camunda.zeebe.util.buffer.BufferUtil;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -30,7 +30,7 @@ public final class DeploymentDistributionBehavior {
 
   private final List<Integer> otherPartitions;
   private final DeploymentDistributor deploymentDistributor;
-  private final ActorControl processingActor;
+  private final ActorContext processingActor;
   private final StateWriter stateWriter;
   private final TypedCommandWriter commandWriter;
 
@@ -38,7 +38,7 @@ public final class DeploymentDistributionBehavior {
       final Writers writers,
       final int partitionsCount,
       final DeploymentDistributor deploymentDistributor,
-      final ActorControl processingActor) {
+      final ActorContext processingActor) {
     otherPartitions =
         IntStream.range(Protocol.START_PARTITION_ID, Protocol.START_PARTITION_ID + partitionsCount)
             .filter(partition -> partition != Protocol.DEPLOYMENT_PARTITION)

@@ -7,18 +7,18 @@
  */
 package io.camunda.zeebe.util.retry;
 
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.util.function.BooleanSupplier;
 
 public final class AbortableRetryStrategy implements RetryStrategy {
 
-  private final ActorControl actor;
+  private final ActorContext actor;
   private final ActorRetryMechanism retryMechanism;
   private CompletableActorFuture<Boolean> currentFuture;
 
-  public AbortableRetryStrategy(final ActorControl actor) {
+  public AbortableRetryStrategy(final ActorContext actor) {
     this.actor = actor;
     retryMechanism = new ActorRetryMechanism(actor);
   }

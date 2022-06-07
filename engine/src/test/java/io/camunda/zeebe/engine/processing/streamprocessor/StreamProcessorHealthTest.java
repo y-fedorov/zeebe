@@ -193,7 +193,7 @@ public class StreamProcessorHealthTest {
     }
 
     public boolean hasHealthStatus(final HealthStatus healthStatus) {
-      return actor
+      return actorContext
           .call(() -> streamProcessor.getHealthReport().getStatus() == healthStatus)
           .join(5, TimeUnit.SECONDS);
     }

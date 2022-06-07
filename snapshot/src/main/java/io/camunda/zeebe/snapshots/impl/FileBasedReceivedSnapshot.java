@@ -12,7 +12,7 @@ import io.camunda.zeebe.snapshots.ReceivedSnapshot;
 import io.camunda.zeebe.snapshots.SnapshotChunk;
 import io.camunda.zeebe.snapshots.SnapshotId;
 import io.camunda.zeebe.util.FileUtil;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class FileBasedReceivedSnapshot implements ReceivedSnapshot {
   private static final int BLOCK_SIZE = 512 * 1024;
 
   private final Path directory;
-  private final ActorControl actor;
+  private final ActorContext actor;
   private final FileBasedSnapshotStore snapshotStore;
 
   private final FileBasedSnapshotMetadata metadata;
@@ -43,7 +43,7 @@ public class FileBasedReceivedSnapshot implements ReceivedSnapshot {
       final FileBasedSnapshotMetadata metadata,
       final Path directory,
       final FileBasedSnapshotStore snapshotStore,
-      final ActorControl actor) {
+      final ActorContext actor) {
     this.metadata = metadata;
     this.snapshotStore = snapshotStore;
     this.directory = directory;
@@ -99,7 +99,7 @@ public class FileBasedReceivedSnapshot implements ReceivedSnapshot {
     final var tmpSnapshotDirectory = directory;
     try {
       FileUtil.ensureDirectoryExists(tmpSnapshotDirectory);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new SnapshotWriteException(
           String.format("Failed to ensure that directory %s exists.", tmpSnapshotDirectory), e);
     }
@@ -174,7 +174,7 @@ public class FileBasedReceivedSnapshot implements ReceivedSnapshot {
 
   private void writeReceivedSnapshotChunk(
       final SnapshotChunk snapshotChunk, final Path snapshotFile) throws SnapshotWriteException {
-    try (var channel =
+    try (final var channel =
         FileChannel.open(snapshotFile, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
       final ByteBuffer buffer = ByteBuffer.wrap(snapshotChunk.getContent());
 
@@ -185,7 +185,7 @@ public class FileBasedReceivedSnapshot implements ReceivedSnapshot {
       }
 
       channel.force(true);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new SnapshotWriteException(
           String.format("Failed to write snapshot chunk %s", snapshotChunk), e);
     }

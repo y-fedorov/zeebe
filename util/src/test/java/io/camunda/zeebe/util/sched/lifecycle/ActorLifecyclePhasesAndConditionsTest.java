@@ -30,7 +30,7 @@ public final class ActorLifecyclePhasesAndConditionsTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            conditionFuture.complete(actor.onCondition("condition", runnable));
+            conditionFuture.complete(actorContext.onCondition("condition", runnable));
             blockPhase();
           }
         };
@@ -58,7 +58,7 @@ public final class ActorLifecyclePhasesAndConditionsTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarting() {
-            conditionFuture.complete(actor.onCondition("condition", runnable));
+            conditionFuture.complete(actorContext.onCondition("condition", runnable));
             blockPhase(future);
           }
         };
@@ -84,7 +84,7 @@ public final class ActorLifecyclePhasesAndConditionsTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorStarted() {
-            conditionFuture.complete(actor.onCondition("condition", runnable));
+            conditionFuture.complete(actorContext.onCondition("condition", runnable));
             blockPhase();
           }
         };
@@ -111,7 +111,7 @@ public final class ActorLifecyclePhasesAndConditionsTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorCloseRequested() {
-            conditionFuture.complete(actor.onCondition("condition", runnable));
+            conditionFuture.complete(actorContext.onCondition("condition", runnable));
             blockPhase();
           }
         };
@@ -138,7 +138,7 @@ public final class ActorLifecyclePhasesAndConditionsTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorClosing() {
-            conditionFuture.complete(actor.onCondition("condition", runnable));
+            conditionFuture.complete(actorContext.onCondition("condition", runnable));
             blockPhase();
           }
         };
@@ -165,7 +165,7 @@ public final class ActorLifecyclePhasesAndConditionsTest {
         new LifecycleRecordingActor() {
           @Override
           public void onActorClosed() {
-            conditionFuture.complete(actor.onCondition("condition", runnable));
+            conditionFuture.complete(actorContext.onCondition("condition", runnable));
             blockPhase();
           }
         };

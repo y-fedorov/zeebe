@@ -15,7 +15,7 @@ import io.camunda.zeebe.broker.transport.ApiRequestHandler.RequestReader;
 import io.camunda.zeebe.broker.transport.ApiRequestHandler.ResponseWriter;
 import io.camunda.zeebe.transport.ServerOutput;
 import io.camunda.zeebe.util.Either;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.testing.ControlledActorSchedulerRule;
 import org.agrona.DirectBuffer;
 import org.junit.Before;
@@ -93,8 +93,8 @@ public class ApiRequestHandlerTest {
       super(requestReader, responseWriter);
     }
 
-    public ActorControl actor() {
-      return actor;
+    public ActorContext actor() {
+      return actorContext;
     }
 
     @Override

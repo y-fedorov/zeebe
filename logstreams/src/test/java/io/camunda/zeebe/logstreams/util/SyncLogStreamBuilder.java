@@ -82,7 +82,7 @@ public final class SyncLogStreamBuilder implements LogStreamBuilder {
         new Actor() {
           @Override
           protected void onActorStarting() {
-            actor.runOnCompletionBlockingCurrentPhase(
+            actorContext.runOnCompletionBlockingCurrentPhase(
                 buildAsync(),
                 (logStream, t) -> {
                   if (t == null) {

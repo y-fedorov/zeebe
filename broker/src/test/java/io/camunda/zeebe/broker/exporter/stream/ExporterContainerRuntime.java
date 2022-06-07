@@ -17,7 +17,7 @@ import io.camunda.zeebe.engine.state.ZbColumnFamilies;
 import io.camunda.zeebe.util.CloseableSilently;
 import io.camunda.zeebe.util.jar.ExternalJarLoadException;
 import io.camunda.zeebe.util.sched.Actor;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.ActorScheduler;
 import java.io.File;
 import java.nio.file.Path;
@@ -87,8 +87,8 @@ public final class ExporterContainerRuntime implements CloseableSilently {
   }
 
   static final class RuntimeActor extends Actor {
-    ActorControl getActorControl() {
-      return actor;
+    ActorContext getActorControl() {
+      return actorContext;
     }
   }
 }

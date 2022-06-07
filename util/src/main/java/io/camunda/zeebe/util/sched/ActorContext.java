@@ -24,24 +24,24 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class ActorControl implements ConcurrencyControl {
+public class ActorContext implements ConcurrencyControl {
   final ActorTask task;
   private final Actor actor;
 
-  public ActorControl(final Actor actor) {
+  public ActorContext(final Actor actor) {
     this.actor = actor;
     task = new ActorTask(actor);
   }
 
-  private ActorControl(final ActorTask task) {
+  private ActorContext(final ActorTask task) {
     actor = task.actor;
     this.task = task;
   }
 
-  public static ActorControl current() {
+  public static ActorContext current() {
     final ActorThread actorThread = ensureCalledFromActorThread("ActorControl#current");
 
-    return new ActorControl(actorThread.currentTask);
+    return new ActorContext(actorThread.currentTask);
   }
 
   /**

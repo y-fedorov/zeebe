@@ -56,7 +56,7 @@ public final class LogDeletionService extends Actor implements PersistedSnapshot
 
   @Override
   public void onNewSnapshot(final PersistedSnapshot newPersistedSnapshot) {
-    actor.run(() -> delegateDeletion(newPersistedSnapshot));
+    actorContext.run(() -> delegateDeletion(newPersistedSnapshot));
   }
 
   private void delegateDeletion(final PersistedSnapshot persistedSnapshot) {

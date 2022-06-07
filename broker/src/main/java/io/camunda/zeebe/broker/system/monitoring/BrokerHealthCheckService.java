@@ -106,7 +106,7 @@ public final class BrokerHealthCheckService extends Actor implements PartitionLi
   public BrokerHealthCheckService(final BrokerInfo localBroker) {
     actorName = buildActorName(localBroker.getNodeId(), "HealthCheckService");
     nodeId = MemberId.from(String.valueOf(localBroker.getNodeId()));
-    healthMonitor = new CriticalComponentsHealthMonitor("Broker-" + nodeId, actor, LOG);
+    healthMonitor = new CriticalComponentsHealthMonitor("Broker-" + nodeId, actorContext, LOG);
   }
 
   public void registerPartitionManager(final PartitionManager partitionManager) {
@@ -158,7 +158,7 @@ public final class BrokerHealthCheckService extends Actor implements PartitionLi
   }
 
   private ActorFuture<Void> updateBrokerReadyStatus(final int partitionId) {
-    return actor.call(
+    return actorContext.call(
         () -> {
           if (!allPartitionsInstalled) {
             partitionInstallStatus.put(partitionId, true);
@@ -190,7 +190,7 @@ public final class BrokerHealthCheckService extends Actor implements PartitionLi
   }
 
   private void registerComponent(final String componentName, final HealthMonitorable component) {
-    actor.run(() -> healthMonitor.registerComponent(componentName, component));
+    actorContext.run(() -> healthMonitor.registerComponent(componentName, component));
   }
 
   public void registerMonitoredPartition(final int partitionId, final HealthMonitorable partition) {
@@ -204,11 +204,11 @@ public final class BrokerHealthCheckService extends Actor implements PartitionLi
   }
 
   private void removeComponent(final String componentName) {
-    actor.run(() -> healthMonitor.removeComponent(componentName));
+    actorContext.run(() -> healthMonitor.removeComponent(componentName));
   }
 
   public boolean isBrokerHealthy() {
-    return !actor.isClosed() && getBrokerHealth() == HealthStatus.HEALTHY;
+    return !actorContext.isClosed() && getBrokerHealth() == HealthStatus.HEALTHY;
   }
 
   private HealthStatus getBrokerHealth() {
@@ -219,7 +219,7 @@ public final class BrokerHealthCheckService extends Actor implements PartitionLi
   }
 
   public void setBrokerStarted() {
-    actor.run(() -> brokerStarted = true);
+    actorContext.run(() -> brokerStarted = true);
   }
 
   public boolean isBrokerStarted() {

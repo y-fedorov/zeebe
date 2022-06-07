@@ -67,7 +67,8 @@ public abstract class ApiRequestHandler<R extends RequestReader<?>, W extends Re
       final DirectBuffer buffer,
       final int offset,
       final int length) {
-    actor.submit(() -> handleRequest(serverOutput, partitionId, requestId, buffer, offset, length));
+    actorContext.submit(
+        () -> handleRequest(serverOutput, partitionId, requestId, buffer, offset, length));
   }
 
   private void handleRequest(

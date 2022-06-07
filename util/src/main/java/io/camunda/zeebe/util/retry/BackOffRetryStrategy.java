@@ -7,7 +7,7 @@
  */
 package io.camunda.zeebe.util.retry;
 
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import io.camunda.zeebe.util.sched.future.ActorFuture;
 import io.camunda.zeebe.util.sched.future.CompletableActorFuture;
 import java.time.Duration;
@@ -15,7 +15,7 @@ import java.util.function.BooleanSupplier;
 
 public final class BackOffRetryStrategy implements RetryStrategy {
 
-  private final ActorControl actor;
+  private final ActorContext actor;
   private final Duration maxBackOff;
 
   private Duration backOffDuration;
@@ -23,7 +23,7 @@ public final class BackOffRetryStrategy implements RetryStrategy {
   private BooleanSupplier currentTerminateCondition;
   private OperationToRetry currentCallable;
 
-  public BackOffRetryStrategy(final ActorControl actor, final Duration maxBackOff) {
+  public BackOffRetryStrategy(final ActorContext actor, final Duration maxBackOff) {
     this.actor = actor;
     this.maxBackOff = maxBackOff;
   }

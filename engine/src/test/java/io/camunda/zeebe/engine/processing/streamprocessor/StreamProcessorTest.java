@@ -37,7 +37,7 @@ import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceIntent;
 import io.camunda.zeebe.test.util.TestUtil;
 import io.camunda.zeebe.util.exception.RecoverableException;
-import io.camunda.zeebe.util.sched.ActorControl;
+import io.camunda.zeebe.util.sched.ActorContext;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -61,7 +61,7 @@ public final class StreamProcessorTest {
   private static final JobRecord JOB_RECORD = Records.job(1).setType("test");
 
   @Rule public final StreamProcessorRule streamProcessorRule = new StreamProcessorRule();
-  private ActorControl processingContextActor;
+  private ActorContext processingContextActor;
 
   @Test
   public void shouldCallStreamProcessorLifecycle() throws Exception {

@@ -85,7 +85,7 @@ public final class CallableActionsTest {
     protected final AtomicInteger invocations = new AtomicInteger(0);
 
     public Future<Void> failWith(final Exception e) {
-      return actor.call(
+      return actorContext.call(
           () -> {
             invocations.incrementAndGet();
             throw e;
@@ -95,7 +95,7 @@ public final class CallableActionsTest {
 
   class CloseableActor extends Actor {
     ActorFuture<Void> doCall() {
-      return actor.call(() -> {});
+      return actorContext.call(() -> {});
     }
   }
 }

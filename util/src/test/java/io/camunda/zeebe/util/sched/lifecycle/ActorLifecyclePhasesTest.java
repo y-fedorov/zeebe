@@ -139,7 +139,7 @@ public final class ActorLifecyclePhasesTest {
           public void onActorStarting() {
             super.onActorStarting();
 
-            actor.run(
+            actorContext.run(
                 () -> {
                   throw failure;
                 });
@@ -167,7 +167,7 @@ public final class ActorLifecyclePhasesTest {
           public void onActorClosing() {
             super.onActorClosing();
 
-            actor.run(
+            actorContext.run(
                 () -> {
                   throw failure;
                 });
@@ -199,7 +199,7 @@ public final class ActorLifecyclePhasesTest {
           public void onActorStarting() {
             super.onActorStarting();
 
-            actor.run(() -> isInvoked.set(true));
+            actorContext.run(() -> isInvoked.set(true));
 
             throw failure;
           }
@@ -225,14 +225,14 @@ public final class ActorLifecyclePhasesTest {
           public void onActorStarted() {
             super.onActorStarted();
 
-            actor.runUntilDone(
+            actorContext.runUntilDone(
                 () -> {
                   final int inv = invocations.getAndIncrement();
 
                   if (inv == 0) {
                     throw new RuntimeException("foo");
                   } else if (inv == 10) {
-                    actor.done();
+                    actorContext.done();
                   }
                 });
           }
@@ -261,7 +261,7 @@ public final class ActorLifecyclePhasesTest {
           @Override
           public void onActorStarted() {
             super.onActorStarted();
-            actor.run(
+            actorContext.run(
                 () -> {
                   throw new RuntimeException("foo");
                 });
@@ -292,12 +292,12 @@ public final class ActorLifecyclePhasesTest {
           @Override
           public void onActorStarted() {
             super.onActorStarted();
-            actor.runOnCompletion(
+            actorContext.runOnCompletion(
                 future,
                 (v, t) -> {
                   throw new RuntimeException("foo");
                 });
-            actor.run(() -> future.complete(null));
+            actorContext.run(() -> future.complete(null));
           }
 
           @Override
@@ -324,8 +324,8 @@ public final class ActorLifecyclePhasesTest {
           @Override
           public void onActorStarted() {
             super.onActorStarted();
-            actor.submit(actor::fail);
-            actor.submit(invocations::incrementAndGet);
+            actorContext.submit(actorContext::fail);
+            actorContext.submit(invocations::incrementAndGet);
           }
         };
 

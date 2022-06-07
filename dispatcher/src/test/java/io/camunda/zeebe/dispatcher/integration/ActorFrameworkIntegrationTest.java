@@ -71,11 +71,11 @@ public final class ActorFrameworkIntegrationTest {
     protected void onActorStarted() {
       final ActorFuture<Subscription> future =
           dispatcher.openSubscriptionAsync("consumerSubscription-" + hashCode());
-      actor.runOnCompletion(
+      actorContext.runOnCompletion(
           future,
           (s, t) -> {
             subscription = s;
-            actor.consume(subscription, this::consume);
+            actorContext.consume(subscription, this::consume);
           });
     }
 
@@ -114,17 +114,17 @@ public final class ActorFrameworkIntegrationTest {
     protected void onActorStarted() {
       final ActorFuture<Subscription> future =
           dispatcher.openSubscriptionAsync("consumerSubscription-" + hashCode());
-      actor.runOnCompletion(
+      actorContext.runOnCompletion(
           future,
           (s, t) -> {
             subscription = s;
-            actor.consume(subscription, this::consume);
+            actorContext.consume(subscription, this::consume);
           });
     }
 
     void consume() {
       if (subscription.peekBlock(peek, Integer.MAX_VALUE, true) > 0) {
-        actor.runUntilDone(processPeek);
+        actorContext.runUntilDone(processPeek);
       }
     }
 
@@ -139,7 +139,7 @@ public final class ActorFrameworkIntegrationTest {
         counter = newCounter;
       }
       peek.markCompleted();
-      actor.done();
+      actorContext.done();
     }
 
     @Override
@@ -166,15 +166,13 @@ public final class ActorFrameworkIntegrationTest {
     final Dispatcher dispatcher;
     final ClaimedFragment claim = new ClaimedFragment();
     int counter = 1;
-    final Runnable produce = this::produce;
-
     ClaimingProducer(final Dispatcher dispatcher) {
       this.dispatcher = dispatcher;
-    }
+    }    final Runnable produce = this::produce;
 
     @Override
     protected void onActorStarted() {
-      actor.run(produce);
+      actorContext.run(produce);
     }
 
     void produce() {
@@ -184,11 +182,13 @@ public final class ActorFrameworkIntegrationTest {
       }
 
       if (counter < totalWork) {
-        actor.yieldThread();
-        actor.run(produce);
+        actorContext.yieldThread();
+        actorContext.run(produce);
       } else {
         latch.countDown();
       }
     }
+
+
   }
 }

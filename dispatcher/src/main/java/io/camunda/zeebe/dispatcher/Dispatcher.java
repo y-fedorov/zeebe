@@ -77,7 +77,7 @@ public class Dispatcher extends Actor {
 
   @Override
   protected void onActorStarted() {
-    dataConsumed = actor.onCondition("data-consumed", backgroundTask);
+    dataConsumed = actorContext.onCondition("data-consumed", backgroundTask);
     openDefaultSubscriptions();
   }
 
@@ -291,7 +291,7 @@ public class Dispatcher extends Actor {
    * subscription with this name already exists.
    */
   public ActorFuture<Subscription> openSubscriptionAsync(final String subscriptionName) {
-    return actor.call(() -> doOpenSubscription(subscriptionName, dataConsumed));
+    return actorContext.call(() -> doOpenSubscription(subscriptionName, dataConsumed));
   }
 
   protected Subscription doOpenSubscription(

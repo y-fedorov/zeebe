@@ -160,10 +160,10 @@ public final class ActorLifecyclePhasesAndBlockPhaseTest {
           @Override
           public void onActorStarted() {
             super.onActorClosed();
-            actor.runOnCompletionBlockingCurrentPhase(
+            actorContext.runOnCompletionBlockingCurrentPhase(
                 trigger,
                 (r1, e1) -> {
-                  actor.runOnCompletion(new CompletableActorFuture<>(), (r2, e2) -> {});
+                  actorContext.runOnCompletion(new CompletableActorFuture<>(), (r2, e2) -> {});
                 });
           }
         };
@@ -194,10 +194,10 @@ public final class ActorLifecyclePhasesAndBlockPhaseTest {
           public void onActorStarting() {
             super.onActorStarting();
 
-            actor.runOnCompletionBlockingCurrentPhase(
+            actorContext.runOnCompletionBlockingCurrentPhase(
                 future1,
                 (r1, t1) -> {
-                  actor.runOnCompletionBlockingCurrentPhase(
+                  actorContext.runOnCompletionBlockingCurrentPhase(
                       future2,
                       (r2, t2) -> {
                         future3.complete(null);
