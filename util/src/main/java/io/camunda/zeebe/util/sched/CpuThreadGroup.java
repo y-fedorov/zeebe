@@ -23,7 +23,7 @@ public final class CpuThreadGroup extends ActorThreadGroup {
   @Override
   protected TaskScheduler createTaskScheduler(
       final MultiLevelWorkstealingGroup tasks, final ActorSchedulerBuilder builder) {
-    return new IoScheduler(tasks);
+    return new PriorityScheduler(tasks::getNextTask, builder.getPriorityQuotas());
   }
 
   @Override
