@@ -8,12 +8,14 @@
 package io.camunda.zeebe.broker.test;
 
 import io.camunda.zeebe.broker.exporter.debug.DebugLogExporter;
+import io.camunda.zeebe.broker.exporter.debug.DebugLogExporter.DebugExporterConfiguration;
 import io.camunda.zeebe.broker.system.configuration.BrokerCfg;
 import io.camunda.zeebe.broker.system.configuration.ClusterCfg;
 import io.camunda.zeebe.broker.system.configuration.ExporterCfg;
 import io.camunda.zeebe.test.util.record.RecordingExporter;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public final class EmbeddedBrokerConfigurator {
@@ -22,6 +24,14 @@ public final class EmbeddedBrokerConfigurator {
       cfg ->
           cfg.getExporters()
               .put(DebugLogExporter.defaultExporterId(), DebugLogExporter.defaultConfig());
+
+  public static final Consumer<BrokerCfg> DEBUG_EXPORTER_WITH_COMMIT_POSITIONS =
+      cfg -> {
+        final var exporterCfg = DebugLogExporter.defaultConfig();
+        exporterCfg.setArgs(
+            (Map.of(DebugExporterConfiguration.PROP_COMMIT_EXPORTED_POSITION, true)));
+        cfg.getExporters().put(DebugLogExporter.defaultExporterId(), exporterCfg);
+      };
 
   public static final Consumer<BrokerCfg> TEST_RECORDER =
       cfg -> {

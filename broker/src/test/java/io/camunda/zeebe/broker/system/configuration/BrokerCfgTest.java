@@ -8,6 +8,7 @@
 package io.camunda.zeebe.broker.system.configuration;
 
 import static io.camunda.zeebe.broker.system.configuration.BrokerCfg.ENV_DEBUG_EXPORTER;
+import static io.camunda.zeebe.broker.system.configuration.BrokerCfg.ENV_DEBUG_EXPORTER_COMMIT_EXPORTED_POSITION;
 import static io.camunda.zeebe.broker.system.configuration.ClusterCfg.DEFAULT_CLUSTER_SIZE;
 import static io.camunda.zeebe.broker.system.configuration.ClusterCfg.DEFAULT_CONTACT_POINTS;
 import static io.camunda.zeebe.broker.system.configuration.ClusterCfg.DEFAULT_NODE_ID;
@@ -214,6 +215,34 @@ public final class BrokerCfgTest {
     // then
     assertWithDefaultConfigurations(
         cfg -> assertThat(cfg.getExporters()).containsEntry(expectedId, expectedConfig));
+  }
+
+  @Test
+  public void shouldEnableDebugLogExporterWithCommittingExportedPosition() {
+    // given
+    final var expectedId = DebugLogExporter.defaultExporterId();
+    final var expectedConfig = DebugLogExporter.defaultConfig();
+    expectedConfig.setArgs(
+        Map.of(DebugLogExporter.DebugExporterConfiguration.PROP_COMMIT_EXPORTED_POSITION, true));
+    environment.put(ENV_DEBUG_EXPORTER, "true");
+    environment.put(ENV_DEBUG_EXPORTER_COMMIT_EXPORTED_POSITION, "true");
+
+    // then
+    assertWithDefaultConfigurations(
+        cfg -> assertThat(cfg.getExporters()).containsEntry(expectedId, expectedConfig));
+  }
+
+  @Test
+  public void shouldNotEnableDebugLogExporterWithCommittingExportedPositionOnly() {
+    // given
+    environment.put(ENV_DEBUG_EXPORTER_COMMIT_EXPORTED_POSITION, "true");
+
+    // when
+    final String exporterId = DebugLogExporter.defaultExporterId();
+    final BrokerCfg brokerCfg = TestConfigReader.readConfig("empty", environment);
+
+    // then
+    assertThat(brokerCfg.getExporters()).doesNotContainKey(exporterId);
   }
 
   @Test

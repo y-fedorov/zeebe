@@ -35,6 +35,7 @@ public class DebugLogExporter implements Exporter {
   private DebugExporterConfiguration configuration;
   private ObjectMapper objectMapper;
   private LogFunction logger;
+  private Controller controller;
 
   @Override
   public void configure(final Context context) {
@@ -55,6 +56,9 @@ public class DebugLogExporter implements Exporter {
 
   @Override
   public void open(final Controller controller) {
+    if (configuration.isCommitExportedPosition()) {
+      this.controller = controller;
+    }
     logger.log("Debug exporter opened");
     objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
@@ -76,6 +80,10 @@ public class DebugLogExporter implements Exporter {
     } catch (final JsonProcessingException e) {
       logger.log("Failed to serialize object '{}' to JSON", record, e);
     }
+
+    if (controller != null) {
+      controller.updateLastExportedRecordPosition(record.getPosition());
+    }
   }
 
   public static ExporterCfg defaultConfig() {
@@ -89,8 +97,11 @@ public class DebugLogExporter implements Exporter {
   }
 
   public static class DebugExporterConfiguration {
+    public static final String PROP_COMMIT_EXPORTED_POSITION = "commitExportedPosition";
+
     private String logLevel = "debug";
     private boolean prettyPrint = false;
+    private boolean commitExportedPosition = false;
 
     LogLevel getLogLevel() {
       return LogLevel.valueOf(logLevel.trim().toUpperCase());
@@ -106,6 +117,14 @@ public class DebugLogExporter implements Exporter {
 
     public void setPrettyPrint(final boolean prettyPrint) {
       this.prettyPrint = prettyPrint;
+    }
+
+    public boolean isCommitExportedPosition() {
+      return commitExportedPosition;
+    }
+
+    public void setCommitExportedPosition(final boolean commitExportedPosition) {
+      this.commitExportedPosition = commitExportedPosition;
     }
   }
 

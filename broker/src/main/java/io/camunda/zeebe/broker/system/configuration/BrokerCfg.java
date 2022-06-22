@@ -11,6 +11,7 @@ import static io.camunda.zeebe.util.ObjectWriterFactory.getDefaultJsonObjectWrit
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.camunda.zeebe.broker.exporter.debug.DebugLogExporter;
+import io.camunda.zeebe.broker.exporter.debug.DebugLogExporter.DebugExporterConfiguration;
 import io.camunda.zeebe.broker.exporter.metrics.MetricsExporter;
 import io.camunda.zeebe.broker.system.configuration.backpressure.BackpressureCfg;
 import io.camunda.zeebe.util.Environment;
@@ -25,6 +26,8 @@ import org.springframework.stereotype.Component;
 public final class BrokerCfg {
 
   protected static final String ENV_DEBUG_EXPORTER = "ZEEBE_DEBUG";
+  protected static final String ENV_DEBUG_EXPORTER_COMMIT_EXPORTED_POSITION =
+      "ZEEBE_DEBUG_COMMIT_EXPORTED_POSITION";
 
   private NetworkCfg network = new NetworkCfg();
   private ClusterCfg cluster = new ClusterCfg();
@@ -60,7 +63,11 @@ public final class BrokerCfg {
 
   private void applyEnvironment(final Environment environment) {
     if (environment.getBool(ENV_DEBUG_EXPORTER).orElse(false)) {
-      exporters.put(DebugLogExporter.defaultExporterId(), DebugLogExporter.defaultConfig());
+      final var exporterCfg = DebugLogExporter.defaultConfig();
+      if (environment.getBool(ENV_DEBUG_EXPORTER).orElse(false)) {
+        exporterCfg.setArgs(Map.of(DebugExporterConfiguration.PROP_COMMIT_EXPORTED_POSITION, true));
+      }
+      exporters.put(DebugLogExporter.defaultExporterId(), exporterCfg);
     }
   }
 
