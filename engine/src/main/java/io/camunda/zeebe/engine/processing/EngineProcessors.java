@@ -15,6 +15,7 @@ import io.camunda.zeebe.engine.processing.bpmn.behavior.BpmnEventPublicationBeha
 import io.camunda.zeebe.engine.processing.common.CatchEventBehavior;
 import io.camunda.zeebe.engine.processing.common.EventTriggerBehavior;
 import io.camunda.zeebe.engine.processing.common.ExpressionProcessor;
+import io.camunda.zeebe.engine.processing.deletion.DeleteResourceProcessor;
 import io.camunda.zeebe.engine.processing.deployment.DeploymentCreateProcessor;
 import io.camunda.zeebe.engine.processing.deployment.DeploymentResponder;
 import io.camunda.zeebe.engine.processing.deployment.distribute.CompleteDeploymentDistributionProcessor;
@@ -40,6 +41,7 @@ import io.camunda.zeebe.protocol.impl.record.value.processinstance.ProcessInstan
 import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.DeploymentDistributionIntent;
 import io.camunda.zeebe.protocol.record.intent.DeploymentIntent;
+import io.camunda.zeebe.protocol.record.intent.ResourceDeletionIntent;
 import io.camunda.zeebe.util.FeatureFlags;
 import io.camunda.zeebe.util.sched.ActorControl;
 import java.util.function.Consumer;
@@ -143,6 +145,10 @@ public final class EngineProcessors {
         typedRecordProcessors,
         writers,
         zeebeState.getKeyGenerator());
+
+    final var processor = new DeleteResourceProcessor();
+    typedRecordProcessors.onCommand(
+        ValueType.RESOURCE_DELETION, ResourceDeletionIntent.DELETE, processor);
 
     return typedRecordProcessors;
   }

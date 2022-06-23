@@ -14,6 +14,7 @@ import io.camunda.zeebe.protocol.impl.record.value.deployment.DecisionRequiremen
 import io.camunda.zeebe.protocol.impl.record.value.deployment.DeploymentDistributionRecord;
 import io.camunda.zeebe.protocol.impl.record.value.deployment.DeploymentRecord;
 import io.camunda.zeebe.protocol.impl.record.value.deployment.ProcessRecord;
+import io.camunda.zeebe.protocol.impl.record.value.deployment.ResourceDeletionRecord;
 import io.camunda.zeebe.protocol.impl.record.value.error.ErrorRecord;
 import io.camunda.zeebe.protocol.impl.record.value.incident.IncidentRecord;
 import io.camunda.zeebe.protocol.impl.record.value.job.JobBatchRecord;
@@ -63,6 +64,7 @@ public final class TypedEventRegistry {
     registry.put(ValueType.DECISION, DecisionRecord.class);
     registry.put(ValueType.DECISION_REQUIREMENTS, DecisionRequirementsRecord.class);
     registry.put(ValueType.DECISION_EVALUATION, DecisionEvaluationRecord.class);
+    registry.put(ValueType.RESOURCE_DELETION, ResourceDeletionRecord.class);
 
     EVENT_REGISTRY = Collections.unmodifiableMap(registry);
   }

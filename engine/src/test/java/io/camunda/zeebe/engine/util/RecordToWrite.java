@@ -9,6 +9,7 @@ package io.camunda.zeebe.engine.util;
 
 import io.camunda.zeebe.protocol.impl.record.RecordMetadata;
 import io.camunda.zeebe.protocol.impl.record.UnifiedRecordValue;
+import io.camunda.zeebe.protocol.impl.record.value.deployment.ResourceDeletionRecord;
 import io.camunda.zeebe.protocol.impl.record.value.job.JobBatchRecord;
 import io.camunda.zeebe.protocol.impl.record.value.job.JobRecord;
 import io.camunda.zeebe.protocol.impl.record.value.message.MessageRecord;
@@ -23,12 +24,14 @@ import io.camunda.zeebe.protocol.record.intent.JobIntent;
 import io.camunda.zeebe.protocol.record.intent.MessageIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessMessageSubscriptionIntent;
+import io.camunda.zeebe.protocol.record.intent.ResourceDeletionIntent;
 import io.camunda.zeebe.protocol.record.intent.TimerIntent;
 import io.camunda.zeebe.protocol.record.intent.VariableDocumentIntent;
 import io.camunda.zeebe.protocol.record.value.JobRecordValue;
 import io.camunda.zeebe.protocol.record.value.MessageRecordValue;
 import io.camunda.zeebe.protocol.record.value.ProcessInstanceRecordValue;
 import io.camunda.zeebe.protocol.record.value.ProcessMessageSubscriptionRecordValue;
+import io.camunda.zeebe.protocol.record.value.ResourceDeletionRecordValue;
 import io.camunda.zeebe.protocol.record.value.TimerRecordValue;
 import io.camunda.zeebe.protocol.record.value.VariableDocumentRecordValue;
 
@@ -116,6 +119,13 @@ public final class RecordToWrite {
       final VariableDocumentIntent intent, final VariableDocumentRecordValue value) {
     recordMetadata.valueType(ValueType.VARIABLE_DOCUMENT).intent(intent);
     unifiedRecordValue = (VariableDocumentRecord) value;
+    return this;
+  }
+
+  public RecordToWrite resourceDeletion(
+      final ResourceDeletionIntent intent, final ResourceDeletionRecordValue value) {
+    recordMetadata.valueType(ValueType.RESOURCE_DELETION).intent(intent);
+    unifiedRecordValue = (ResourceDeletionRecord) value;
     return this;
   }
 

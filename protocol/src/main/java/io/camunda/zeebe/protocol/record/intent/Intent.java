@@ -105,6 +105,8 @@ public interface Intent {
         return DecisionRequirementsIntent.from(intent);
       case DECISION_EVALUATION:
         return DecisionEvaluationIntent.from(intent);
+      case RESOURCE_DELETION:
+        return ResourceDeletionIntent.from(intent);
       case NULL_VAL:
       case SBE_UNKNOWN:
         return Intent.UNKNOWN;
