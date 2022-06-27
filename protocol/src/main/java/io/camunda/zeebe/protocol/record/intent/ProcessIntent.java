@@ -16,7 +16,8 @@
 package io.camunda.zeebe.protocol.record.intent;
 
 public enum ProcessIntent implements Intent {
-  CREATED((short) 0);
+  CREATED((short) 0),
+  DELETED((short) 1);
 
   private final short value;
 

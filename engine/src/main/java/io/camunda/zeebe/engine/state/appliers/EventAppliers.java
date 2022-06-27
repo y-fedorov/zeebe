@@ -28,6 +28,7 @@ import io.camunda.zeebe.protocol.record.intent.ProcessEventIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessInstanceIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessIntent;
 import io.camunda.zeebe.protocol.record.intent.ProcessMessageSubscriptionIntent;
+import io.camunda.zeebe.protocol.record.intent.ResourceDeletionIntent;
 import io.camunda.zeebe.protocol.record.intent.TimerIntent;
 import io.camunda.zeebe.protocol.record.intent.VariableIntent;
 import java.util.HashMap;
@@ -69,6 +70,17 @@ public final class EventAppliers implements EventApplier {
     register(
         DecisionRequirementsIntent.CREATED,
         new DecisionRequirementsCreatedApplier(state.getDecisionState()));
+
+    register(
+        ResourceDeletionIntent.DELETED,
+        new TypedEventApplier<ResourceDeletionIntent, RecordValue>() {
+          @Override
+          public void applyState(final long key, final RecordValue value) {
+            // remove it from rocksdb
+
+            // remove it from cache
+          }
+        });
   }
 
   private void registerTimeEventAppliers(final MutableZeebeState state) {

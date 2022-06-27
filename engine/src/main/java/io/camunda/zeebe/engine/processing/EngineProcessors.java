@@ -146,7 +146,7 @@ public final class EngineProcessors {
         writers,
         zeebeState.getKeyGenerator());
 
-    final var processor = new DeleteResourceProcessor();
+    final var processor = new DeleteResourceProcessor(writers, zeebeState);
     typedRecordProcessors.onCommand(
         ValueType.RESOURCE_DELETION, ResourceDeletionIntent.DELETE, processor);
 
