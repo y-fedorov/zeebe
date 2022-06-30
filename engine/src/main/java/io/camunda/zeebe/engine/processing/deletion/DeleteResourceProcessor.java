@@ -48,6 +48,7 @@ public class DeleteResourceProcessor implements TypedRecordProcessor<ResourceDel
             BufferUtil.wrapString(value.getBpmnProcessId()), value.getVersion());
 
     // write event to delete the definition
+    // todo: fill in additional info on value
     stateWriter.appendFollowUpEvent(process.getKey(), ResourceDeletionIntent.DELETED, value);
 
     // deletes the process from state
@@ -56,6 +57,8 @@ public class DeleteResourceProcessor implements TypedRecordProcessor<ResourceDel
     processRecord.setBpmnProcessId(value.getBpmnProcessId());
     processRecord.setVersion(value.getVersion());
     processRecord.setResourceName(process.getResourceName());
+    processRecord.setResource(process.getResource());
+    processRecord.setChecksum(BufferUtil.wrapString(""));
     stateWriter.appendFollowUpEvent(process.getKey(), ProcessIntent.DELETED, processRecord);
   }
 }

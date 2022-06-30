@@ -136,6 +136,40 @@ public final class DbProcessState implements MutableProcessState {
         processRecord.getBpmnProcessIdBuffer(), processRecord.getChecksumBuffer());
   }
 
+  @Override
+  public void deleteProcess(final long key) {
+    final var process = getProcessByKey(key);
+    if (process == null) {
+      throw new IllegalArgumentException("You what are you doing?");
+    }
+
+    final var bpmnProcessId = bufferAsString(process.getBpmnProcessId());
+    fkProcessId.inner().wrapString(bpmnProcessId);
+    digestByIdColumnFamily.deleteExisting(fkProcessId);
+
+    idAndVersionKey.first().wrapString(bpmnProcessId);
+    idAndVersionKey.second().wrapLong(process.getVersion());
+    processByIdAndVersionColumnFamily.deleteExisting(idAndVersionKey);
+
+    processDefinitionKey.wrapLong(key);
+    processColumnFamily.deleteExisting(processDefinitionKey);
+
+    // clean out the cache
+    processesByKey.remove(key);
+    processesByProcessIdAndVersion.computeIfPresent(
+        process.getBpmnProcessId(),
+        (id, versions) -> {
+          final var removedValue = versions.remove(process.getVersion());
+          if (removedValue.getKey() != key) {
+            throw new IllegalStateException("This was weird...");
+          }
+          if (versions.isEmpty()) {
+            return null;
+          }
+          return versions;
+        });
+  }
+
   private void persistProcess(final long processDefinitionKey, final ProcessRecord processRecord) {
     persistedProcess.wrap(processRecord, processDefinitionKey);
     this.processDefinitionKey.wrapLong(processDefinitionKey);

@@ -19,4 +19,6 @@ public interface MutableProcessState extends ProcessState {
   void putLatestVersionDigest(DirectBuffer processId, DirectBuffer digest);
 
   void putProcess(long key, ProcessRecord value);
+
+  void deleteProcess(long key);
 }
