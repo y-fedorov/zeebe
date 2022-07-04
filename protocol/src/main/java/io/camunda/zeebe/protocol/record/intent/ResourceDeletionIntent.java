@@ -59,6 +59,8 @@ public enum ResourceDeletionIntent implements Intent {
     switch (value) {
       case 0:
         return DELETE;
+      case 1:
+        return DELETED;
       default:
         return UNKNOWN;
     }

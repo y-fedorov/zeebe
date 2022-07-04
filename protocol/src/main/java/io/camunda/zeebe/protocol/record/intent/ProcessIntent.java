@@ -33,6 +33,8 @@ public enum ProcessIntent implements Intent {
     switch (value) {
       case 0:
         return CREATED;
+      case 1:
+        return DELETED;
       default:
         return UNKNOWN;
     }
