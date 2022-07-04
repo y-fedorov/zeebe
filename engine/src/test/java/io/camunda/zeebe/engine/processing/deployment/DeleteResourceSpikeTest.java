@@ -70,4 +70,52 @@ public class DeleteResourceSpikeTest {
                 .getProcessByProcessIdAndVersion(BufferUtil.wrapString(processId), 1))
         .isNull();
   }
+
+  @Test
+  public void deleteAndRedeployResourceTest() {
+    final String processId = "processId";
+    final var process =
+        Bpmn.createExecutableProcess(processId)
+            .startEvent()
+            .serviceTask("task", s -> s.zeebeJobType("type"))
+            .endEvent()
+            .done();
+    ENGINE.deployment().withXmlResource(process).deploy();
+
+    final ResourceDeletionRecordValue value =
+        new ResourceDeletionRecord().setVersion(1).setBpmnProcessId(processId);
+
+    ENGINE.writeRecords(
+        RecordToWrite.command().resourceDeletion(ResourceDeletionIntent.DELETE, value).key(1L));
+
+    assertThat(
+            RecordingExporter.records()
+                .onlyEvents()
+                .filter(x -> x.getIntent() == ResourceDeletionIntent.DELETED)
+                .getFirst())
+        .isNotNull();
+
+    assertThat(
+            RecordingExporter.processRecords()
+                .withBpmnProcessId(processId)
+                .withIntent(ProcessIntent.DELETED)
+                .getFirst())
+        .isNotNull();
+
+    Assertions.assertThat(
+            ENGINE
+                .getZeebeState()
+                .getProcessState()
+                .getProcessByProcessIdAndVersion(BufferUtil.wrapString(processId), 1))
+        .isNull();
+
+    ENGINE.deployment().withXmlResource(process).deploy();
+
+    Assertions.assertThat(
+            ENGINE
+                .getZeebeState()
+                .getProcessState()
+                .getProcessByProcessIdAndVersion(BufferUtil.wrapString(processId), 2))
+        .isNotNull();
+  }
 }
