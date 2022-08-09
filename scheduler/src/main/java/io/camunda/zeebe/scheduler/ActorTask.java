@@ -300,6 +300,7 @@ public class ActorTask {
     // and not yet closing was requested, nor it was failed
     if (lifecyclePhase == ActorLifecyclePhase.SUSPENDED) {
       lifecyclePhase = ActorLifecyclePhase.STARTED;
+      resubmit();
     }
   }
 

@@ -342,7 +342,7 @@ public class ActorControl implements ConcurrencyControl {
     // since the lifecycle is volatile it should be safe to change this immediately which allows us
     // to
     // resume an actor directly
-    task.suspend();
+    task.resume();
   }
 
   private void scheduleRunnable(final Runnable runnable) {
