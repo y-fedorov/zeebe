@@ -92,7 +92,7 @@ public class ActorTask {
 
   /** Used to externally submit a job. Throws an exception if the ActorTask is suspended. */
   public void submit(final ActorJob job) {
-    if (lifecyclePhase != ActorLifecyclePhase.SUSPENDED) {
+    if (lifecyclePhase == ActorLifecyclePhase.SUSPENDED) {
       throw new IllegalStateException(
           "Expected to submit job on running actor, but actor was suspended.");
     }
@@ -157,7 +157,7 @@ public class ActorTask {
           break;
       }
 
-      if (shouldYield) {
+      if (shouldYield || lifecyclePhase == ActorLifecyclePhase.SUSPENDED) {
         shouldYield = false;
         resubmit = currentJob != null;
         break;
@@ -210,7 +210,7 @@ public class ActorTask {
           resubmit = false;
           break;
         case SUSPENDED:
-          // todo
+          // nothing todo
           break;
 
         default:
@@ -351,7 +351,7 @@ public class ActorTask {
   }
 
   public boolean claim(final long stateCount) {
-    if (getLifecyclePhase() != ActorLifecyclePhase.SUSPENDED) {
+    if (getLifecyclePhase() == ActorLifecyclePhase.SUSPENDED) {
       // if suspended no need to claim the task
       return false;
     }
@@ -392,7 +392,7 @@ public class ActorTask {
   }
 
   public boolean tryWakeup() {
-    if (getLifecyclePhase() != ActorLifecyclePhase.SUSPENDED) {
+    if (getLifecyclePhase() == ActorLifecyclePhase.SUSPENDED) {
       // if the task is suspended we don't want to be woken up by any signal
       return false;
     }
@@ -540,7 +540,7 @@ public class ActorTask {
   }
 
   public void insertJob(final ActorJob job) {
-    if (lifecyclePhase != ActorLifecyclePhase.SUSPENDED) {
+    if (lifecyclePhase == ActorLifecyclePhase.SUSPENDED) {
       throw new IllegalStateException(
           "Expected to insert job on running actor, but actor was suspended.");
     }
