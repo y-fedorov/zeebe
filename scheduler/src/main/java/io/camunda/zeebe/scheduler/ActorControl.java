@@ -322,9 +322,27 @@ public class ActorControl implements ConcurrencyControl {
     closeJob.onJobAddedToTask(task);
     closeJob.setRunnable(task::requestClose);
 
+    task.resume();
     task.submit(closeJob);
 
     return task.closeFuture;
+  }
+
+  public void suspend() {
+    // todo clarify whether this is ok to do that
+    // previously we always submitted a job to be sure it is changed only by one thread
+    // since the lifecycle is volatile it should be safe to change this immediately which allows us
+    // to
+    // suspend an actor directly
+    task.suspend();
+  }
+
+  public void resume() {
+    // previously we always submitted a job to be sure it is changed only by one thread
+    // since the lifecycle is volatile it should be safe to change this immediately which allows us
+    // to
+    // resume an actor directly
+    task.suspend();
   }
 
   private void scheduleRunnable(final Runnable runnable) {

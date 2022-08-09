@@ -90,8 +90,13 @@ public class ActorTask {
     return startingFuture;
   }
 
-  /** Used to externally submit a job. */
+  /** Used to externally submit a job. Throws an exception if the ActorTask is suspended. */
   public void submit(final ActorJob job) {
+    if (lifecyclePhase != ActorLifecyclePhase.SUSPENDED) {
+      throw new IllegalStateException(
+          "Expected to submit job on running actor, but actor was suspended.");
+    }
+
     // get reference to jobs queue
     final Queue<ActorJob> submittedJobs = this.submittedJobs;
 
@@ -112,6 +117,10 @@ public class ActorTask {
   }
 
   public boolean execute(final ActorThread runner) {
+    if (lifecyclePhase == ActorLifecyclePhase.SUSPENDED) {
+      return true; // resubmit
+    }
+
     schedulingState.set(TaskSchedulingState.ACTIVE);
 
     boolean resubmit = false;
@@ -200,6 +209,9 @@ public class ActorTask {
           onClosed();
           resubmit = false;
           break;
+        case SUSPENDED:
+          // todo
+          break;
 
         default:
           throw new IllegalStateException(
@@ -265,12 +277,29 @@ public class ActorTask {
   }
 
   public void requestClose() {
-    if (lifecyclePhase == ActorLifecyclePhase.STARTED) {
+    if (lifecyclePhase == ActorLifecyclePhase.STARTED
+        || lifecyclePhase == ActorLifecyclePhase.SUSPENDED) {
       lifecyclePhase = ActorLifecyclePhase.CLOSE_REQUESTED;
 
       discardNextJobs();
 
       actor.onActorCloseRequested();
+    }
+  }
+
+  public void suspend() {
+    // we only allow to suspend an Actor if it is already started
+    // and not yet closing was requested, nor it was failed
+    if (lifecyclePhase == ActorLifecyclePhase.STARTED) {
+      lifecyclePhase = ActorLifecyclePhase.SUSPENDED;
+    }
+  }
+
+  public void resume() {
+    // we only allow to suspend an Actor if it is already started
+    // and not yet closing was requested, nor it was failed
+    if (lifecyclePhase == ActorLifecyclePhase.SUSPENDED) {
+      lifecyclePhase = ActorLifecyclePhase.STARTED;
     }
   }
 
@@ -322,6 +351,11 @@ public class ActorTask {
   }
 
   public boolean claim(final long stateCount) {
+    if (getLifecyclePhase() != ActorLifecyclePhase.SUSPENDED) {
+      // if suspended no need to claim the task
+      return false;
+    }
+
     if (casStateCount(stateCount)) {
       return true;
     }
@@ -358,6 +392,11 @@ public class ActorTask {
   }
 
   public boolean tryWakeup() {
+    if (getLifecyclePhase() != ActorLifecyclePhase.SUSPENDED) {
+      // if the task is suspended we don't want to be woken up by any signal
+      return false;
+    }
+
     boolean didWakeup = false;
 
     if (casState(TaskSchedulingState.WAITING, TaskSchedulingState.WAKING_UP)) {
@@ -501,6 +540,11 @@ public class ActorTask {
   }
 
   public void insertJob(final ActorJob job) {
+    if (lifecyclePhase != ActorLifecyclePhase.SUSPENDED) {
+      throw new IllegalStateException(
+          "Expected to insert job on running actor, but actor was suspended.");
+    }
+
     fastLaneJobs.addFirst(job);
   }
 
@@ -548,7 +592,8 @@ public class ActorTask {
     CLOSE_REQUESTED(4),
     CLOSING(8),
     CLOSED(16),
-    FAILED(32);
+    FAILED(32),
+    SUSPENDED(64);
 
     private final int value;
 
