@@ -44,6 +44,34 @@ public final class ActorSuspendTest {
     verify(after, never()).run();
   }
 
+
+  @Test
+  public void shouldResumeActorAndExecuteSubmittedJobs() throws Exception {
+    // given
+    final Runnable before = mock(Runnable.class);
+    final Runnable after = mock(Runnable.class);
+    final LifecycleRecordingActor actor =
+        new LifecycleRecordingActor() {
+          @Override
+          public void onActorStarted() {
+            actor.run(before);
+            actor.suspend();
+            actor.run(after);
+          }
+        };
+    schedulerRule.submitActor(actor);
+    schedulerRule.workUntilDone();
+
+
+    // when
+    actor.control().resume();
+    schedulerRule.workUntilDone();
+
+    // then
+    verify(before, times(1)).run();
+    verify(after, times(1)).run();
+  }
+
   @Test
   public void shouldSuspendActorAndNotExecuteFurtherSubmittedJobs() throws Exception {
     // given
