@@ -328,6 +328,11 @@ public class ActorTask {
         actor.handleFailure(failure);
         currentJob.failFuture(failure);
       }
+      case SUSPENDED -> {
+        // tried to enqueue job after suspended; ignore the failure
+        Loggers.ACTOR_LOGGER.warn(
+            "Failed to enqueue job in phase 'SUSPENDED'. Ignore job.", failure);
+      }
       default -> {
         // do nothing
       }
