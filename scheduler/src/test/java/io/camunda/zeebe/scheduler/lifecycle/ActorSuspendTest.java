@@ -9,6 +9,7 @@ package io.camunda.zeebe.scheduler.lifecycle;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -21,7 +22,7 @@ public final class ActorSuspendTest {
   public final ControlledActorSchedulerRule schedulerRule = new ControlledActorSchedulerRule();
 
   @Test
-  public void shouldSuspendActorAndNotExecuteSubmittedJobs() throws Exception {
+  public void shouldSuspendActorAndNotExecuteSubmittedJobs() {
     // given
     final Runnable before = mock(Runnable.class);
     final Runnable after = mock(Runnable.class);
@@ -44,9 +45,8 @@ public final class ActorSuspendTest {
     verify(after, never()).run();
   }
 
-
   @Test
-  public void shouldResumeActorAndExecuteSubmittedJobs() throws Exception {
+  public void shouldResumeActorAndExecuteSubmittedJobs()  {
     // given
     final Runnable before = mock(Runnable.class);
     final Runnable after = mock(Runnable.class);
@@ -56,24 +56,49 @@ public final class ActorSuspendTest {
           public void onActorStarted() {
             actor.run(before);
             actor.suspend();
-            actor.run(after);
+            actor.run(after); // is rejected
           }
         };
     schedulerRule.submitActor(actor);
     schedulerRule.workUntilDone();
-
 
     // when
     actor.control().resume();
     schedulerRule.workUntilDone();
 
     // then
-    verify(before, times(1)).run();
-    verify(after, times(1)).run();
+    verify(before, timeout(10 * 1000)).run();
+    verify(after, never()).run(); // was rejected
   }
 
   @Test
-  public void shouldSuspendActorAndNotExecuteFurtherSubmittedJobs() throws Exception {
+  public void shouldEnqueueSuspendWithRun()  {
+    // given
+    final Runnable before = mock(Runnable.class);
+    final Runnable after = mock(Runnable.class);
+    final LifecycleRecordingActor actor =
+        new LifecycleRecordingActor() {
+          @Override
+          public void onActorStarted() {
+            actor.run(before);
+            actor.run(actor::suspend);
+            actor.run(after);
+          }
+        };
+    schedulerRule.submitActor(actor);
+    schedulerRule.workUntilDone();
+
+    // when
+    actor.control().resume();
+    schedulerRule.workUntilDone();
+
+    // then
+    verify(before, timeout(10 * 1000)).run();
+    verify(after, timeout(10 * 1000)).run();
+  }
+
+  @Test
+  public void shouldSuspendActorAndNotExecuteFurtherSubmittedJobs() {
     // given
     final Runnable before = mock(Runnable.class);
     final Runnable after = mock(Runnable.class);
