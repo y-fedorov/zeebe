@@ -330,17 +330,17 @@ public class ActorControl implements ConcurrencyControl {
   private void scheduleRunnable(final Runnable runnable) {
     final ActorThread currentActorThread = ActorThread.current();
 
-    if (currentActorThread != null && currentActorThread.getCurrentTask() == task) {
-      final ActorJob newJob = currentActorThread.newJob();
-      newJob.setRunnable(runnable);
-      newJob.onJobAddedToTask(task);
-      task.insertJob(newJob);
-    } else {
+//    if (currentActorThread != null && currentActorThread.getCurrentTask() == task) {
+//      final ActorJob newJob = currentActorThread.newJob();
+//      newJob.setRunnable(runnable);
+//      newJob.onJobAddedToTask(task);
+//      task.insertJob(newJob);
+//    } else {
       final ActorJob job = new ActorJob();
       job.setRunnable(runnable);
       job.onJobAddedToTask(task);
       task.submit(job);
-    }
+//    }
   }
 
   public boolean isClosing() {
