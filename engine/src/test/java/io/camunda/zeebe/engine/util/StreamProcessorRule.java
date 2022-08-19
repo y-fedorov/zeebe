@@ -31,7 +31,7 @@ import io.camunda.zeebe.streamprocessor.LegacyTypedStreamWriter;
 import io.camunda.zeebe.streamprocessor.StreamProcessor;
 import io.camunda.zeebe.streamprocessor.StreamProcessorListener;
 import io.camunda.zeebe.streamprocessor.StreamProcessorMode;
-import io.camunda.zeebe.streamprocessor.state.MutableLastProcessedPositionState;
+import io.camunda.zeebe.streamprocessor.impl.state.MutableLastProcessedPositionState;
 import io.camunda.zeebe.test.util.AutoCloseableRule;
 import io.camunda.zeebe.util.FileUtil;
 import io.camunda.zeebe.util.allocation.DirectBufferAllocator;

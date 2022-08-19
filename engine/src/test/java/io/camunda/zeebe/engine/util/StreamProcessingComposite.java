@@ -26,7 +26,7 @@ import io.camunda.zeebe.scheduler.future.ActorFuture;
 import io.camunda.zeebe.streamprocessor.LegacyTypedStreamWriter;
 import io.camunda.zeebe.streamprocessor.StreamProcessor;
 import io.camunda.zeebe.streamprocessor.StreamProcessorListener;
-import io.camunda.zeebe.streamprocessor.state.MutableLastProcessedPositionState;
+import io.camunda.zeebe.streamprocessor.impl.state.MutableLastProcessedPositionState;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
