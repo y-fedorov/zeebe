@@ -75,6 +75,11 @@ public final class RecordBatch implements MutableRecordBatch {
     return Either.right(null);
   }
 
+  @Override
+  public boolean canAppendRecordOfLength(final int recordLength) {
+    return recordBatchSizePredicate.test(recordBatchEntries.size() + 1, batchSize + recordLength);
+  }
+
   public int getBatchSize() {
     return batchSize;
   }
