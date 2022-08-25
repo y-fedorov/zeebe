@@ -106,10 +106,5 @@ record MockProcessingResult(List<Event> records) implements ProcessingResult {
     public boolean canWriteEventOfLength(final int eventLength) {
       return false;
     }
-
-    @Override
-    public int getMaxEventLength() {
-      return 0;
-    }
   }
 }
