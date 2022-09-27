@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_00xpgbi" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.12.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="1.1.0">
+  <bpmn:process id="one-task-one-timer" name="One task One Timer" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0s5aa5z</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0s5aa5z" sourceRef="StartEvent_1" targetRef="Activity_0s63dz8" />
+    <bpmn:sequenceFlow id="Flow_1n9fwkd" sourceRef="Activity_0s63dz8" targetRef="Event_18uzxt4" />
+    <bpmn:intermediateCatchEvent id="Event_18uzxt4" name="PT2M">
+      <bpmn:incoming>Flow_1n9fwkd</bpmn:incoming>
+      <bpmn:outgoing>Flow_1p6sskx</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_00ci1gn">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_1p6sskx" sourceRef="Event_18uzxt4" targetRef="Event_1kxugvr" />
+    <bpmn:serviceTask id="Activity_0s63dz8" name="Dummy task">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="benchmarkTask" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0s5aa5z</bpmn:incoming>
+      <bpmn:outgoing>Flow_1n9fwkd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_1kxugvr">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="end-message-event" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1p6sskx</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1e6spz6" />
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="one-task-one-timer">
+      <bpmndi:BPMNEdge id="Flow_1p6sskx_di" bpmnElement="Flow_1p6sskx">
+        <di:waypoint x="468" y="117" />
+        <di:waypoint x="542" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1n9fwkd_di" bpmnElement="Flow_1n9fwkd">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="432" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0s5aa5z_di" bpmnElement="Flow_0s5aa5z">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1h287l2_di" bpmnElement="Event_18uzxt4">
+        <dc:Bounds x="432" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="436" y="142" width="30" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0aa1rro_di" bpmnElement="Activity_0s63dz8">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ibvm5s_di" bpmnElement="Event_1kxugvr">
+        <dc:Bounds x="542" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
