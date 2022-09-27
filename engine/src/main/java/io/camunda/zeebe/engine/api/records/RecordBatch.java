@@ -91,6 +91,14 @@ public final class RecordBatch implements MutableRecordBatch {
     return recordBatchEntries.spliterator();
   }
 
+  @Override
+  public String toString() {
+    return "RecordBatch{" +
+        "count(recordBatchEntries)=" + recordBatchEntries.size() +
+        ", batchSize=" + batchSize +
+        '}';
+  }
+
   /**
    * This exception is part of the contract with the engine. The engine may handle this exception
    * explicitly

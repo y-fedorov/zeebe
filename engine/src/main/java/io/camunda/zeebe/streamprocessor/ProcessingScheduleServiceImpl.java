@@ -17,6 +17,7 @@ import io.camunda.zeebe.scheduler.future.CompletableActorFuture;
 import io.camunda.zeebe.scheduler.retry.AbortableRetryStrategy;
 import io.camunda.zeebe.streamprocessor.StreamProcessor.Phase;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -132,7 +133,7 @@ public class ProcessingScheduleServiceImpl implements ProcessingScheduleService,
         //  * we are not running during replay/init phase (the state might not be up-to-date yet)
         //  * we are not running during suspending
         //
-        LOG.trace(
+        LOG.debug(
             "Not able to execute scheduled task right now. [streamProcessorPhase: {}]",
             currentStreamProcessorPhase);
         actorControl.submit(toRunnable(task));
@@ -149,7 +150,8 @@ public class ProcessingScheduleServiceImpl implements ProcessingScheduleService,
       final var writeFuture =
           writeRetryStrategy.runWithRetry(
               () -> {
-                LOG.trace("Write scheduled TaskResult to dispatcher!");
+                LOG.debug("Try write scheduled TaskResult {} (containing recordBatch {}) to dispatcher!",
+                    Objects.hashCode(result), result.getRecordBatch());
                 logStreamBatchWriter.reset();
                 result
                     .getRecordBatch()
@@ -175,6 +177,8 @@ public class ProcessingScheduleServiceImpl implements ProcessingScheduleService,
               //   this should resolve if we use the buffered writer were we detect these errors
               // earlier
               LOG.warn("Writing of scheduled TaskResult failed!", t);
+            } else {
+              LOG.debug("Wrote result {} (with recordbatch {})", Objects.hashCode(result), result.getRecordBatch());
             }
           });
     };
