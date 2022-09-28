@@ -170,21 +170,22 @@ public class ProcessingScheduleServiceImpl implements ProcessingScheduleService,
           abortCondition);
 
       // it is likely that this future causes to much trouble
-//      writeFuture.onComplete(
-//          (v, t) -> {
-//            if (t != null) {
-//              // todo handle error;
-//              //   can happen if we tried to write a too big batch of records
-//              //   this should resolve if we use the buffered writer were we detect these errors
-//              // earlier
-//              LOG.warn("Writing of scheduled TaskResult failed!", t);
-//            } else {
-//              LOG.debug(
-//                  "Wrote result {} (with recordbatch {})",
-//                  Objects.hashCode(result),
-//                  result.getRecordBatch());
-//            }
-//          });
+      //      writeFuture.onComplete(
+      //          (v, t) -> {
+      //            if (t != null) {
+      //              // todo handle error;
+      //              //   can happen if we tried to write a too big batch of records
+      //              //   this should resolve if we use the buffered writer were we detect these
+      // errors
+      //              // earlier
+      //              LOG.warn("Writing of scheduled TaskResult failed!", t);
+      //            } else {
+      //              LOG.debug(
+      //                  "Wrote result {} (with recordbatch {})",
+      //                  Objects.hashCode(result),
+      //                  result.getRecordBatch());
+      //            }
+      //          });
     };
   }
 }
