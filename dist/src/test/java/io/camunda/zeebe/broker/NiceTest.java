@@ -45,7 +45,8 @@ final class NiceTest {
           int count = 0;
           final var startTime = System.currentTimeMillis();
           boolean hasReachedTime;
-          final var frequence = 100;
+          long timeDiff;
+          final var frequence = 25;
           do {
             final var processInstanceEvent =
                 zeebeClient
@@ -56,9 +57,14 @@ final class NiceTest {
 
             Loggers.SYSTEM_LOGGER.debug("Created instance {}", processInstanceEvent);
             count++;
-            final var timeMillis = System.currentTimeMillis();
-            hasReachedTime = (timeMillis - startTime) >= 1000;
+            timeDiff = (System.currentTimeMillis() - startTime);
+            hasReachedTime = timeDiff >= 1000;
           } while (count >= frequence || hasReachedTime);
+          timeDiff = 1000 - timeDiff;
+          if (timeDiff > 0) {
+            Loggers.SYSTEM_LOGGER.debug("Sleep for {}", timeDiff);
+            Thread.sleep(timeDiff);
+          }
         } catch (final Exception ex) {
           Loggers.SYSTEM_LOGGER.error("err", ex);
           // just do it
