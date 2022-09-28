@@ -93,10 +93,12 @@ public final class RecordBatch implements MutableRecordBatch {
 
   @Override
   public String toString() {
-    return "RecordBatch{" +
-        "count(recordBatchEntries)=" + recordBatchEntries.size() +
-        ", batchSize=" + batchSize +
-        '}';
+    return "RecordBatch{"
+        + "count(recordBatchEntries)="
+        + recordBatchEntries.size()
+        + ", batchSize="
+        + batchSize
+        + '}';
   }
 
   /**
