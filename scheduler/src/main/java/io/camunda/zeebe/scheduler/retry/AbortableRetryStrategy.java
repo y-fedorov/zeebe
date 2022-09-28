@@ -44,6 +44,7 @@ public final class AbortableRetryStrategy implements RetryStrategy {
     try {
       final var control = retryMechanism.run();
       if (control == Control.RETRY) {
+        actor.yieldThread();
         actor.run(this::run);
       }
     } catch (final Exception exception) {
