@@ -159,40 +159,32 @@ public class ProcessingScheduleServiceImpl implements ProcessingScheduleService,
       // it was full during writing)
       // it will be freed from the LogStorageAppender concurrently, which means we might be able to
       // write later
-      final var writeFuture =
-          writeRetryStrategy.runWithRetry(
-              () -> {
-                LOG.debug("Try write scheduled TaskResult {} (containing recordBatch {}) to dispatcher!",
-                    Objects.hashCode(result), result.getRecordBatch());
-                logStreamBatchWriter.reset();
-                result
-                    .getRecordBatch()
-                    .forEach(
-                        entry ->
-                            logStreamBatchWriter
-                                .event()
-                                .key(entry.key())
-                                .metadataWriter(entry.recordMetadata())
-                                .sourceIndex(entry.sourceIndex())
-                                .valueWriter(entry.recordValue())
-                                .done());
+      writeRetryStrategy.runWithRetry(
+          () -> {
+            LOG.debug(
+                "Try write scheduled TaskResult {} (containing recordBatch {}) to dispatcher!",
+                Objects.hashCode(result),
+                result.getRecordBatch());
+            return logStreamBatchWriter.tryWrite() >= 0;
+          },
+          abortCondition);
 
-                return logStreamBatchWriter.tryWrite() >= 0;
-              },
-              abortCondition);
-
-      writeFuture.onComplete(
-          (v, t) -> {
-            if (t != null) {
-              // todo handle error;
-              //   can happen if we tried to write a too big batch of records
-              //   this should resolve if we use the buffered writer were we detect these errors
-              // earlier
-              LOG.warn("Writing of scheduled TaskResult failed!", t);
-            } else {
-              LOG.debug("Wrote result {} (with recordbatch {})", Objects.hashCode(result), result.getRecordBatch());
-            }
-          });
+      // it is likely that this future causes to much trouble
+//      writeFuture.onComplete(
+//          (v, t) -> {
+//            if (t != null) {
+//              // todo handle error;
+//              //   can happen if we tried to write a too big batch of records
+//              //   this should resolve if we use the buffered writer were we detect these errors
+//              // earlier
+//              LOG.warn("Writing of scheduled TaskResult failed!", t);
+//            } else {
+//              LOG.debug(
+//                  "Wrote result {} (with recordbatch {})",
+//                  Objects.hashCode(result),
+//                  result.getRecordBatch());
+//            }
+//          });
     };
   }
 }
