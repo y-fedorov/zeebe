@@ -7,12 +7,56 @@
  */
 package io.camunda.zeebe.scheduler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 final class ActorSchedulerTest {
+
+  @Test
+  void shouldRunOtherActor() throws InterruptedException {
+    // given
+    final var busy = new Actor() {
+      @Override
+      protected void onActorStarted() {
+        actor.run(this::myWork);
+      }
+
+      private void myWork() {
+        System.out.println("I'm busy I have work to do");
+        actor.run(this::myWork);
+      }
+
+
+    };
+    final CountDownLatch latch = new CountDownLatch(1);
+    final var yolo = new Actor() {
+      @Override
+      protected void onActorStarted() {
+        actor.run(this::myWork);
+      }
+
+      private void myWork() {
+        System.out.println("Yolo I would also do someee stuff");
+        latch.countDown();
+        actor.run(this::myWork);
+      }
+    };
+    final var scheduler = ActorScheduler.newActorScheduler().setCpuBoundActorThreadCount(1).build();
+    scheduler.start();
+
+    // when
+    scheduler.submitActor(busy);
+    scheduler.submitActor(yolo);
+
+    // then
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+  }
+
 
   @Test
   void shouldThrowIllegalStateExceptionWhenTaskIsSubmittedBeforeActorSchedulerIsNotRunning() {
