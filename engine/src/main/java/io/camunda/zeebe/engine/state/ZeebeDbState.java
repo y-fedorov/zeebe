@@ -85,7 +85,7 @@ public class ZeebeDbState implements MutableZeebeState {
     this.keyGenerator = Objects.requireNonNull(keyGenerator);
 
     dbStateCounter =
-        new DbStateCounter(partitionId, -1, zeebeDb, transactionContext, ZbColumnFamilies.DEFAULT);
+        new DbStateCounter(partitionId, -1, zeebeDb, transactionContext, ZbColumnFamilies.DEFAULT, () -> enableMetrics);
 
     variableState = new DbVariableState(zeebeDb, transactionContext);
     processState = new DbProcessState(zeebeDb, transactionContext);

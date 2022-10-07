@@ -108,7 +108,7 @@ public class TemporaryVariableMigrationTest {
       legacyTemporaryVariablesState.put(EVENT_SCOPE_KEY, VARIABLES);
       variableState = new DbVariableState(zeebeDb, transactionContext);
       final var dbStateCounter =
-          new DbStateCounter(1, -1, zeebeDb, transactionContext, ZbColumnFamilies.DEFAULT);
+          new DbStateCounter(1, -1, zeebeDb, transactionContext, ZbColumnFamilies.DEFAULT, () -> true);
       elementInstanceState =
           new DbElementInstanceState(zeebeDb, transactionContext, variableState, dbStateCounter);
     }
