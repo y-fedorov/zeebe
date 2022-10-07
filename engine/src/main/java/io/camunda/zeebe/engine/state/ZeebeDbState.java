@@ -73,6 +73,7 @@ public class ZeebeDbState implements MutableZeebeState {
 
   private final int partitionId;
   private final DbStateCounter dbStateCounter;
+  private boolean enableMetrics;
 
   public ZeebeDbState(
       final int partitionId,
@@ -112,7 +113,10 @@ public class ZeebeDbState implements MutableZeebeState {
   public void onRecovered(final ReadonlyStreamProcessorContext context) {
     messageSubscriptionState.onRecovered(context);
     processMessageSubscriptionState.onRecovered(context);
+
+    enableMetrics = true;
     dbStateCounter.onRecovered(context);
+
   }
 
   @Override

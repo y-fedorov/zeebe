@@ -16,6 +16,7 @@ import io.camunda.zeebe.engine.api.StreamProcessorLifecycleAware;
 import io.camunda.zeebe.engine.state.NextValue;
 import io.camunda.zeebe.engine.state.ZbColumnFamilies;
 import io.prometheus.client.Gauge;
+import java.util.function.BooleanSupplier;
 
 public class DbStateCounter implements StreamProcessorLifecycleAware {
   private static final String NAMESPACE = "zeebe";
@@ -32,19 +33,22 @@ public class DbStateCounter implements StreamProcessorLifecycleAware {
   private final DbString nextValueKey;
   private final NextValue nextValue = new NextValue();
   private final String partitionId;
+  private final BooleanSupplier metricsEnabled;
 
   public DbStateCounter(
       final int partitionId,
       final long initialValue,
       final ZeebeDb<ZbColumnFamilies> zeebeDb,
       final TransactionContext transactionContext,
-      final ZbColumnFamilies columnFamily) {
+      final ZbColumnFamilies columnFamily,
+      final BooleanSupplier metricsEnabled) {
     this.partitionId = Integer.toString(partitionId);
     this.initialValue = initialValue;
 
     nextValueKey = new DbString();
     nextValueColumnFamily =
         zeebeDb.createColumnFamily(columnFamily, transactionContext, nextValueKey, nextValue);
+    this.metricsEnabled = metricsEnabled;
   }
 
   public long increment(final String key) {
@@ -53,7 +57,9 @@ public class DbStateCounter implements StreamProcessorLifecycleAware {
     nextValue.set(next);
     nextValueColumnFamily.upsert(nextValueKey, nextValue);
 
-    STATE_COUNTER.labels(partitionId, key).inc();
+    if (metricsEnabled.getAsBoolean()) {
+      STATE_COUNTER.labels(partitionId, key).inc();
+    }
 
     return next;
   }
@@ -64,7 +70,9 @@ public class DbStateCounter implements StreamProcessorLifecycleAware {
     nextValue.set(next);
     nextValueColumnFamily.upsert(nextValueKey, nextValue);
 
-    STATE_COUNTER.labels(partitionId, key).dec();
+    if (metricsEnabled.getAsBoolean()) {
+      STATE_COUNTER.labels(partitionId, key).dec();
+    }
 
     return next;
   }
