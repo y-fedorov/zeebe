@@ -19,7 +19,6 @@ import io.camunda.zeebe.db.ZeebeDb;
 import io.camunda.zeebe.engine.state.ZbColumnFamilies;
 import io.camunda.zeebe.engine.state.immutable.ZeebeState;
 import io.camunda.zeebe.engine.state.instance.DbElementInstanceState;
-import io.camunda.zeebe.engine.state.instance.DbStateCounter;
 import io.camunda.zeebe.engine.state.instance.EventTrigger;
 import io.camunda.zeebe.engine.state.migration.TemporaryVariableMigration;
 import io.camunda.zeebe.engine.state.mutable.MutableZeebeState;
@@ -107,10 +106,7 @@ public class TemporaryVariableMigrationTest {
           new LegacyDbTemporaryVariablesState(zeebeDb, transactionContext);
       legacyTemporaryVariablesState.put(EVENT_SCOPE_KEY, VARIABLES);
       variableState = new DbVariableState(zeebeDb, transactionContext);
-      final var dbStateCounter =
-          new DbStateCounter(1, -1, zeebeDb, transactionContext, ZbColumnFamilies.DEFAULT, () -> true);
-      elementInstanceState =
-          new DbElementInstanceState(zeebeDb, transactionContext, variableState, dbStateCounter);
+      elementInstanceState = new DbElementInstanceState(zeebeDb, transactionContext, variableState);
     }
 
     @Test

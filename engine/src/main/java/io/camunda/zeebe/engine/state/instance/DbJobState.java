@@ -65,14 +65,11 @@ public final class DbJobState implements JobState, MutableJobState {
   private long nextBackOffDueDate;
 
   private Consumer<String> onJobsAvailableCallback;
-  private final DbStateCounter dbStateCounter;
 
   public DbJobState(
       final ZeebeDb<ZbColumnFamilies> zeebeDb,
       final TransactionContext transactionContext,
-      final int partitionId,
-      final DbStateCounter dbStateCounter) {
-    this.dbStateCounter = dbStateCounter;
+      final int partitionId) {
     jobKey = new DbLong();
     fkJob = new DbForeignKey<>(jobKey, ZbColumnFamilies.JOBS);
     jobsColumnFamily =
@@ -181,7 +178,6 @@ public final class DbJobState implements JobState, MutableJobState {
     makeJobNotActivatable(type);
 
     removeJobDeadline(deadline);
-    dbStateCounter.decrement(ZbColumnFamilies.JOBS.name());
   }
 
   @Override
@@ -219,7 +215,6 @@ public final class DbJobState implements JobState, MutableJobState {
     createJobRecord(key, record);
     initializeJobState();
     makeJobActivatable(type, key);
-    dbStateCounter.increment(ZbColumnFamilies.JOBS.name());
   }
 
   private void updateJob(final long key, final JobRecord updatedValue, final State newState) {
