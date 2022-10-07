@@ -16,7 +16,6 @@ import io.camunda.zeebe.db.impl.DbLong;
 import io.camunda.zeebe.db.impl.DbNil;
 import io.camunda.zeebe.db.impl.DbString;
 import io.camunda.zeebe.engine.Loggers;
-import io.camunda.zeebe.engine.metrics.JobMetrics;
 import io.camunda.zeebe.engine.state.ZbColumnFamilies;
 import io.camunda.zeebe.engine.state.immutable.JobState;
 import io.camunda.zeebe.engine.state.mutable.MutableJobState;
@@ -65,14 +64,15 @@ public final class DbJobState implements JobState, MutableJobState {
       backoffColumnFamily;
   private long nextBackOffDueDate;
 
-  private final JobMetrics metrics;
-
   private Consumer<String> onJobsAvailableCallback;
+  private final DbStateCounter dbStateCounter;
 
   public DbJobState(
       final ZeebeDb<ZbColumnFamilies> zeebeDb,
       final TransactionContext transactionContext,
-      final int partitionId) {
+      final int partitionId,
+      final DbStateCounter dbStateCounter) {
+    this.dbStateCounter = dbStateCounter;
     jobKey = new DbLong();
     fkJob = new DbForeignKey<>(jobKey, ZbColumnFamilies.JOBS);
     jobsColumnFamily =
@@ -100,8 +100,6 @@ public final class DbJobState implements JobState, MutableJobState {
     backoffColumnFamily =
         zeebeDb.createColumnFamily(
             ZbColumnFamilies.JOB_BACKOFF, transactionContext, backoffJobKey, DbNil.INSTANCE);
-
-    metrics = new JobMetrics(partitionId);
   }
 
   @Override
@@ -183,6 +181,7 @@ public final class DbJobState implements JobState, MutableJobState {
     makeJobNotActivatable(type);
 
     removeJobDeadline(deadline);
+    dbStateCounter.decrement(ZbColumnFamilies.JOBS.name());
   }
 
   @Override
@@ -220,6 +219,7 @@ public final class DbJobState implements JobState, MutableJobState {
     createJobRecord(key, record);
     initializeJobState();
     makeJobActivatable(type, key);
+    dbStateCounter.increment(ZbColumnFamilies.JOBS.name());
   }
 
   private void updateJob(final long key, final JobRecord updatedValue, final State newState) {

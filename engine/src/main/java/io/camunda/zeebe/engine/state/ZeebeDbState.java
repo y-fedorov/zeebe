@@ -19,6 +19,7 @@ import io.camunda.zeebe.engine.state.instance.DbElementInstanceState;
 import io.camunda.zeebe.engine.state.instance.DbEventScopeInstanceState;
 import io.camunda.zeebe.engine.state.instance.DbIncidentState;
 import io.camunda.zeebe.engine.state.instance.DbJobState;
+import io.camunda.zeebe.engine.state.instance.DbStateCounter;
 import io.camunda.zeebe.engine.state.instance.DbTimerInstanceState;
 import io.camunda.zeebe.engine.state.message.DbMessageStartEventSubscriptionState;
 import io.camunda.zeebe.engine.state.message.DbMessageState;
@@ -71,6 +72,7 @@ public class ZeebeDbState implements MutableZeebeState {
   private final MutableDecisionState decisionState;
 
   private final int partitionId;
+  private final DbStateCounter dbStateCounter;
 
   public ZeebeDbState(
       final int partitionId,
@@ -81,14 +83,18 @@ public class ZeebeDbState implements MutableZeebeState {
     this.zeebeDb = zeebeDb;
     this.keyGenerator = Objects.requireNonNull(keyGenerator);
 
+    dbStateCounter =
+        new DbStateCounter(partitionId, -1, zeebeDb, transactionContext, ZbColumnFamilies.DEFAULT);
+
     variableState = new DbVariableState(zeebeDb, transactionContext);
     processState = new DbProcessState(zeebeDb, transactionContext);
     timerInstanceState = new DbTimerInstanceState(zeebeDb, transactionContext);
-    elementInstanceState = new DbElementInstanceState(zeebeDb, transactionContext, variableState);
+    elementInstanceState =
+        new DbElementInstanceState(zeebeDb, transactionContext, variableState, dbStateCounter);
     eventScopeInstanceState = new DbEventScopeInstanceState(zeebeDb, transactionContext);
 
     deploymentState = new DbDeploymentState(zeebeDb, transactionContext);
-    jobState = new DbJobState(zeebeDb, transactionContext, partitionId);
+    jobState = new DbJobState(zeebeDb, transactionContext, partitionId, dbStateCounter);
     messageState = new DbMessageState(zeebeDb, transactionContext);
     messageSubscriptionState = new DbMessageSubscriptionState(zeebeDb, transactionContext);
     messageStartEventSubscriptionState =
@@ -106,6 +112,7 @@ public class ZeebeDbState implements MutableZeebeState {
   public void onRecovered(final ReadonlyStreamProcessorContext context) {
     messageSubscriptionState.onRecovered(context);
     processMessageSubscriptionState.onRecovered(context);
+    dbStateCounter.onRecovered(context);
   }
 
   @Override

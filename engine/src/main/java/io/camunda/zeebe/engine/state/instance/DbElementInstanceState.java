@@ -58,12 +58,15 @@ public final class DbElementInstanceState implements MutableElementInstanceState
       numberOfTakenSequenceFlowsColumnFamily;
 
   private final MutableVariableState variableState;
+  private final DbStateCounter dbStateCounter;
 
   public DbElementInstanceState(
       final ZeebeDb<ZbColumnFamilies> zeebeDb,
       final TransactionContext transactionContext,
-      final MutableVariableState variableState) {
+      final MutableVariableState variableState,
+      final DbStateCounter dbStateCounter) {
 
+    this.dbStateCounter = dbStateCounter;
     this.variableState = variableState;
 
     elementInstanceKey = new DbLong();
@@ -163,6 +166,7 @@ public final class DbElementInstanceState implements MutableElementInstanceState
         parentInstance.decrementChildCount();
         updateInstance(parentInstance);
       }
+      dbStateCounter.decrement(ZbColumnFamilies.ELEMENT_INSTANCE_KEY.name());
     }
   }
 
@@ -174,6 +178,7 @@ public final class DbElementInstanceState implements MutableElementInstanceState
     elementInstanceColumnFamily.insert(elementInstanceKey, instance);
     parentChildColumnFamily.insert(parentChildKey, DbNil.INSTANCE);
     variableState.createScope(elementInstanceKey.getValue(), parentKey.inner().getValue());
+    dbStateCounter.increment(ZbColumnFamilies.ELEMENT_INSTANCE_KEY.name());
   }
 
   @Override
