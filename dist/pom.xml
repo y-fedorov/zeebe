@@ -180,6 +180,12 @@
       <artifactId>swagger-annotations</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <!--
       the following are only used in tests, but we cannot scope them as tests as they're transitive
       dependencies required at runtime by other modules; if we scope them as tests here, they will
