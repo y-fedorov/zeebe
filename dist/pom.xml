@@ -385,8 +385,9 @@
             <dependency>io.micrometer:micrometer-core</dependency>
             <dependency>io.micrometer:micrometer-registry-prometheus</dependency>
 
+            <!-- used by the OpenAPI generated code -->
             <dependency>org.openapitools:jackson-databind-nullable</dependency>
-
+            <dependency>javax.annotation:javax.annotation-api</dependency>
           </usedDependencies>
         </configuration>
       </plugin>
