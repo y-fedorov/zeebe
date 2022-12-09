@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      IMAGE: "gcr.io/zeebe-io/zeebe"
+      IMAGE: "camunda/zeebe"
       GENERATION_TEMPLATE: "${{ inputs.generation }}"
       BRANCH_NAME: "${{ inputs.branch }}"
       ZEEBE_AUTHORIZATION_SERVER_URL: 'https://login.cloud.ultrawombat.com/oauth/token'
@@ -65,7 +65,7 @@ jobs:
         name: Set environment variables
         run: |
           version=$(mvn help:evaluate -q -DforceStdout -D"expression=project.version")
-          tag="$version-$BRANCH-${GITHUB_SHA::8}"
+          tag="SNAPSHOT"
           echo "TAG=$tag" >> $GITHUB_ENV
           echo "QA_RUN_VARIABLES={\"zeebeImage\": \"$IMAGE:$tag\", \"generationTemplate\": \"$GENERATION_TEMPLATE\", \"channel\": \"Internal Dev\", \"branch\": \"$BRANCH_NAME\", \"build\": \"$BUILD_URL\", \"businessKey\": \"$BUILD_URL\", \"processId\": \"qa-protocol\"}" >> $GITHUB_ENV
           echo "BUSINESS_KEY=$BUILD_URL" >> $GITHUB_ENV
@@ -81,22 +81,6 @@ jobs:
             secret/data/products/zeebe/ci/zeebe ZEEBE_GCR_SERVICEACCOUNT_JSON;
             secret/data/products/zeebe/ci/zeebe TESTBENCH_PROD_CLIENT_SECRET;
             secret/data/products/zeebe/ci/zeebe TESTBENCH_PROD_CONTACT_POINT;
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: gcr.io
-          username: _json_key
-          password: ${{ steps.secrets.outputs.ZEEBE_GCR_SERVICEACCOUNT_JSON }}
-      - uses: ./.github/actions/setup-zeebe
-      - uses: ./.github/actions/build-zeebe
-        id: build-zeebe
-      - uses: ./.github/actions/build-docker
-        with:
-          repository: ${{ env.IMAGE }}
-          version: ${{ env.TAG }}
-          push: true
-          distball: ${{ steps.build-zeebe.outputs.distball }}
-        # Executes the Testbench QA run and awaits the result
       - name: Run Testbench QA
         run: .ci/scripts/distribution/qa-testbench.sh
         env:
