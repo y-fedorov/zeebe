@@ -86,39 +86,3 @@ jobs:
         env:
           ZEEBE_CLIENT_SECRET: ${{ steps.secrets.outputs.TESTBENCH_PROD_CLIENT_SECRET }}
           ZEEBE_ADDRESS: ${{ steps.secrets.outputs.TESTBENCH_PROD_CONTACT_POINT }}
-
-  notify:
-    name: Send slack notification
-    runs-on: ubuntu-latest
-    needs: [qa-testbench]
-    if: ${{ always() }}
-    steps:
-      - id: slack-failure-notify
-        name: Send failure slack notification
-        uses: slackapi/slack-github-action@v1.23.0
-        if: ${{ always() && needs.qa-testbench.result != 'success' }}
-        with:
-          payload: |
-            {
-              "text": ":alarm: QA run on `${{ env.BRANCH_NAME }}` with generation template `${{ env.GENERATION_TEMPLATE }}` failed! :alarm:\n ${{ env.BUILD_URL }}",
-             	"blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":alarm: QA run on `${{ env.BRANCH_NAME }}` with generation template `${{ env.GENERATION_TEMPLATE }}` failed! :alarm:"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Please check: ${{ env.BUILD_URL }}\n \\cc @zeebe-medic"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
