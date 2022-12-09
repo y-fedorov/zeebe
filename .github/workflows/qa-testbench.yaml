@@ -122,31 +122,3 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
-      - id: slack-success-notify
-        name: Send success slack notification
-        uses: slackapi/slack-github-action@v1.23.0
-        if: ${{ always() && needs.qa-testbench.result == 'success' }}
-        with:
-          payload: |
-            {
-              "text": ":tada: QA run succeeded on `${{ env.BRANCH_NAME }}` with generation template `${{ env.GENERATION_TEMPLATE }}`! :tada:\n ${{ env.BUILD_URL }}",
-             	"blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":tada: QA run succeeded on `${{ env.BRANCH_NAME }}` with generation template `${{ env.GENERATION_TEMPLATE }}`! :tada:"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Nothing to check today. Good job! :clap:\n"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
