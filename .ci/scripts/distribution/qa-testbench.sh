@@ -1,8 +1,8 @@
 #!/bin/bash -eux
 
-chmod +x clients/go/cmd/zbctl/dist/zbctl
-
-zbctl="clients/go/cmd/zbctl/dist/zbctl"
+zbctl="./zbctl"
+curl -O -L https://github.com/camunda/zeebe/releases/download/8.1.3/zbctl
+chmod +x zbctl
 
 "${zbctl}" create instance external-tool-integration --variables "${QA_RUN_VARIABLES}"
 
