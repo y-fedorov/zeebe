@@ -127,7 +127,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
     if (nodeAddress == null) {
       if (requestContext.shouldRetry()) {
         if (LOG.isTraceEnabled()) {
-          LOG.trace(
+          LOG.warn(
               "No target address for request {}, retry after {}.",
               requestContext.hashCode(),
               RETRY_DELAY);
@@ -135,7 +135,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         actor.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       } else {
         if (LOG.isTraceEnabled()) {
-          LOG.trace(
+          LOG.warn(
               "No target address for request {}, will fail request.", requestContext.hashCode());
         }
         requestContext.completeExceptionally(
@@ -147,7 +147,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
     }
 
     if (LOG.isTraceEnabled()) {
-      LOG.trace(
+      LOG.info(
           "Send request {} to {} with topic {}",
           requestContext.hashCode(),
           requestContext.getNodeAddress(),
@@ -166,7 +166,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
       final RequestContext requestContext, final byte[] response, final Throwable errorOnRequest) {
     if (requestContext.isDone()) {
       if (LOG.isTraceEnabled()) {
-        LOG.trace("Handle response, but request {} is already done", requestContext.hashCode());
+        LOG.warn("Handle response, but request {} is already done", requestContext.hashCode());
       }
       return;
     }
@@ -181,7 +181,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         requestContext.complete(responseBuffer);
       } else {
         if (LOG.isTraceEnabled()) {
-          LOG.trace(
+          LOG.warn(
               "Got invalid response for request {}, retry in {}.",
               requestContext.hashCode(),
               RETRY_DELAY);
@@ -197,7 +197,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
           && requestContext.shouldRetry()) {
 
         if (LOG.isTraceEnabled()) {
-          LOG.trace(
+          LOG.warn(
               "Request {} failed, but will retry after delay {}",
               requestContext.hashCode(),
               RETRY_DELAY,
@@ -208,7 +208,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         actor.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       } else {
         if (LOG.isTraceEnabled()) {
-          LOG.trace(
+          LOG.warn(
               "Request {} failed, will not retry!", requestContext.hashCode(), errorOnRequest);
         }
         requestContext.completeExceptionally(errorOnRequest);

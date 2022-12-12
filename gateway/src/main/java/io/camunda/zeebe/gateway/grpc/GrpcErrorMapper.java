@@ -63,22 +63,22 @@ public final class GrpcErrorMapper {
       builder
           .setCode(Code.DEADLINE_EXCEEDED_VALUE)
           .setMessage("Time out between gateway and broker: " + error.getMessage());
-      logger.debug(
+      logger.warn(
           "Expected to handle gRPC request, but request timed out between gateway and broker",
           rootError);
     } else if (error instanceof InvalidBrokerRequestArgumentException) {
       builder.setCode(Code.INVALID_ARGUMENT_VALUE).setMessage(error.getMessage());
-      logger.debug("Expected to handle gRPC request, but broker argument was invalid", rootError);
+      logger.warn("Expected to handle gRPC request, but broker argument was invalid", rootError);
     } else if (error instanceof MsgpackPropertyException) {
       builder.setCode(Code.INVALID_ARGUMENT_VALUE).setMessage(error.getMessage());
-      logger.debug(
+      logger.warn(
           "Expected to handle gRPC request, but messagepack property was invalid", rootError);
     } else if (error instanceof JsonParseException) {
       builder.setCode(Code.INVALID_ARGUMENT_VALUE).setMessage(error.getMessage());
-      logger.debug("Expected to handle gRPC request, but JSON property was invalid", rootError);
+      logger.warn("Expected to handle gRPC request, but JSON property was invalid", rootError);
     } else if (error instanceof PartitionNotFoundException) {
       builder.setCode(Code.UNAVAILABLE_VALUE).setMessage(error.getMessage());
-      logger.debug(
+      logger.warn(
           "Expected to handle gRPC request, but request could not be delivered", rootError);
     } else if (error instanceof RequestRetriesExhaustedException) {
       builder.setCode(Code.RESOURCE_EXHAUSTED_VALUE).setMessage(error.getMessage());
@@ -96,7 +96,7 @@ public final class GrpcErrorMapper {
           "Expected to handle gRPC request, but all retries have been exhausted", rootError);
     } else if (error instanceof NoTopologyAvailableException) {
       builder.setCode(Code.UNAVAILABLE_VALUE).setMessage(error.getMessage());
-      logger.trace(
+      logger.warn(
           "Expected to handle gRPC request, but the gateway does not know any partitions yet",
           rootError);
     } else if (error instanceof ConnectTimeoutException) {

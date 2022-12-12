@@ -7,6 +7,8 @@
  */
 package io.camunda.zeebe.gateway.impl.broker;
 
+import static io.camunda.zeebe.gateway.Loggers.GATEWAY_LOGGER;
+
 import io.camunda.zeebe.gateway.cmd.BrokerErrorException;
 import io.camunda.zeebe.gateway.cmd.BrokerRejectionException;
 import io.camunda.zeebe.gateway.cmd.BrokerResponseException;
@@ -147,6 +149,7 @@ final class BrokerRequestManager extends Actor {
                     request.getPartitionId(), request.getType(), elapsedTime);
                 return;
               }
+              GATEWAY_LOGGER.error("Request: {}, problem on response {} result {}", request, response, result.getErrorCode());
             } else {
               returnFuture.completeExceptionally(error);
             }
@@ -154,6 +157,7 @@ final class BrokerRequestManager extends Actor {
             returnFuture.completeExceptionally(new ClientResponseException(e));
           }
 
+          GATEWAY_LOGGER.error("Failure on response receiving {}, future {}", error, returnFuture, error);
           registerFailure(request, result, error);
         });
   }
