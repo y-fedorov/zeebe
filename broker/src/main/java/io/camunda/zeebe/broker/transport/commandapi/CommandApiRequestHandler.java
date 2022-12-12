@@ -120,6 +120,7 @@ final class CommandApiRequestHandler
       return Either.left(errorWriter);
     } finally {
       if (!written) {
+        LOG.error("NOT WRITTEN {} for partition {}, requestId {}, metadata {}", intent, partitionId, requestId, metadata);
         limiter.onIgnore(partitionId, requestId);
       }
     }
