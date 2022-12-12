@@ -78,8 +78,7 @@ public final class GrpcErrorMapper {
       logger.warn("Expected to handle gRPC request, but JSON property was invalid", rootError);
     } else if (error instanceof PartitionNotFoundException) {
       builder.setCode(Code.UNAVAILABLE_VALUE).setMessage(error.getMessage());
-      logger.warn(
-          "Expected to handle gRPC request, but request could not be delivered", rootError);
+      logger.warn("Expected to handle gRPC request, but request could not be delivered", rootError);
     } else if (error instanceof RequestRetriesExhaustedException) {
       builder.setCode(Code.RESOURCE_EXHAUSTED_VALUE).setMessage(error.getMessage());
 

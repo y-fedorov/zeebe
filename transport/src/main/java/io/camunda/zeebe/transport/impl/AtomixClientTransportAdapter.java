@@ -208,8 +208,7 @@ public final class AtomixClientTransportAdapter extends Actor implements ClientT
         actor.runDelayed(RETRY_DELAY, () -> tryToSend(requestContext));
       } else {
         if (LOG.isTraceEnabled()) {
-          LOG.warn(
-              "Request {} failed, will not retry!", requestContext.hashCode(), errorOnRequest);
+          LOG.warn("Request {} failed, will not retry!", requestContext.hashCode(), errorOnRequest);
         }
         requestContext.completeExceptionally(errorOnRequest);
       }
