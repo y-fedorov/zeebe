@@ -38,6 +38,8 @@
   <Loggers>
     <Logger name="io.camunda.zeebe" level="${env:ZEEBE_LOG_LEVEL:-info}"/>
     <Logger name="io.atomix" level="${env:ATOMIX_LOG_LEVEL:-info}"/>
+    <Logger name="io.atomix.cluster.messaging" level="debug"/>
+    <Logger name="io.camunda.zeebe.transport" level="trace"/>
 
     <Root level="info">
       <AppenderRef ref="RollingFile"/>
