@@ -539,8 +539,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
                                 });
                           } else {
                             final Throwable cause = Throwables.getRootCause(sendError);
-                            if (!(cause instanceof TimeoutException)
-                                && !(cause instanceof MessagingException)) {
+                            if (!(cause instanceof MessagingException)) {
                               channel
                                   .close()
                                   .addListener(
