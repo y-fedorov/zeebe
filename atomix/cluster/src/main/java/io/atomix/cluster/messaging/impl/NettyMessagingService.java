@@ -538,8 +538,10 @@ public final class NettyMessagingService implements ManagedMessagingService {
                                   openFutures.remove(future);
                                 });
                           } else {
+                            log.error("Error on sending request, {}", sendError.getMessage(), sendError);
                             final Throwable cause = Throwables.getRootCause(sendError);
                             if (!(cause instanceof MessagingException)) {
+                              log.error("Closing connection {} for channel after request error", connection.toString(), sendError);
                               channel
                                   .close()
                                   .addListener(
@@ -619,6 +621,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
   private RemoteClientConnection getOrCreateClientConnection(final Channel channel) {
     RemoteClientConnection connection = connections.get(channel);
     if (connection == null) {
+      log.info("Create new connection {} on channel {} for address {}", connection, channel, channel.remoteAddress());
       connection = connections.computeIfAbsent(channel, RemoteClientConnection::new);
       channel
           .closeFuture()
@@ -629,6 +632,8 @@ public final class NettyMessagingService implements ManagedMessagingService {
                   removedConnection.close();
                 }
               });
+    } else {
+      log.info("Reuse connection {} on channel {} for address {}", connection, channel, channel.remoteAddress());
     }
     return connection;
   }
