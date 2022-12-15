@@ -657,10 +657,12 @@ public final class NettyMessagingService implements ManagedMessagingService {
       future.completeExceptionally(
           new IllegalStateException(
               "Failed to bootstrap client (address "
-                  + address.toString()
+                  + address
                   + " cannot be resolved)"));
       return future;
     }
+
+    log.trace("Resolved Address {} to bootstrap client.", address);
 
     final Bootstrap bootstrap = new Bootstrap();
     bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
