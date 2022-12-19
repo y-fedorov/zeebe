@@ -59,6 +59,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
+import io.prometheus.client.Histogram.Timer;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.time.Duration;
@@ -116,6 +117,8 @@ public final class NettyMessagingService implements ManagedMessagingService {
   private SslContext serverSslContext;
   private SslContext clientSslContext;
 
+  private final MessagingMetrics messagingMetrics = new MessagingMetrics();
+
   public NettyMessagingService(
       final String cluster, final Address advertisedAddress, final MessagingConfig config) {
     this(cluster, advertisedAddress, config, ProtocolVersion.latest());
@@ -135,6 +138,8 @@ public final class NettyMessagingService implements ManagedMessagingService {
     channelPool = new ChannelPool(this::openChannel, config.getConnectionPoolSize());
     initAddresses(config);
   }
+
+
 
   private void initAddresses(final MessagingConfig config) {
     final int port = config.getPort() != null ? config.getPort() : advertisedAddress.port();
@@ -527,17 +532,24 @@ public final class NettyMessagingService implements ManagedMessagingService {
             (channel, channelError) -> {
               if (channelError == null) {
                 final ClientConnection connection = getOrCreateClientConnection(channel);
+                messagingMetrics.countRequest(address.toString(), type);
+                final Timer timer = messagingMetrics.startRequestTimer(type);
+                messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                 callback
                     .apply(connection)
                     .whenComplete(
                         (result, sendError) -> {
+                          timer.close();
                           if (sendError == null) {
                             executor.execute(
                                 () -> {
+                                  messagingMetrics.countSuccessResponse(address.toString(), type);
                                   future.complete(result);
                                   openFutures.remove(future);
+                                  messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                                 });
                           } else {
+                            messagingMetrics.countFailureResponse(address.toString(), type, sendError.getClass().getName());
                             final Throwable cause = Throwables.getRootCause(sendError);
                             if (!(cause instanceof TimeoutException)
                                 && !(cause instanceof MessagingException)) {
@@ -549,12 +561,14 @@ public final class NettyMessagingService implements ManagedMessagingService {
                                             "Closing connection to {}", channel.remoteAddress());
                                         connection.close();
                                         connections.remove(channel);
+                                        messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                                       });
                             }
                             executor.execute(
                                 () -> {
                                   future.completeExceptionally(sendError);
                                   openFutures.remove(future);
+                                  messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                                 });
                           }
                         });
@@ -563,6 +577,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
                     () -> {
                       future.completeExceptionally(channelError);
                       openFutures.remove(future);
+                      messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                     });
               }
             });
