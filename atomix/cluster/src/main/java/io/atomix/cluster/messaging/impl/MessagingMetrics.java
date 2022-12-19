@@ -22,6 +22,21 @@ final class MessagingMetrics {
           .labelNames("topic")
           .register();
 
+  private static final Counter CONNECTION_COUNT =
+      Counter.build()
+          .namespace("zeebe")
+          .name("messaging_request_count")
+          .help("Number of new connections created")
+          .labelNames("address")
+          .register();
+
+  private static final Gauge OPEN_CONNECTIONS =
+      Gauge.build()
+          .namespace("zeebe")
+          .name("messaging_open_connections")
+          .help("The open connections")
+          .register();
+
   private static final Counter REQUEST_COUNT =
       Counter.build()
           .namespace("zeebe")
@@ -50,8 +65,12 @@ final class MessagingMetrics {
     return REQUEST_RESPONSE_LATENCY.labels(name).startTimer();
   }
 
-  void countRequest(final String address, final String name) {
-      REQUEST_COUNT.labels(address, name).inc();
+  void countRequest(final String to, final String name) {
+      REQUEST_COUNT.labels(to, name).inc();
+  }
+
+  void countConnection(final String to) {
+    CONNECTION_COUNT.labels(to).inc();
   }
 
   void countSuccessResponse(final String address, final String name) {
@@ -64,5 +83,9 @@ final class MessagingMetrics {
 
   void updateInFlightRequests(final String address, String topic, final int length) {
     IN_FLIGHT_REQUESTS.labels(address, topic).set(length);
+  }
+
+   void updateOpenConnections(final int count) {
+    IN_FLIGHT_REQUESTS.labels().set(count);
   }
 }

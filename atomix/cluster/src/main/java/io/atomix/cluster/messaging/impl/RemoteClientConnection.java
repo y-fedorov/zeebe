@@ -22,13 +22,17 @@ import java.util.concurrent.CompletableFuture;
 /** Client-side Netty remote connection. */
 final class RemoteClientConnection extends AbstractClientConnection {
   private final Channel channel;
+  private final MessagingMetrics messagingMetrics;
 
-  RemoteClientConnection(final Channel channel) {
+  RemoteClientConnection(final MessagingMetrics messagingMetrics, final Channel channel) {
+    this.messagingMetrics = messagingMetrics;
+    messagingMetrics.countConnection(channel.remoteAddress().toString());
     this.channel = channel;
   }
 
   @Override
   public CompletableFuture<Void> sendAsync(final ProtocolRequest message) {
+    messagingMetrics.countRequest(channel.remoteAddress().toString(), message.subject());
     final CompletableFuture<Void> future = new CompletableFuture<>();
     channel
         .writeAndFlush(message)
@@ -36,7 +40,9 @@ final class RemoteClientConnection extends AbstractClientConnection {
             channelFuture -> {
               if (!channelFuture.isSuccess()) {
                 future.completeExceptionally(channelFuture.cause());
+                messagingMetrics.countFailureResponse(channel.remoteAddress().toString(), message.subject(), channelFuture.cause().getMessage());
               } else {
+                messagingMetrics.countSuccessResponse(channel.remoteAddress().toString(), message.subject());
                 future.complete(null);
               }
             });

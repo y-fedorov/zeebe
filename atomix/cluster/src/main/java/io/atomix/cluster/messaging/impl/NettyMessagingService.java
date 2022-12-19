@@ -532,24 +532,22 @@ public final class NettyMessagingService implements ManagedMessagingService {
             (channel, channelError) -> {
               if (channelError == null) {
                 final ClientConnection connection = getOrCreateClientConnection(channel);
-                messagingMetrics.countRequest(address.toString(), type);
-                final Timer timer = messagingMetrics.startRequestTimer(type);
+//                messagingMetrics.countRequest(address.toString(), type);
+//                final Timer timer = messagingMetrics.startRequestTimer(type);
                 messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                 callback
                     .apply(connection)
                     .whenComplete(
                         (result, sendError) -> {
-                          timer.close();
+//                          timer.close();
                           if (sendError == null) {
                             executor.execute(
                                 () -> {
-                                  messagingMetrics.countSuccessResponse(address.toString(), type);
                                   future.complete(result);
                                   openFutures.remove(future);
                                   messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                                 });
                           } else {
-                            messagingMetrics.countFailureResponse(address.toString(), type, sendError.getClass().getName());
                             final Throwable cause = Throwables.getRootCause(sendError);
                             if (!(cause instanceof TimeoutException)
                                 && !(cause instanceof MessagingException)) {
@@ -577,7 +575,6 @@ public final class NettyMessagingService implements ManagedMessagingService {
                     () -> {
                       future.completeExceptionally(channelError);
                       openFutures.remove(future);
-                      messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
                     });
               }
             });
@@ -635,7 +632,8 @@ public final class NettyMessagingService implements ManagedMessagingService {
   private RemoteClientConnection getOrCreateClientConnection(final Channel channel) {
     RemoteClientConnection connection = connections.get(channel);
     if (connection == null) {
-      connection = connections.computeIfAbsent(channel, RemoteClientConnection::new);
+      connection = connections.computeIfAbsent(channel, c -> new RemoteClientConnection(messagingMetrics, c));
+      messagingMetrics.updateOpenConnections(connections.size());
       channel
           .closeFuture()
           .addListener(
@@ -644,6 +642,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
                 if (removedConnection != null) {
                   removedConnection.close();
                 }
+                messagingMetrics.updateOpenConnections(connections.size());
               });
     }
     return connection;
