@@ -539,19 +539,16 @@ public final class NettyMessagingService implements ManagedMessagingService {
                                 });
                           } else {
                             log.error("Error on sending request, {}", sendError.getMessage(), sendError);
-                            final Throwable cause = Throwables.getRootCause(sendError);
-                            if (!(cause instanceof MessagingException)) {
-                              log.error("Closing connection {} for channel after request error", connection.toString(), sendError);
-                              channel
-                                  .close()
-                                  .addListener(
-                                      f -> {
-                                        log.debug(
-                                            "Closing connection to {}", channel.remoteAddress());
-                                        connection.close();
-                                        connections.remove(channel);
-                                      });
-                            }
+                            log.error("Closing connection {} for channel after request error", connection.toString(), sendError);
+                            channel
+                                .close()
+                                .addListener(
+                                    f -> {
+                                      log.debug(
+                                          "Closing connection to {}", channel.remoteAddress());
+                                      connection.close();
+                                      connections.remove(channel);
+                                    });
                             executor.execute(
                                 () -> {
                                   future.completeExceptionally(sendError);
