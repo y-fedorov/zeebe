@@ -40,9 +40,13 @@ final class RemoteClientConnection extends AbstractClientConnection {
             channelFuture -> {
               if (!channelFuture.isSuccess()) {
                 future.completeExceptionally(channelFuture.cause());
-                messagingMetrics.countFailureResponse(channel.remoteAddress().toString(), message.subject(), channelFuture.cause().getMessage());
+                messagingMetrics.countFailureResponse(
+                    channel.remoteAddress().toString(),
+                    message.subject(),
+                    channelFuture.cause().getMessage());
               } else {
-                messagingMetrics.countSuccessResponse(channel.remoteAddress().toString(), message.subject());
+                messagingMetrics.countSuccessResponse(
+                    channel.remoteAddress().toString(), message.subject());
                 future.complete(null);
               }
             });
@@ -51,6 +55,7 @@ final class RemoteClientConnection extends AbstractClientConnection {
 
   @Override
   public CompletableFuture<byte[]> sendAndReceive(final ProtocolRequest message) {
+    messagingMetrics.countRequest(channel.remoteAddress().toString(), message.subject());
     final CompletableFuture<byte[]> responseFuture = awaitResponseForRequestWithId(message.id());
     channel
         .writeAndFlush(message)
@@ -58,6 +63,13 @@ final class RemoteClientConnection extends AbstractClientConnection {
             channelFuture -> {
               if (!channelFuture.isSuccess()) {
                 responseFuture.completeExceptionally(channelFuture.cause());
+                messagingMetrics.countFailureResponse(
+                    channel.remoteAddress().toString(),
+                    message.subject(),
+                    channelFuture.cause().getMessage());
+              } else {
+                messagingMetrics.countSuccessResponse(
+                    channel.remoteAddress().toString(), message.subject());
               }
             });
     return responseFuture;

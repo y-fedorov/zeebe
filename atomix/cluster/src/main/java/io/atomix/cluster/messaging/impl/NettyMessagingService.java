@@ -59,7 +59,6 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
-import io.prometheus.client.Histogram.Timer;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.time.Duration;
@@ -138,8 +137,6 @@ public final class NettyMessagingService implements ManagedMessagingService {
     channelPool = new ChannelPool(this::openChannel, config.getConnectionPoolSize());
     initAddresses(config);
   }
-
-
 
   private void initAddresses(final MessagingConfig config) {
     final int port = config.getPort() != null ? config.getPort() : advertisedAddress.port();
@@ -532,20 +529,22 @@ public final class NettyMessagingService implements ManagedMessagingService {
             (channel, channelError) -> {
               if (channelError == null) {
                 final ClientConnection connection = getOrCreateClientConnection(channel);
-//                messagingMetrics.countRequest(address.toString(), type);
-//                final Timer timer = messagingMetrics.startRequestTimer(type);
-                messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
+                //                messagingMetrics.countRequest(address.toString(), type);
+                //                final Timer timer = messagingMetrics.startRequestTimer(type);
+                messagingMetrics.updateInFlightRequests(
+                    address.toString(), type, openFutures.size());
                 callback
                     .apply(connection)
                     .whenComplete(
                         (result, sendError) -> {
-//                          timer.close();
+                          //                          timer.close();
                           if (sendError == null) {
                             executor.execute(
                                 () -> {
                                   future.complete(result);
                                   openFutures.remove(future);
-                                  messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
+                                  messagingMetrics.updateInFlightRequests(
+                                      address.toString(), type, openFutures.size());
                                 });
                           } else {
                             final Throwable cause = Throwables.getRootCause(sendError);
@@ -559,14 +558,16 @@ public final class NettyMessagingService implements ManagedMessagingService {
                                             "Closing connection to {}", channel.remoteAddress());
                                         connection.close();
                                         connections.remove(channel);
-                                        messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
+                                        messagingMetrics.updateInFlightRequests(
+                                            address.toString(), type, openFutures.size());
                                       });
                             }
                             executor.execute(
                                 () -> {
                                   future.completeExceptionally(sendError);
                                   openFutures.remove(future);
-                                  messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
+                                  messagingMetrics.updateInFlightRequests(
+                                      address.toString(), type, openFutures.size());
                                 });
                           }
                         });
@@ -632,7 +633,9 @@ public final class NettyMessagingService implements ManagedMessagingService {
   private RemoteClientConnection getOrCreateClientConnection(final Channel channel) {
     RemoteClientConnection connection = connections.get(channel);
     if (connection == null) {
-      connection = connections.computeIfAbsent(channel, c -> new RemoteClientConnection(messagingMetrics, c));
+      connection =
+          connections.computeIfAbsent(
+              channel, c -> new RemoteClientConnection(messagingMetrics, c));
       messagingMetrics.updateOpenConnections(connections.size());
       channel
           .closeFuture()
