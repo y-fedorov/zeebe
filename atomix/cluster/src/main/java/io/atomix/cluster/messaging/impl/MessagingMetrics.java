@@ -13,19 +13,19 @@ import io.prometheus.client.Histogram;
 
 final class MessagingMetrics {
 
-  private static final Histogram REQUEST_RESPONSE_LATENCY =
-      Histogram.build()
-//          .exponentialBuckets(0.0001, 4, 10)
-          .namespace("zeebe")
-          .name("messaging_request_response_latency")
-          .help("The time how long it takes to respond to a request")
-          .labelNames("topic")
-          .register();
+//  private static final Histogram REQUEST_RESPONSE_LATENCY =
+//      Histogram.build()
+////          .exponentialBuckets(0.0001, 4, 10)
+//          .namespace("zeebe")
+//          .name("messaging_request_response_latency")
+//          .help("The time how long it takes to respond to a request")
+//          .labelNames("topic")
+//          .register();
 
   private static final Counter CONNECTION_COUNT =
       Counter.build()
           .namespace("zeebe")
-          .name("messaging_request_count")
+          .name("messaging_connection_count")
           .help("Number of new connections created")
           .labelNames("address")
           .register();
@@ -48,7 +48,7 @@ final class MessagingMetrics {
   private static final Counter RESPONSE_COUNT =
       Counter.build()
           .namespace("zeebe")
-          .name("messaging_reqponse_count")
+          .name("messaging_response_count")
           .help("Number of responses which has been received")
           .labelNames("address", "topic", "outcome")
           .register();
@@ -61,9 +61,9 @@ final class MessagingMetrics {
           .labelNames("address", "topic")
           .register();
 
-  Histogram.Timer startRequestTimer(final String name) {
-    return REQUEST_RESPONSE_LATENCY.labels(name).startTimer();
-  }
+//  Histogram.Timer startRequestTimer(final String name) {
+//    return REQUEST_RESPONSE_LATENCY.labels(name).startTimer();
+//  }
 
   void countRequest(final String to, final String name) {
       REQUEST_COUNT.labels(to, name).inc();
@@ -86,6 +86,6 @@ final class MessagingMetrics {
   }
 
    void updateOpenConnections(final int count) {
-    IN_FLIGHT_REQUESTS.labels().set(count);
+     OPEN_CONNECTIONS.labels().set(count);
   }
 }
