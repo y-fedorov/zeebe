@@ -539,62 +539,75 @@ public final class NettyMessagingService implements ManagedMessagingService {
     }
 
     openFutures.add(future);
-    channelPool
-        .getChannel(address, type)
-        .whenComplete(
-            (channel, channelError) -> {
-              if (channelError == null) {
-                final ClientConnection connection = getOrCreateClientConnection(channel);
-                //                messagingMetrics.countRequest(address.toString(), type);
-                //                final Timer timer = messagingMetrics.startRequestTimer(type);
-                messagingMetrics.updateInFlightRequests(
-                    address.toString(), type, openFutures.size());
-                callback
-                    .apply(connection)
-                    .whenComplete(
-                        (result, sendError) -> {
-                          //                          timer.close();
-                          if (sendError == null) {
-                            executor.execute(
-                                () -> {
-                                  future.complete(result);
-                                  openFutures.remove(future);
-                                  messagingMetrics.updateInFlightRequests(
-                                      address.toString(), type, openFutures.size());
-                                });
-                          } else {
-                            final Throwable cause = Throwables.getRootCause(sendError);
-                            if (!(cause instanceof TimeoutException)
-                                && !(cause instanceof MessagingException)) {
-                              channel
-                                  .close()
-                                  .addListener(
-                                      f -> {
-                                        log.debug(
-                                            "Closing connection to {}", channel.remoteAddress());
-                                        connection.close();
-                                        connections.remove(channel);
-                                      });
-                            }
-                            executor.execute(
-                                () -> {
-                                  future.completeExceptionally(sendError);
-                                  openFutures.remove(future);
-                                  messagingMetrics.updateInFlightRequests(
-                                      address.toString(), type, openFutures.size());
-                                });
-                          }
-                        });
-              } else {
-                executor.execute(
-                    () -> {
-                      future.completeExceptionally(channelError);
-                      openFutures.remove(future);
-                      messagingMetrics.updateInFlightRequests(
-                          address.toString(), type, openFutures.size());
+
+    final CompletableFuture<Channel> channelFuture = channelPool.getChannel(address, type);
+
+    future.whenComplete(
+        (f, t) -> {
+          if (t != null) {
+            // potentially timeout
+            openFutures.remove(future);
+            channelFuture.whenComplete(
+                (channel, err) -> {
+                  if (channel != null) {
+                    channel.close();
+                  }
+                });
+          }
+        });
+
+    channelFuture.whenComplete(
+        (channel, channelError) -> {
+          if (channelError == null) {
+            final ClientConnection connection = getOrCreateClientConnection(channel);
+            //                messagingMetrics.countRequest(address.toString(), type);
+            //                final Timer timer = messagingMetrics.startRequestTimer(type);
+            messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
+            callback
+                .apply(connection)
+                .whenComplete(
+                    (result, sendError) -> {
+                      //                          timer.close();
+                      if (sendError == null) {
+                        executor.execute(
+                            () -> {
+                              future.complete(result);
+                              openFutures.remove(future);
+                              messagingMetrics.updateInFlightRequests(
+                                  address.toString(), type, openFutures.size());
+                            });
+                      } else {
+                        final Throwable cause = Throwables.getRootCause(sendError);
+                        if (!(cause instanceof TimeoutException)
+                            && !(cause instanceof MessagingException)) {
+                          channel
+                              .close()
+                              .addListener(
+                                  f -> {
+                                    log.debug("Closing connection to {}", channel.remoteAddress());
+                                    connection.close();
+                                    connections.remove(channel);
+                                  });
+                        }
+                        executor.execute(
+                            () -> {
+                              future.completeExceptionally(sendError);
+                              openFutures.remove(future);
+                              messagingMetrics.updateInFlightRequests(
+                                  address.toString(), type, openFutures.size());
+                            });
+                      }
                     });
-              }
-            });
+          } else {
+            executor.execute(
+                () -> {
+                  future.completeExceptionally(channelError);
+                  openFutures.remove(future);
+                  messagingMetrics.updateInFlightRequests(
+                      address.toString(), type, openFutures.size());
+                });
+          }
+        });
   }
 
   /**
