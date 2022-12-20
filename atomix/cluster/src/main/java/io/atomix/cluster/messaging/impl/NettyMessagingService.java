@@ -245,6 +245,8 @@ public final class NettyMessagingService implements ManagedMessagingService {
                       String.format(
                           "Request %s to %s timed out in %s", message, address, timeout)));
               openFutures.remove(responseFuture);
+
+              // todo channel close
             },
             timeout.toNanos(),
             TimeUnit.NANOSECONDS);
@@ -571,8 +573,6 @@ public final class NettyMessagingService implements ManagedMessagingService {
                                             "Closing connection to {}", channel.remoteAddress());
                                         connection.close();
                                         connections.remove(channel);
-                                        messagingMetrics.updateInFlightRequests(
-                                            address.toString(), type, openFutures.size());
                                       });
                             }
                             executor.execute(
@@ -589,6 +589,8 @@ public final class NettyMessagingService implements ManagedMessagingService {
                     () -> {
                       future.completeExceptionally(channelError);
                       openFutures.remove(future);
+                      messagingMetrics.updateInFlightRequests(
+                          address.toString(), type, openFutures.size());
                     });
               }
             });
