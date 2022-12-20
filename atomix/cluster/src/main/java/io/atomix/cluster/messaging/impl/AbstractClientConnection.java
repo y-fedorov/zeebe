@@ -52,9 +52,10 @@ abstract class AbstractClientConnection implements ClientConnection {
         responseFuture.completeExceptionally(new MessagingException.ProtocolException());
       }
     } else {
-      log.debug(
-          "Received a reply for message id:[{}] but was unable to locate the request handle",
-          message.id());
+      log.error(
+          "Received a reply for message id:[{}] with status {} but was unable to locate the request handle",
+          message.id(),
+          message.status());
     }
   }
 
