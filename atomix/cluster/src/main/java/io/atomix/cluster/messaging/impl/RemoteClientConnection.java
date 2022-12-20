@@ -40,14 +40,6 @@ final class RemoteClientConnection extends AbstractClientConnection {
             channelFuture -> {
               if (!channelFuture.isSuccess()) {
                 future.completeExceptionally(channelFuture.cause());
-                messagingMetrics.countFailureResponse(
-                    channel.remoteAddress().toString(),
-                    message.subject(),
-                    channelFuture.cause().getMessage());
-              } else {
-                messagingMetrics.countSuccessResponse(
-                    channel.remoteAddress().toString(), message.subject());
-                future.complete(null);
               }
             });
     return future;
@@ -57,6 +49,18 @@ final class RemoteClientConnection extends AbstractClientConnection {
   public CompletableFuture<byte[]> sendAndReceive(final ProtocolRequest message) {
     messagingMetrics.countRequest(channel.remoteAddress().toString(), message.subject());
     final CompletableFuture<byte[]> responseFuture = awaitResponseForRequestWithId(message.id());
+    responseFuture.whenComplete(
+        (success, failure) -> {
+          if (failure != null) {
+            messagingMetrics.countFailureResponse(
+                channel.remoteAddress().toString(),
+                message.subject(),
+                failure.getClass().getName());
+          } else {
+            messagingMetrics.countSuccessResponse(
+                channel.remoteAddress().toString(), message.subject());
+          }
+        });
     channel
         .writeAndFlush(message)
         .addListener(
