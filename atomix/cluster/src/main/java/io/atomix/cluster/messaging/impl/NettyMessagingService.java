@@ -186,14 +186,22 @@ public final class NettyMessagingService implements ManagedMessagingService {
     final ProtocolRequest message =
         new ProtocolRequest(messageId, advertisedAddress, type, payload);
     return executeOnPooledConnection(
-        address, type, c -> c.sendAsync(message), MoreExecutors.directExecutor());
+        address,
+        type,
+        c -> c.sendAsync(message),
+        new ExecutorDecorator(this, MoreExecutors.directExecutor()));
   }
 
   @Override
   public CompletableFuture<byte[]> sendAndReceive(
       final Address address, final String type, final byte[] payload, final boolean keepAlive) {
     return sendAndReceive(
-        address, type, payload, keepAlive, DEFAULT_TIMEOUT, MoreExecutors.directExecutor());
+        address,
+        type,
+        payload,
+        keepAlive,
+        DEFAULT_TIMEOUT,
+        new ExecutorDecorator(this, MoreExecutors.directExecutor()));
   }
 
   @Override
@@ -214,7 +222,12 @@ public final class NettyMessagingService implements ManagedMessagingService {
       final boolean keepAlive,
       final Duration timeout) {
     return sendAndReceive(
-        address, type, payload, keepAlive, timeout, MoreExecutors.directExecutor());
+        address,
+        type,
+        payload,
+        keepAlive,
+        timeout,
+        new ExecutorDecorator(this, MoreExecutors.directExecutor()));
   }
 
   @Override
