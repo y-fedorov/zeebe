@@ -171,7 +171,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
         address,
         type,
         c -> c.sendAsync(message),
-        new ExecutorDecorator(this, MoreExecutors.directExecutor()));
+        new ExecutorDecorator(MoreExecutors.directExecutor()));
   }
 
   @Override
@@ -183,7 +183,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
         payload,
         keepAlive,
         DEFAULT_TIMEOUT,
-        new ExecutorDecorator(this, MoreExecutors.directExecutor()));
+        new ExecutorDecorator(MoreExecutors.directExecutor()));
   }
 
   @Override
@@ -209,7 +209,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
         payload,
         keepAlive,
         timeout,
-        new ExecutorDecorator(this, MoreExecutors.directExecutor()));
+        new ExecutorDecorator(MoreExecutors.directExecutor()));
   }
 
   @Override

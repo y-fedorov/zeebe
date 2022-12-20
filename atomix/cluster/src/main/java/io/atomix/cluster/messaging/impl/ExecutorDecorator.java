@@ -14,12 +14,9 @@ import org.slf4j.LoggerFactory;
 final class ExecutorDecorator implements Executor {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private final NettyMessagingService nettyMessagingService;
   private final Executor delegate;
 
-  public ExecutorDecorator(
-      final NettyMessagingService nettyMessagingService, final Executor delegate) {
-    this.nettyMessagingService = nettyMessagingService;
+  public ExecutorDecorator(final Executor delegate) {
     this.delegate = delegate;
   }
 
