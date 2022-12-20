@@ -26,6 +26,7 @@ final class ExecutorDecorator implements Executor {
       delegate.execute(runnable);
     } catch (Exception ex) {
       log.error("Error on executing runnable {}", runnable, ex);
+      throw ex;
     }
   }
 }

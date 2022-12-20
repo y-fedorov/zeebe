@@ -543,8 +543,8 @@ public final class NettyMessagingService implements ManagedMessagingService {
     final CompletableFuture<Channel> channelFuture = channelPool.getChannel(address, type);
 
     future.whenComplete(
-        (f, t) -> {
-          if (t != null) {
+        (f, error) -> {
+          if (error != null) {
             // potentially timeout
             openFutures.remove(future);
             channelFuture.whenComplete(
