@@ -247,6 +247,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
               openFutures.remove(responseFuture);
 
               // todo channel close
+              messagingMetrics.updateInFlightRequests(address.toString(), type, openFutures.size());
             },
             timeout.toNanos(),
             TimeUnit.NANOSECONDS);
