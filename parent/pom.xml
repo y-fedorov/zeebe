@@ -120,6 +120,8 @@
     <version.jackson-databind-nullable>0.2.4</version.jackson-databind-nullable>
     <version.jackson-annotations>2.14.1</version.jackson-annotations>
     <version.swagger-annotations>2.2.7</version.swagger-annotations>
+    <version.otel>1.20.1</version.otel>
+    <version.exporter-trace>0.15.0</version.exporter-trace>
 
     <!-- maven plugins -->
     <plugin.version.antrun>3.1.0</plugin.version.antrun>
@@ -925,6 +927,21 @@
         <artifactId>jsr305</artifactId>
         <version>${version.jsr305}</version>
         <scope>provided</scope>
+      </dependency>
+
+      <!-- OpenTelemetry -->
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${version.otel}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.cloud.opentelemetry</groupId>
+        <artifactId>exporter-trace</artifactId>
+        <version>${version.exporter-trace}</version>
       </dependency>
 
       <dependency>
