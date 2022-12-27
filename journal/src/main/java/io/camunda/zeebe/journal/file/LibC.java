@@ -12,8 +12,10 @@ import java.util.Map;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.Platform;
+import jnr.ffi.Pointer;
 import jnr.ffi.annotations.In;
 import jnr.ffi.types.off_t;
+import jnr.ffi.types.size_t;
 
 /**
  * Used to bind certain calls from libc to Java methods via JNA.
@@ -30,14 +32,17 @@ import jnr.ffi.types.off_t;
 @SuppressWarnings({"checkstyle:methodname", "unused"})
 public interface LibC {
   // https://man7.org/linux/man-pages/man3/posix_fallocate.3.html
-  int posix_fallocate(final @In int fd, final @In @off_t long offset, final @In @off_t long len);
+  int posix_fallocate(final @In int fd, final @In @off_t long offset, final @In @size_t long len);
 
   // https://man7.org/linux/man-pages/man2/fallocate.2.html
   int fallocate(
       final @In int fd,
       final @In int mode,
       final @In @off_t long offset,
-      final @In @off_t long len);
+      final @In @size_t long len);
+
+  // https://man7.org/linux/man-pages/man2/madvise.2.html
+  int posix_madvise(final @In Pointer addr, final @In @size_t long length, final int advice);
 
   /**
    * Returns an instance of LibC bound to the system's C library (e.g. glibc, musl, etc.).
@@ -74,6 +79,11 @@ public interface LibC {
 
     @Override
     public int fallocate(final int fd, final int mode, final long offset, final long len) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int posix_madvise(final Pointer addr, final long length, final int advice) {
       throw new UnsupportedOperationException();
     }
   }

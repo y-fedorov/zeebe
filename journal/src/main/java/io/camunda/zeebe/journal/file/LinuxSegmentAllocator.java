@@ -7,7 +7,7 @@
  */
 package io.camunda.zeebe.journal.file;
 
-import io.camunda.zeebe.journal.file.LinuxFs.FallocateFlags;
+import io.camunda.zeebe.journal.file.LinuxFs.FallocateFlag;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -45,7 +45,7 @@ public final class LinuxSegmentAllocator implements SegmentAllocator {
     }
 
     try {
-      linuxFs.fallocate(descriptor, 0, segmentSize, FallocateFlags.FALLOC_FL_ZERO_RANGE);
+      linuxFs.fallocate(descriptor, 0, segmentSize, FallocateFlag.FALLOC_FL_ZERO_RANGE);
     } catch (final UnsupportedOperationException e) {
       LOGGER.warn(
           "Failed to use native system call to pre-allocate file, will use fallback from now on",

@@ -19,6 +19,7 @@ import java.util.function.IntSupplier;
 import jnr.constants.platform.Errno;
 import jnr.ffi.LastError;
 import jnr.ffi.Platform;
+import jnr.ffi.Platform.OS;
 import jnr.ffi.Runtime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ final class LinuxFs {
   //
   // note that this flag assumes there is only one underlying filesystem for the whole application
   private volatile boolean supportsFallocate =
-      FILE_DESCRIPTOR_FD_FIELD != null && Platform.getNativePlatform().isUnix();
+      FILE_DESCRIPTOR_FD_FIELD != null && Platform.getNativePlatform().getOS() == OS.LINUX;
 
   private final LibC libC;
   private final IntSupplier errnoSupplier;
@@ -67,9 +68,9 @@ final class LinuxFs {
   }
 
   /**
-   * Returns whether calls to {@link #fallocate(FileDescriptor, long, long, FallocateFlags...)} are
+   * Returns whether calls to {@link #fallocate(FileDescriptor, long, long, FallocateFlag...)} are
    * supported or not. If this returns false, then a call to {@link #fallocate(FileDescriptor, long,
-   * long, FallocateFlags...)} will throw an {@link UnsupportedOperationException}.
+   * long, FallocateFlag...)} will throw an {@link UnsupportedOperationException}.
    *
    * @return true if supported, false otherwise
    */
@@ -78,7 +79,7 @@ final class LinuxFs {
   }
 
   /**
-   * Disables usage of {@link #fallocate(FileDescriptor, long, long, FallocateFlags...)}. After
+   * Disables usage of {@link #fallocate(FileDescriptor, long, long, FallocateFlag...)}. After
    * calling this, {@link #isFallocateEnabled()} will return false.
    */
   void disableFallocate() {
@@ -118,7 +119,7 @@ final class LinuxFs {
       final FileDescriptor descriptor,
       final long offset,
       final long length,
-      final FallocateFlags... flags)
+      final FallocateFlag... flags)
       throws IOException {
     if (offset < 0) {
       throw new IllegalArgumentException(
@@ -148,8 +149,8 @@ final class LinuxFs {
     throwExceptionFromErrno(offset, length, error);
   }
 
-  private int computeModeFromFlags(final FallocateFlags... flags) {
-    return Arrays.stream(flags).map(FallocateFlags::mode).reduce((m1, m2) -> m1 & m2).orElse(0);
+  private int computeModeFromFlags(final FallocateFlag... flags) {
+    return Arrays.stream(flags).map(FallocateFlag::mode).reduce((m1, m2) -> m1 & m2).orElse(0);
   }
 
   private void throwExceptionFromErrno(final long offset, final long length, final Errno error)
@@ -175,7 +176,7 @@ final class LinuxFs {
     }
   }
 
-  enum FallocateFlags {
+  enum FallocateFlag {
     FALLOC_FL_KEEP_SIZE(0x01),
     FALLOC_FL_PUNCH_HOLE(0x02),
     FALLOC_FL_NO_HIDE_STALE(0x04),
@@ -186,7 +187,7 @@ final class LinuxFs {
 
     private final int mode;
 
-    FallocateFlags(final int mode) {
+    FallocateFlag(final int mode) {
       this.mode = mode;
     }
 
