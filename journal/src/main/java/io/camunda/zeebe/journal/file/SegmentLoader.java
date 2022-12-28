@@ -217,7 +217,6 @@ final class SegmentLoader {
 
     try {
       posixFs.madvise(mappedSegment, segmentSize, Advice.POSIX_MADV_SEQUENTIAL);
-      posixFs.madvise(mappedSegment, segmentSize, Advice.POSIX_MADV_WILLNEED);
     } catch (final UnsupportedOperationException e) {
       LOGGER.warn(
           "Failed to use native system call to advise filesystem, will use fallback from now on",
