@@ -116,7 +116,7 @@ public final class NettyMessagingService implements ManagedMessagingService {
   private volatile LocalClientConnection localConnection;
   private SslContext serverSslContext;
   private SslContext clientSslContext;
-  private final MessagingMetrics messagingMetrics = new MessagingMetricsImpl();
+  private final MessagingMetrics messagingMetrics;
 
   public NettyMessagingService(
       final String cluster, final Address advertisedAddress, final MessagingConfig config) {
@@ -133,6 +133,12 @@ public final class NettyMessagingService implements ManagedMessagingService {
     this.protocolVersion = protocolVersion;
     this.config = config;
     this.channelPool = new ChannelPool(this::openChannel, config.getConnectionPoolSize());
+
+    if (config.isMessagingMetrics()) {
+      messagingMetrics = new MessagingMetricsImpl();
+    } else {
+      messagingMetrics = new NopMessagingMetrics();
+    }
 
     openFutures = new CopyOnWriteArrayList<>();
     initAddresses(config);
@@ -152,6 +158,13 @@ public final class NettyMessagingService implements ManagedMessagingService {
     this.protocolVersion = protocolVersion;
     this.config = config;
     this.channelPool = channelPoolFactor.apply(this::openChannel);
+
+    if (config.isMessagingMetrics()) {
+      messagingMetrics = new MessagingMetricsImpl();
+    } else {
+      messagingMetrics = new NopMessagingMetrics();
+    }
+
 
     openFutures = new CopyOnWriteArrayList<>();
     initAddresses(config);

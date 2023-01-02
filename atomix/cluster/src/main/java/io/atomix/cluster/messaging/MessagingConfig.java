@@ -33,6 +33,7 @@ public class MessagingConfig implements Config {
   private File certificateChain;
   private File privateKey;
   private CompressionAlgorithm compressionAlgorithm = CompressionAlgorithm.NONE;
+  private boolean messagingMetrics = false;
 
   /**
    * Returns the local interfaces to which to bind the node.
@@ -222,6 +223,15 @@ public class MessagingConfig implements Config {
     }
 
     this.privateKey = privateKey;
+    return this;
+  }
+
+  public boolean isMessagingMetrics() {
+    return messagingMetrics;
+  }
+
+  public MessagingConfig setMessagingMetrics(final boolean messagingMetrics) {
+    this.messagingMetrics = messagingMetrics;
     return this;
   }
 
