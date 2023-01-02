@@ -838,3 +838,7 @@
         # To allow backups, enable this flag and configure zeebe.broker.data.backup.
         # This setting can also be overridden using the environment variable ZEEBE_BROKER_EXPERIMENTAL_FEATURES_ENABLEBACKUP
         # enableBackup: false
+
+        # Controls whether to collect metrics about Zeebe's messaging usage such as request-response latencies or request sizes
+        # This setting can also be overridden using the environment variable ZEEBE_BROKER_EXPERIMENTAL_FEATURES_ENABLEMESSAGINGMETRICS
+        # enableMessagingMetrics: true

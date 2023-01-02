@@ -87,7 +87,9 @@ public final class GatewayClusterConfiguration {
         new MessagingConfig()
             .setCompressionAlgorithm(cluster.getMessageCompression())
             .setInterfaces(Collections.singletonList(cluster.getHost()))
-            .setPort(cluster.getPort());
+            .setPort(cluster.getPort())
+            // TODO: mark as experimental, make it configurable
+            .setMessagingMetrics(true);
 
     final var security = cluster.getSecurity();
     if (security.isEnabled()) {

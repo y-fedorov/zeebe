@@ -13,7 +13,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 public record FeatureFlags(
     boolean yieldingDueDateChecker,
     boolean enableActorMetrics,
-    boolean enableBackup /*, boolean foo*/) {
+    boolean enableBackup,
+    boolean enableMessagingMetrics /*, boolean foo*/) {
 
   /* To add a new feature toggle, please follow these steps:
    *
@@ -46,10 +47,14 @@ public record FeatureFlags(
   private static final boolean ENABLE_ACTOR_METRICS = false;
 
   private static final boolean ENABLE_BACKUP = false;
+  private static final boolean ENABLE_MESSAGING_METRICS = true;
 
   public static FeatureFlags createDefault() {
     return new FeatureFlags(
-        YIELDING_DUE_DATE_CHECKER, ENABLE_ACTOR_METRICS, ENABLE_BACKUP /*, FOO_DEFAULT*/);
+        YIELDING_DUE_DATE_CHECKER,
+        ENABLE_ACTOR_METRICS,
+        ENABLE_BACKUP,
+        ENABLE_MESSAGING_METRICS /*, FOO_DEFAULT*/);
   }
 
   /**
@@ -61,7 +66,8 @@ public record FeatureFlags(
     return new FeatureFlags(
         true, /* YIELDING_DUE_DATE_CHECKER*/
         false, /* ENABLE_ACTOR_METRICS */
-        true /* ENABLE_BACKUP */ /*, FOO_DEFAULT*/);
+        true,
+        false /* ENABLE_BACKUP */ /*, FOO_DEFAULT*/);
   }
 
   @Override

@@ -31,6 +31,8 @@ public class ApiMessagingServiceStep extends AbstractBrokerStartupStep {
     final var messagingConfig = new MessagingConfig();
     messagingConfig.setInterfaces(List.of(commandApiCfg.getHost()));
     messagingConfig.setPort(commandApiCfg.getPort());
+    messagingConfig.setMessagingMetrics(
+        brokerCfg.getExperimental().getFeatures().isEnableMessagingMetrics());
 
     if (securityCfg.isEnabled()) {
       messagingConfig
