@@ -165,7 +165,6 @@ public final class NettyMessagingService implements ManagedMessagingService {
       messagingMetrics = new NopMessagingMetrics();
     }
 
-
     openFutures = new CopyOnWriteArrayList<>();
     initAddresses(config);
   }
@@ -666,7 +665,9 @@ public final class NettyMessagingService implements ManagedMessagingService {
   private RemoteClientConnection getOrCreateClientConnection(final Channel channel) {
     RemoteClientConnection connection = connections.get(channel);
     if (connection == null) {
-      connection = connections.computeIfAbsent(channel, c -> new RemoteClientConnection(messagingMetrics, c));
+      connection =
+          connections.computeIfAbsent(
+              channel, c -> new RemoteClientConnection(messagingMetrics, c));
       channel
           .closeFuture()
           .addListener(
