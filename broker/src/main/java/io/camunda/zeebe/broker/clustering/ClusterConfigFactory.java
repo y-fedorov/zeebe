@@ -16,6 +16,7 @@ import io.atomix.cluster.protocol.SwimMembershipProtocolConfig;
 import io.atomix.utils.net.Address;
 import io.camunda.zeebe.broker.system.configuration.BrokerCfg;
 import io.camunda.zeebe.broker.system.configuration.ClusterCfg;
+import io.camunda.zeebe.broker.system.configuration.ExperimentalCfg;
 import io.camunda.zeebe.broker.system.configuration.MembershipCfg;
 import io.camunda.zeebe.broker.system.configuration.NetworkCfg;
 import io.camunda.zeebe.broker.system.configuration.SocketBindingCfg;
@@ -32,7 +33,7 @@ public final class ClusterConfigFactory {
     final var membership = membershipConfig(cluster.getMembership());
     final var network = config.getNetwork();
 
-    final var messaging = messagingConfig(cluster, network);
+    final var messaging = messagingConfig(cluster, network, config.getExperimental());
     final var member = memberConfig(network.getInternalApi(), cluster.getNodeId());
 
     return new ClusterConfig()
@@ -74,12 +75,14 @@ public final class ClusterConfigFactory {
     return new BootstrapDiscoveryConfig().setNodes(nodes);
   }
 
-  private MessagingConfig messagingConfig(final ClusterCfg cluster, final NetworkCfg network) {
+  private MessagingConfig messagingConfig(
+      final ClusterCfg cluster, final NetworkCfg network, final ExperimentalCfg experimental) {
     final var messaging =
         new MessagingConfig()
             .setCompressionAlgorithm(cluster.getMessageCompression())
             .setInterfaces(Collections.singletonList(network.getInternalApi().getHost()))
-            .setPort(network.getInternalApi().getPort());
+            .setPort(network.getInternalApi().getPort())
+            .setMessagingMetrics(experimental.getFeatures().isEnableMessagingMetrics());
 
     if (network.getSecurity().isEnabled()) {
       messaging
