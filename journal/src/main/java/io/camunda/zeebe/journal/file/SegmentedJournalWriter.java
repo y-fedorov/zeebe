@@ -106,7 +106,7 @@ class SegmentedJournalWriter {
   }
 
   private void createNewSegment() {
-    currentWriter.flush();
+    flush();
     currentSegment = journal.getNextSegment();
     currentWriter = currentSegment.writer();
   }

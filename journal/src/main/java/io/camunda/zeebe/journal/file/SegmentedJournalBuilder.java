@@ -20,6 +20,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.Objects;
 
 /** Raft log builder. */
@@ -145,14 +148,35 @@ public class SegmentedJournalBuilder {
   }
 
   public SegmentedJournal build() {
+    final var journalMetrics = new JournalMetrics(name);
     final var journalIndex = new SparseJournalIndex(journalIndexDensity);
-    final var segmentLoader = new SegmentLoader(segmentAllocator);
+    final var segmentLoader =
+        new SegmentLoader(new InstrumentedSegmentAllocator(segmentAllocator, journalMetrics));
     final var segmentsManager =
         new SegmentsManager(
             journalIndex, maxSegmentSize, directory, lastWrittenIndex, name, segmentLoader);
-    final var journalMetrics = new JournalMetrics(name);
 
     return new SegmentedJournal(
         directory, maxSegmentSize, freeDiskSpace, journalIndex, segmentsManager, journalMetrics);
+  }
+
+  @SuppressWarnings("ClassCanBeRecord") // not a data holder
+  private static final class InstrumentedSegmentAllocator implements SegmentAllocator {
+    private final SegmentAllocator delegate;
+    private final JournalMetrics metrics;
+
+    private InstrumentedSegmentAllocator(
+        final SegmentAllocator delegate, final JournalMetrics metrics) {
+      this.delegate = delegate;
+      this.metrics = metrics;
+    }
+
+    @Override
+    public void allocate(final FileDescriptor fd, final FileChannel channel, final long segmentSize)
+        throws IOException {
+      try (final var ignored = metrics.timeSegmentAllocation()) {
+        delegate.allocate(fd, channel, segmentSize);
+      }
+    }
   }
 }
