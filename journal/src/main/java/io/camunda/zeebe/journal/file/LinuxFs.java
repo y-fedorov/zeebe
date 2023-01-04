@@ -50,6 +50,12 @@ final class LinuxFs {
   private volatile boolean supportsFallocate =
       FILE_DESCRIPTOR_FD_FIELD != null && Platform.getNativePlatform().getOS() == OS.LINUX;
 
+  private volatile boolean supportsCopyFileRange =
+      FILE_DESCRIPTOR_FD_FIELD != null
+          && Platform.getNativePlatform().getOS() == OS.LINUX
+          && Platform.getNativePlatform().getVersionMajor() >= 5
+          && Platform.getNativePlatform().getVersionMinor() >= 13;
+
   private final LibC libC;
   private final IntSupplier errnoSupplier;
 
@@ -147,6 +153,56 @@ final class LinuxFs {
 
     final Errno error = Errno.valueOf(errnoSupplier.getAsInt());
     throwExceptionFromErrno(offset, length, error);
+  }
+
+  /**
+   * Returns whether calls to {@link #copyFileRange(FileDescriptor, FileDescriptor, long)} are
+   * supported or not. If this returns false, then a call to {@link #copyFileRange(FileDescriptor,
+   * FileDescriptor, long)} will throw an {@link UnsupportedOperationException}.
+   *
+   * @return true if supported, false otherwise
+   */
+  boolean isCopyFileRangeEnabled() {
+    return supportsCopyFileRange;
+  }
+
+  /**
+   * Disables usage of {@link #copyFileRange(FileDescriptor, FileDescriptor, long)}. After calling
+   * this, {@link #isCopyFileRangeEnabled()} ()} will return false.
+   */
+  void disableCopyFileRange() {
+    LOGGER.debug("Disabling usage of copy_file_range optimization");
+    supportsCopyFileRange = false;
+  }
+
+  public long copyFileRange(
+      final FileDescriptor inDescriptor, final FileDescriptor outDescriptor, final long size)
+      throws IOException {
+    if (size <= 0) {
+      throw new IllegalArgumentException(
+          "Expected to copy a file with a positive size, but size is %d".formatted(size));
+    }
+
+    if (!isCopyFileRangeEnabled()) {
+      throw new UnsupportedOperationException(
+          "copyFileRange is not supported by the operating system");
+    }
+
+    final int inFd =
+        (int)
+            FILE_DESCRIPTOR_FD_FIELD.get(
+                Objects.requireNonNull(inDescriptor, "must specify an input file descriptor"));
+    final int outFd =
+        (int)
+            FILE_DESCRIPTOR_FD_FIELD.get(
+                Objects.requireNonNull(outDescriptor, "must specify an output file descriptor"));
+
+    final var result = libC.copy_file_range(inFd, null, outFd, null, size, 0);
+    if (result < 0) {
+      throwExceptionFromErrno(0, size, Errno.valueOf(errnoSupplier.getAsInt()));
+    }
+
+    return result;
   }
 
   private int computeModeFromFlags(final FallocateFlag... flags) {

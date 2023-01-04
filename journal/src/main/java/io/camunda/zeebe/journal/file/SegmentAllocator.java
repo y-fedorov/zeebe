@@ -10,6 +10,7 @@ package io.camunda.zeebe.journal.file;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import org.agrona.IoUtil;
 
 /** Defines the strategy when it comes to pre-allocating segment files. */
@@ -44,5 +45,14 @@ public interface SegmentAllocator {
 
   static SegmentAllocator linux() {
     return new LinuxSegmentAllocator();
+  }
+
+  static SegmentAllocator copy(final Path segmentsDirectory, final long segmentSize) {
+    return CopySegmentAllocator.createAllocator(segmentsDirectory, segmentSize);
+  }
+
+  @FunctionalInterface
+  interface SegmentAllocatorFactory {
+    SegmentAllocator createSegmentAllocator(final Path segmentsDirectory, final long segmentSize);
   }
 }

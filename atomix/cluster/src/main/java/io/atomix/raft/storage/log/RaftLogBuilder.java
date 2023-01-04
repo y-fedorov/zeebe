@@ -16,7 +16,7 @@
 package io.atomix.raft.storage.log;
 
 import io.camunda.zeebe.journal.Journal;
-import io.camunda.zeebe.journal.file.SegmentAllocator;
+import io.camunda.zeebe.journal.file.SegmentAllocator.SegmentAllocatorFactory;
 import io.camunda.zeebe.journal.file.SegmentedJournal;
 import io.camunda.zeebe.journal.file.SegmentedJournalBuilder;
 import java.io.File;
@@ -123,11 +123,12 @@ public class RaftLogBuilder implements io.atomix.utils.Builder<RaftLog> {
    * Sets the segment allocation strategy to use. Defaults to {@link SegmentAllocator::fill}. To
    * disable, set to {@link SegmentAllocator::noop}.
    *
-   * @param segmentAllocator the segment allocation strategy to use
+   * @param segmentAllocatorFactory the segment allocation strategy to use
    * @return this builder for chaining
    */
-  public RaftLogBuilder withSegmentAllocator(final SegmentAllocator segmentAllocator) {
-    journalBuilder.withSegmentAllocator(segmentAllocator);
+  public RaftLogBuilder withSegmentAllocatorFactory(
+      final SegmentAllocatorFactory segmentAllocatorFactory) {
+    journalBuilder.withSegmentAllocatorFactory(segmentAllocatorFactory);
     return this;
   }
 

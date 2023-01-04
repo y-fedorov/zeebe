@@ -14,8 +14,10 @@ import jnr.ffi.LibraryOption;
 import jnr.ffi.Platform;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.In;
+import jnr.ffi.annotations.Out;
 import jnr.ffi.types.off_t;
 import jnr.ffi.types.size_t;
+import jnr.ffi.types.ssize_t;
 
 /**
  * Used to bind certain calls from libc to Java methods via JNA.
@@ -43,6 +45,23 @@ public interface LibC {
 
   // https://man7.org/linux/man-pages/man2/madvise.2.html
   int posix_madvise(final @In Pointer addr, final @In @size_t long length, final int advice);
+
+  @SuppressWarnings("checkstyle:ParameterName")
+  int sendfile(
+      final @In int out_fd,
+      final @In int in_fd,
+      final @Out Pointer offset,
+      final @In @size_t long count);
+
+  @SuppressWarnings("checkstyle:ParameterName")
+  @ssize_t
+  long copy_file_range(
+      final @In int fd_in,
+      final @Out Pointer off_in,
+      final @In int fd_out,
+      final @Out Pointer off_out,
+      final @In @size_t long len,
+      final int flags);
 
   /**
    * Returns an instance of LibC bound to the system's C library (e.g. glibc, musl, etc.).
@@ -84,6 +103,24 @@ public interface LibC {
 
     @Override
     public int posix_madvise(final Pointer addr, final long length, final int advice) {
+      throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("checkstyle:ParameterName")
+    @Override
+    public int sendfile(final int out_fd, final int in_fd, final Pointer offset, final long count) {
+      throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("checkstyle:ParameterName")
+    @Override
+    public long copy_file_range(
+        final int fd_in,
+        final Pointer off_in,
+        final int fd_out,
+        final Pointer off_out,
+        final long len,
+        final int flags) {
       throw new UnsupportedOperationException();
     }
   }

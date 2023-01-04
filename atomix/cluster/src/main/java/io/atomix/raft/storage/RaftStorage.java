@@ -23,6 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import io.atomix.raft.storage.log.RaftLog;
 import io.atomix.raft.storage.system.MetaStore;
 import io.camunda.zeebe.journal.file.SegmentAllocator;
+import io.camunda.zeebe.journal.file.SegmentAllocator.SegmentAllocatorFactory;
 import io.camunda.zeebe.snapshots.PersistedSnapshotStore;
 import io.camunda.zeebe.snapshots.ReceivableSnapshotStore;
 import io.camunda.zeebe.util.FileUtil;
@@ -60,7 +61,7 @@ public final class RaftStorage {
   private final boolean flushExplicitly;
   private final ReceivableSnapshotStore persistedSnapshotStore;
   private final int journalIndexDensity;
-  private final SegmentAllocator segmentAllocator;
+  private final SegmentAllocatorFactory segmentAllocatorFactory;
 
   private RaftStorage(
       final String prefix,
@@ -70,7 +71,7 @@ public final class RaftStorage {
       final boolean flushExplicitly,
       final ReceivableSnapshotStore persistedSnapshotStore,
       final int journalIndexDensity,
-      final SegmentAllocator segmentAllocator) {
+      final SegmentAllocatorFactory segmentAllocatorFactory) {
     this.prefix = prefix;
     this.directory = directory;
     this.maxSegmentSize = maxSegmentSize;
@@ -78,7 +79,7 @@ public final class RaftStorage {
     this.flushExplicitly = flushExplicitly;
     this.persistedSnapshotStore = persistedSnapshotStore;
     this.journalIndexDensity = journalIndexDensity;
-    this.segmentAllocator = segmentAllocator;
+    this.segmentAllocatorFactory = segmentAllocatorFactory;
 
     try {
       FileUtil.ensureDirectoryExists(directory.toPath());
@@ -191,7 +192,7 @@ public final class RaftStorage {
         .withFlushExplicitly(flushExplicitly)
         .withJournalIndexDensity(journalIndexDensity)
         .withLastWrittenIndex(lastWrittenIndex)
-        .withSegmentAllocator(segmentAllocator)
+        .withSegmentAllocatorFactory(segmentAllocatorFactory)
         .build();
   }
 
@@ -238,7 +239,8 @@ public final class RaftStorage {
     private static final long DEFAULT_FREE_DISK_SPACE = 1024L * 1024 * 1024;
     private static final boolean DEFAULT_FLUSH_EXPLICITLY = true;
     private static final int DEFAULT_JOURNAL_INDEX_DENSITY = 100;
-    private static final SegmentAllocator DEFAULT_SEGMENT_ALLOCATOR = SegmentAllocator.fill();
+    private static final SegmentAllocatorFactory DEFAULT_SEGMENT_ALLOCATOR =
+        (p, s) -> SegmentAllocator.fill();
 
     private String prefix = DEFAULT_PREFIX;
     private File directory = new File(DEFAULT_DIRECTORY);
@@ -247,7 +249,7 @@ public final class RaftStorage {
     private boolean flushExplicitly = DEFAULT_FLUSH_EXPLICITLY;
     private ReceivableSnapshotStore persistedSnapshotStore;
     private int journalIndexDensity = DEFAULT_JOURNAL_INDEX_DENSITY;
-    private SegmentAllocator segmentAllocator = DEFAULT_SEGMENT_ALLOCATOR;
+    private SegmentAllocatorFactory segmentAllocatorFactory = DEFAULT_SEGMENT_ALLOCATOR;
 
     private Builder() {}
 
@@ -342,11 +344,12 @@ public final class RaftStorage {
      * Sets the segment allocator strategy to use. Defaults to {@link SegmentAllocator::fill}. To
      * disable, set to {@link SegmentAllocator::noop}.
      *
-     * @param segmentAllocator the segment pre-allocation strategy
+     * @param segmentAllocatorFactory the segment pre-allocation strategy
      * @return this builder for chaining
      */
-    public Builder withSegmentAllocator(final SegmentAllocator segmentAllocator) {
-      this.segmentAllocator = segmentAllocator;
+    public Builder withSegmentAllocatorFactory(
+        final SegmentAllocatorFactory segmentAllocatorFactory) {
+      this.segmentAllocatorFactory = segmentAllocatorFactory;
       return this;
     }
 
@@ -365,7 +368,7 @@ public final class RaftStorage {
           flushExplicitly,
           persistedSnapshotStore,
           journalIndexDensity,
-          segmentAllocator);
+          segmentAllocatorFactory);
     }
   }
 }

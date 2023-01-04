@@ -166,8 +166,8 @@ final class RaftPartitionGroupFactoryTest {
     final var config = buildRaftPartitionGroup();
 
     // then
-    assertThat(config.getStorageConfig().getSegmentAllocator())
-        .isEqualTo(raft.getPreAllocateStrategy().segmentAllocator());
+    assertThat(config.getStorageConfig().getSegmentAllocatorFactory())
+        .isEqualTo(raft.getPreAllocateStrategy().segmentAllocatorFactory());
   }
 
   private RaftPartitionGroupConfig buildRaftPartitionGroup() {

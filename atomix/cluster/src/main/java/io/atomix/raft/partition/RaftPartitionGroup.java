@@ -38,7 +38,7 @@ import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.memory.MemorySize;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Namespaces;
-import io.camunda.zeebe.journal.file.SegmentAllocator;
+import io.camunda.zeebe.journal.file.SegmentAllocator.SegmentAllocatorFactory;
 import io.camunda.zeebe.snapshots.ReceivableSnapshotStoreFactory;
 import java.io.File;
 import java.time.Duration;
@@ -521,11 +521,12 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * Sets the segment allocation strategy to use. Defaults to {@link SegmentAllocator::fill}. To
      * disable, set to {@link SegmentAllocator::noop}.
      *
-     * @param segmentAllocator the segment pre-allocation strategy to use
+     * @param segmentAllocatorFactory the segment pre-allocation strategy to use
      * @return this builder for chaining
      */
-    public Builder withSegmentAllocator(final SegmentAllocator segmentAllocator) {
-      config.getStorageConfig().setSegmentAllocator(segmentAllocator);
+    public Builder withSegmentAllocatorFactory(
+        final SegmentAllocatorFactory segmentAllocatorFactory) {
+      config.getStorageConfig().setSegmentAllocatorFactory(segmentAllocatorFactory);
       return this;
     }
 

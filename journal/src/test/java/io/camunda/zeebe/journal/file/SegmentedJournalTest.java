@@ -630,7 +630,7 @@ class SegmentedJournalTest {
     final var segmentSize = 4 * 1024 * 1024;
     final var builder =
         SegmentedJournal.builder()
-            .withSegmentAllocator(SegmentAllocator.fill())
+            .withSegmentAllocatorFactory((p, s) -> SegmentAllocator.fill())
             .withMaxSegmentSize(segmentSize)
             .withDirectory(tmpDir.toFile());
     final File firstSegment;
@@ -650,7 +650,7 @@ class SegmentedJournalTest {
     final var segmentSize = 4 * 1024 * 1024;
     final var builder =
         SegmentedJournal.builder()
-            .withSegmentAllocator(SegmentAllocator.noop())
+            .withSegmentAllocatorFactory((p, s) -> SegmentAllocator.noop())
             .withMaxSegmentSize(segmentSize)
             .withDirectory(tmpDir.toFile());
     final File firstSegment;

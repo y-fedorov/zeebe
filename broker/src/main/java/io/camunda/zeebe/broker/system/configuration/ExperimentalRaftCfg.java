@@ -8,6 +8,7 @@
 package io.camunda.zeebe.broker.system.configuration;
 
 import io.camunda.zeebe.journal.file.SegmentAllocator;
+import io.camunda.zeebe.journal.file.SegmentAllocator.SegmentAllocatorFactory;
 import java.time.Duration;
 
 public final class ExperimentalRaftCfg implements ConfigurationEntry {
@@ -81,19 +82,20 @@ public final class ExperimentalRaftCfg implements ConfigurationEntry {
   }
 
   public enum PreAllocateStrategy {
-    NOOP(SegmentAllocator.noop()),
-    FILL(SegmentAllocator.fill()),
-    POSIX(SegmentAllocator.posix()),
-    LINUX(SegmentAllocator.linux());
+    NOOP((p, s) -> SegmentAllocator.noop()),
+    FILL((p, s) -> SegmentAllocator.fill()),
+    POSIX((p, s) -> SegmentAllocator.posix()),
+    LINUX((p, s) -> SegmentAllocator.linux()),
+    COPY(SegmentAllocator::copy);
 
-    private final SegmentAllocator segmentAllocator;
+    private final SegmentAllocatorFactory segmentAllocatorFactory;
 
-    PreAllocateStrategy(final SegmentAllocator segmentAllocator) {
-      this.segmentAllocator = segmentAllocator;
+    PreAllocateStrategy(final SegmentAllocatorFactory segmentAllocatorFactory) {
+      this.segmentAllocatorFactory = segmentAllocatorFactory;
     }
 
-    public SegmentAllocator segmentAllocator() {
-      return segmentAllocator;
+    public SegmentAllocatorFactory segmentAllocatorFactory() {
+      return segmentAllocatorFactory;
     }
   }
 }

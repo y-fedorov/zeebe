@@ -78,8 +78,8 @@ public final class RaftPartitionGroupFactory {
             .withMinStepDownFailureCount(experimentalCfg.getRaft().getMinStepDownFailureCount())
             .withPreferSnapshotReplicationThreshold(
                 experimentalCfg.getRaft().getPreferSnapshotReplicationThreshold())
-            .withSegmentAllocator(
-                experimentalCfg.getRaft().getPreAllocateStrategy().segmentAllocator());
+            .withSegmentAllocatorFactory(
+                experimentalCfg.getRaft().getPreAllocateStrategy().segmentAllocatorFactory());
 
     final int maxMessageSize = (int) networkCfg.getMaxMessageSizeInBytes();
 

@@ -19,6 +19,7 @@ package io.camunda.zeebe.journal.file;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.camunda.zeebe.journal.file.SegmentAllocator.SegmentAllocatorFactory;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class SegmentedJournalBuilder {
   private long freeDiskSpace = DEFAULT_MIN_FREE_DISK_SPACE;
   private int journalIndexDensity = DEFAULT_JOURNAL_INDEX_DENSITY;
   private long lastWrittenIndex = -1L;
-  private SegmentAllocator segmentAllocator = SegmentAllocator.fill();
+  private SegmentAllocatorFactory segmentAllocatorFactory = (p, s) -> SegmentAllocator.fill();
 
   protected SegmentedJournalBuilder() {}
 
@@ -138,12 +139,13 @@ public class SegmentedJournalBuilder {
    * Sets a segment pre-allocator to use. By default, will use {@link SegmentAllocator#fill()}. To
    * disable this, set {@link SegmentAllocator::noop}.
    *
-   * @param segmentAllocator the segment allocator to use
+   * @param segmentAllocatorFactory the segment allocator to use
    * @return this builder for chaining
    */
-  public SegmentedJournalBuilder withSegmentAllocator(final SegmentAllocator segmentAllocator) {
-    this.segmentAllocator =
-        Objects.requireNonNull(segmentAllocator, "must specify a segment allocator");
+  public SegmentedJournalBuilder withSegmentAllocatorFactory(
+      final SegmentAllocatorFactory segmentAllocatorFactory) {
+    this.segmentAllocatorFactory =
+        Objects.requireNonNull(segmentAllocatorFactory, "must specify a segment allocator");
     return this;
   }
 
@@ -151,7 +153,10 @@ public class SegmentedJournalBuilder {
     final var journalMetrics = new JournalMetrics(name);
     final var journalIndex = new SparseJournalIndex(journalIndexDensity);
     final var segmentLoader =
-        new SegmentLoader(new InstrumentedSegmentAllocator(segmentAllocator, journalMetrics));
+        new SegmentLoader(
+            new InstrumentedSegmentAllocator(
+                segmentAllocatorFactory.createSegmentAllocator(directory.toPath(), maxSegmentSize),
+                journalMetrics));
     final var segmentsManager =
         new SegmentsManager(
             journalIndex, maxSegmentSize, directory, lastWrittenIndex, name, segmentLoader);

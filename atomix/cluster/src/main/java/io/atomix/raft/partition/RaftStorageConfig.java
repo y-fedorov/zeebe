@@ -19,6 +19,7 @@ package io.atomix.raft.partition;
 import com.esotericsoftware.kryo.serializers.FieldSerializer.Optional;
 import io.atomix.utils.memory.MemorySize;
 import io.camunda.zeebe.journal.file.SegmentAllocator;
+import io.camunda.zeebe.journal.file.SegmentAllocator.SegmentAllocatorFactory;
 import io.camunda.zeebe.snapshots.ReceivableSnapshotStoreFactory;
 import java.util.Objects;
 
@@ -31,14 +32,15 @@ public class RaftStorageConfig {
   private static final long DEFAULT_FREE_DISK_SPACE = 1024L * 1024 * 1024;
   private static final int DEFAULT_JOURNAL_INDEX_DENSITY = 100;
 
-  private static final SegmentAllocator DEFAULT_SEGMENT_ALLOCATOR = SegmentAllocator.fill();
+  private static final SegmentAllocatorFactory DEFAULT_SEGMENT_ALLOCATOR =
+      (p, s) -> SegmentAllocator.fill();
 
   private String directory;
   private long segmentSize = DEFAULT_MAX_SEGMENT_SIZE;
   private boolean flushExplicitly = DEFAULT_FLUSH_EXPLICITLY;
   private long freeDiskSpace = DEFAULT_FREE_DISK_SPACE;
   private int journalIndexDensity = DEFAULT_JOURNAL_INDEX_DENSITY;
-  private SegmentAllocator segmentAllocator = DEFAULT_SEGMENT_ALLOCATOR;
+  private SegmentAllocatorFactory segmentAllocatorFactory = DEFAULT_SEGMENT_ALLOCATOR;
 
   @Optional("SnapshotStoreFactory")
   private ReceivableSnapshotStoreFactory persistedSnapshotStoreFactory;
@@ -161,18 +163,18 @@ public class RaftStorageConfig {
   /**
    * @return the segment allocation strategy to use
    */
-  public SegmentAllocator getSegmentAllocator() {
-    return segmentAllocator;
+  public SegmentAllocatorFactory getSegmentAllocatorFactory() {
+    return segmentAllocatorFactory;
   }
 
   /**
    * Sets the segment allocation strategy to use. Defaults to {@link SegmentAllocator::fill}. To
    * disable, set it to {@link SegmentAllocator::noop}.
    *
-   * @param segmentAllocator the segment allocation strategy to use
+   * @param segmentAllocatorFactory the segment allocation strategy to use
    */
-  public void setSegmentAllocator(final SegmentAllocator segmentAllocator) {
-    this.segmentAllocator =
-        Objects.requireNonNull(segmentAllocator, "must specify a segment allocator");
+  public void setSegmentAllocatorFactory(final SegmentAllocatorFactory segmentAllocatorFactory) {
+    this.segmentAllocatorFactory =
+        Objects.requireNonNull(segmentAllocatorFactory, "must specify a segment allocator");
   }
 }

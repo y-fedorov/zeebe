@@ -347,7 +347,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer>, Health
         .withFreeDiskSpace(storageConfig.getFreeDiskSpace())
         .withSnapshotStore(persistedSnapshotStore)
         .withJournalIndexDensity(storageConfig.getJournalIndexDensity())
-        .withSegmentAllocator(storageConfig.getSegmentAllocator())
+        .withSegmentAllocatorFactory(storageConfig.getSegmentAllocatorFactory())
         .build();
   }
 
