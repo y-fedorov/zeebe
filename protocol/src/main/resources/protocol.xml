@@ -140,6 +140,11 @@
     <field name="brokerVersion" id="9" type="Version" sinceVersion="2" presence="optional"/>
     <!-- populated when RecordType is COMMAND_REJECTION, UTF-8-encoded String -->
     <data name="rejectionReason" id="8" type="varDataEncoding"/>
+    <!--
+      populated when the record is associated with a sampled trace; refer to the OTEL protocol for
+      encoding/decoding
+      -->
+    <data name="spanContext" id="10" type="varDataEncoding" sinceVersion="4" />
   </sbe:message>
 
   <sbe:message name="BrokerInfo" id="201" description="Broker topology information">

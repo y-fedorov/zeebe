@@ -19,6 +19,7 @@ import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.Intent;
 import io.camunda.zeebe.stream.api.records.TypedRecord;
 import io.camunda.zeebe.util.StringUtil;
+import io.opentelemetry.api.trace.SpanContext;
 
 public final class TypedRecordImpl implements TypedRecord {
   private final int partitionId;
@@ -118,6 +119,18 @@ public final class TypedRecordImpl implements TypedRecord {
   @JsonIgnore
   public int getLength() {
     return metadata.getLength() + value.getLength();
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean hasSpanContext() {
+    return metadata.spanContext().hasContext();
+  }
+
+  @Override
+  @JsonIgnore
+  public SpanContext getSpanContext() {
+    return metadata.spanContext();
   }
 
   @Override

@@ -8,6 +8,7 @@
 package io.camunda.zeebe.broker.transport.commandapi;
 
 import io.camunda.zeebe.broker.Loggers;
+import io.camunda.zeebe.broker.system.OpenTelemetryProvider;
 import io.camunda.zeebe.broker.transport.AsyncApiRequestHandler;
 import io.camunda.zeebe.broker.transport.ErrorResponseWriter;
 import io.camunda.zeebe.broker.transport.backpressure.BackpressureMetrics;
@@ -22,6 +23,8 @@ import io.camunda.zeebe.protocol.record.intent.Intent;
 import io.camunda.zeebe.scheduler.future.ActorFuture;
 import io.camunda.zeebe.scheduler.future.CompletableActorFuture;
 import io.camunda.zeebe.util.Either;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
 import org.agrona.collections.Int2ObjectHashMap;
 import org.slf4j.Logger;
 
@@ -33,10 +36,16 @@ final class CommandApiRequestHandler
   private final Int2ObjectHashMap<RequestLimiter<Intent>> partitionLimiters =
       new Int2ObjectHashMap<>();
   private final BackpressureMetrics metrics = new BackpressureMetrics();
+  private final Tracer tracer;
   private boolean isDiskSpaceAvailable = true;
 
   CommandApiRequestHandler() {
+    this(OpenTelemetryProvider.tracer());
+  }
+
+  CommandApiRequestHandler(final Tracer tracer) {
     super(CommandApiRequestReader::new, CommandApiResponseWriter::new);
+    this.tracer = tracer;
   }
 
   @Override
@@ -56,8 +65,12 @@ final class CommandApiRequestHandler
       final CommandApiRequestReader requestReader,
       final CommandApiResponseWriter responseWriter,
       final ErrorResponseWriter errorWriter) {
-    return handleExecuteCommandRequest(
-        partitionId, requestId, requestReader, responseWriter, errorWriter);
+    // TODO: set parent based on the request
+    final var span = tracer.spanBuilder("commandApi").setSpanKind(SpanKind.SERVER).startSpan();
+    try (final var ignored = span.makeCurrent()) {
+      return handleExecuteCommandRequest(
+          partitionId, requestId, requestReader, responseWriter, errorWriter);
+    }
   }
 
   private Either<ErrorResponseWriter, CommandApiResponseWriter> handleExecuteCommandRequest(

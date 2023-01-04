@@ -8,6 +8,7 @@
 package io.camunda.zeebe.protocol.impl.record;
 
 import io.camunda.zeebe.protocol.Protocol;
+import io.camunda.zeebe.protocol.impl.otel.SbeSpanContext;
 import io.camunda.zeebe.protocol.record.MessageHeaderDecoder;
 import io.camunda.zeebe.protocol.record.MessageHeaderEncoder;
 import io.camunda.zeebe.protocol.record.RecordMetadataDecoder;
@@ -16,6 +17,7 @@ import io.camunda.zeebe.protocol.record.RecordType;
 import io.camunda.zeebe.protocol.record.RejectionType;
 import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.Intent;
+import io.camunda.zeebe.util.SbeUtil;
 import io.camunda.zeebe.util.VersionUtil;
 import io.camunda.zeebe.util.buffer.BufferReader;
 import io.camunda.zeebe.util.buffer.BufferUtil;
@@ -51,6 +53,7 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
   // always the current version by default
   private int protocolVersion = Protocol.PROTOCOL_VERSION;
   private VersionInfo brokerVersion = CURRENT_BROKER_VERSION;
+  private final SbeSpanContext spanContext = new SbeSpanContext();
 
   public RecordMetadata() {
     reset();
@@ -83,14 +86,22 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
                         versionDecoder.minorVersion(),
                         versionDecoder.patchVersion()))
             .orElse(VersionInfo.UNKNOWN);
+    offset += headerDecoder.blockLength();
 
     final int rejectionReasonLength = decoder.rejectionReasonLength();
-
     if (rejectionReasonLength > 0) {
-      offset += headerDecoder.blockLength();
       offset += RecordMetadataDecoder.rejectionReasonHeaderLength();
-
       rejectionReason.wrap(buffer, offset, rejectionReasonLength);
+    } else {
+      decoder.skipRejectionReason();
+    }
+
+    final int spanContextLength = decoder.spanContextLength();
+    if (spanContextLength > 0) {
+      offset += RecordMetadataDecoder.spanContextHeaderLength();
+      spanContext.wrap(buffer, offset, spanContextLength);
+    } else {
+      decoder.skipSpanContext();
     }
   }
 
@@ -98,7 +109,9 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
   public int getLength() {
     return BLOCK_LENGTH
         + RecordMetadataEncoder.rejectionReasonHeaderLength()
-        + rejectionReason.capacity();
+        + rejectionReason.capacity()
+        + RecordMetadataEncoder.spanContextHeaderLength()
+        + spanContext.getLength();
   }
 
   @Override
@@ -130,12 +143,15 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
         .minorVersion(brokerVersion.getMinorVersion())
         .patchVersion(brokerVersion.getPatchVersion());
 
-    offset += RecordMetadataEncoder.BLOCK_LENGTH;
+    encoder.putRejectionReason(rejectionReason, 0, rejectionReason.capacity());
 
-    if (rejectionReason.capacity() > 0) {
-      encoder.putRejectionReason(rejectionReason, 0, rejectionReason.capacity());
-    } else {
-      buffer.putInt(offset, 0);
+    // TODO: we could also skip serializing the span context if the trace is not sampled anyway
+    if (spanContext.hasContext()) {
+      SbeUtil.writeNestedMessage(
+          encoder,
+          spanContext,
+          RecordMetadataEncoder.spanContextHeaderLength(),
+          RecordMetadataEncoder.BYTE_ORDER);
     }
   }
 
@@ -241,6 +257,44 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
     return this;
   }
 
+  public SbeSpanContext spanContext() {
+    return spanContext;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        requestId,
+        valueType,
+        recordType,
+        intentValue,
+        requestStreamId,
+        rejectionType,
+        rejectionReason,
+        protocolVersion,
+        brokerVersion);
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    final RecordMetadata that = (RecordMetadata) o;
+    return requestId == that.requestId
+        && intentValue == that.intentValue
+        && requestStreamId == that.requestStreamId
+        && protocolVersion == that.protocolVersion
+        && valueType == that.valueType
+        && recordType == that.recordType
+        && rejectionType == that.rejectionType
+        && rejectionReason.equals(that.rejectionReason)
+        && brokerVersion.equals(that.brokerVersion);
+  }
+
   @Override
   public String toString() {
     return "RecordMetadata{"
@@ -265,39 +319,5 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
         + ", brokerVersion="
         + brokerVersion
         + '}';
-  }
-
-  @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    final RecordMetadata that = (RecordMetadata) o;
-    return requestId == that.requestId
-        && intentValue == that.intentValue
-        && requestStreamId == that.requestStreamId
-        && protocolVersion == that.protocolVersion
-        && valueType == that.valueType
-        && recordType == that.recordType
-        && rejectionType == that.rejectionType
-        && rejectionReason.equals(that.rejectionReason)
-        && brokerVersion.equals(that.brokerVersion);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(
-        requestId,
-        valueType,
-        recordType,
-        intentValue,
-        requestStreamId,
-        rejectionType,
-        rejectionReason,
-        protocolVersion,
-        brokerVersion);
   }
 }

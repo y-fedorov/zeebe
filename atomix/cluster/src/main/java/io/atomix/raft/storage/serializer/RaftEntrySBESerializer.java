@@ -30,6 +30,7 @@ import io.atomix.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.raft.storage.log.entry.SerializedApplicationEntry;
 import io.atomix.raft.storage.serializer.ConfigurationEntryDecoder.RaftMemberDecoder;
 import io.camunda.zeebe.journal.file.RecordDataEncoder;
+import io.camunda.zeebe.util.SbeUtil;
 import java.time.Instant;
 import java.util.ArrayList;
 import org.agrona.DirectBuffer;
@@ -98,15 +99,11 @@ public class RaftEntrySBESerializer implements RaftEntrySerializer {
         .version(applicationEntryEncoder.sbeSchemaVersion());
     applicationEntryEncoder.wrap(buffer, offset + entryOffset + headerEncoder.encodedLength());
     applicationEntryEncoder.lowestAsqn(entry.lowestPosition()).highestAsqn(entry.highestPosition());
-
-    // Re-implements `ApplicationEntryEncoder.putApplicationData`
-    final var dataWriter = entry.dataWriter();
-    final var dataLength = dataWriter.getLength();
-    final int headerLength = ApplicationEntryEncoder.applicationDataHeaderLength();
-    final int limit = applicationEntryEncoder.limit();
-    applicationEntryEncoder.limit(limit + headerLength + dataLength);
-    buffer.putInt(limit, dataLength, java.nio.ByteOrder.LITTLE_ENDIAN);
-    dataWriter.write(applicationEntryEncoder.buffer(), limit + headerLength);
+    SbeUtil.writeNestedMessage(
+        applicationEntryEncoder,
+        entry.dataWriter(),
+        ApplicationEntryEncoder.applicationDataHeaderLength(),
+        ApplicationEntryEncoder.BYTE_ORDER);
 
     return entryOffset + headerEncoder.encodedLength() + applicationEntryEncoder.encodedLength();
   }

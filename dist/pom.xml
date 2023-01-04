@@ -221,6 +221,23 @@
       <artifactId>netty-transport</artifactId>
     </dependency>
 
+    <!-- OpenTelemetry & Tracing -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+      <version>1.21.0-alpha</version>
+    </dependency>
+
     <!-- /end -->
 
     <dependency>

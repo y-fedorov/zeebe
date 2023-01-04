@@ -10,6 +10,7 @@ package io.camunda.zeebe.stream.api.records;
 import io.camunda.zeebe.protocol.impl.record.UnifiedRecordValue;
 import io.camunda.zeebe.protocol.record.Record;
 import io.camunda.zeebe.protocol.record.RecordMetadataEncoder;
+import io.opentelemetry.api.trace.SpanContext;
 
 public interface TypedRecord<T extends UnifiedRecordValue> extends Record<T> {
 
@@ -24,6 +25,14 @@ public interface TypedRecord<T extends UnifiedRecordValue> extends Record<T> {
   long getRequestId();
 
   int getLength();
+
+  default boolean hasSpanContext() {
+    return getSpanContext() != null;
+  }
+
+  default SpanContext getSpanContext() {
+    return null;
+  }
 
   default boolean hasRequestMetadata() {
     return getRequestId() != RecordMetadataEncoder.requestIdNullValue()
