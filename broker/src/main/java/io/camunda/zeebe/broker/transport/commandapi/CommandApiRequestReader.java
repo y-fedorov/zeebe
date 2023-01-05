@@ -7,10 +7,9 @@
  */
 package io.camunda.zeebe.broker.transport.commandapi;
 
-import static io.camunda.zeebe.protocol.record.ExecuteCommandRequestDecoder.TEMPLATE_ID;
-
 import io.camunda.zeebe.broker.transport.AsyncApiRequestHandler.RequestReader;
 import io.camunda.zeebe.broker.transport.RequestReaderException;
+import io.camunda.zeebe.protocol.impl.otel.SbeSpanContext;
 import io.camunda.zeebe.protocol.impl.record.RecordMetadata;
 import io.camunda.zeebe.protocol.impl.record.UnifiedRecordValue;
 import io.camunda.zeebe.protocol.impl.record.value.deployment.DeploymentRecord;
@@ -54,12 +53,15 @@ public class CommandApiRequestReader implements RequestReader<ExecuteCommandRequ
   private final MessageHeaderDecoder messageHeaderDecoder = new MessageHeaderDecoder();
   private final ExecuteCommandRequestDecoder commandRequestDecoder =
       new ExecuteCommandRequestDecoder();
+  private final SbeSpanContext spanContext = new SbeSpanContext();
 
   @Override
   public void reset() {
     if (value != null) {
       value.reset();
     }
+
+    spanContext.reset();
     metadata.reset();
   }
 
@@ -70,21 +72,29 @@ public class CommandApiRequestReader implements RequestReader<ExecuteCommandRequ
 
   @Override
   public void wrap(final DirectBuffer buffer, final int offset, final int length) {
-    messageHeaderDecoder.wrap(buffer, offset);
-
-    final int templateId = messageHeaderDecoder.templateId();
-    if (TEMPLATE_ID != templateId) {
+    try {
+      commandRequestDecoder.wrapAndApplyHeader(buffer, offset, messageHeaderDecoder);
+    } catch (final IllegalStateException e) {
       throw new RequestReaderException.InvalidTemplateException(
-          messageHeaderDecoder.templateId(), templateId);
+          ExecuteCommandRequestDecoder.TEMPLATE_ID, messageHeaderDecoder.templateId());
     }
 
-    commandRequestDecoder.wrap(
-        buffer,
-        offset + MessageHeaderDecoder.ENCODED_LENGTH,
-        messageHeaderDecoder.blockLength(),
-        messageHeaderDecoder.version());
-
     metadata.protocolVersion(messageHeaderDecoder.version());
+    decodeValue(buffer);
+    decodeSpanContext(buffer);
+  }
+
+  private void decodeSpanContext(final DirectBuffer buffer) {
+    final var spanContextLength = commandRequestDecoder.spanContextLength();
+    if (spanContextLength > 0) {
+      final int spanContextOffset =
+          commandRequestDecoder.limit() + ExecuteCommandRequestDecoder.spanContextHeaderLength();
+      spanContext.wrap(buffer, spanContextOffset, spanContextLength);
+    }
+    commandRequestDecoder.skipSpanContext();
+  }
+
+  private void decodeValue(final DirectBuffer buffer) {
     final var recordSupplier = RECORDS_BY_TYPE.get(commandRequestDecoder.valueType());
     if (recordSupplier != null) {
       final int valueOffset =
@@ -92,7 +102,11 @@ public class CommandApiRequestReader implements RequestReader<ExecuteCommandRequ
       final int valueLength = commandRequestDecoder.valueLength();
       value = recordSupplier.get();
       value.wrap(buffer, valueOffset, valueLength);
+    } else {
+      throw new RequestReaderException.InvalidValueTypeException(
+          RECORDS_BY_TYPE.keySet(), commandRequestDecoder.valueType());
     }
+    commandRequestDecoder.skipValue();
   }
 
   public UnifiedRecordValue value() {

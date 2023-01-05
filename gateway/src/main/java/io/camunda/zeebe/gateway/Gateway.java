@@ -20,6 +20,7 @@ import io.camunda.zeebe.gateway.impl.job.RoundRobinActivateJobsHandler;
 import io.camunda.zeebe.gateway.interceptors.impl.ContextInjectingInterceptor;
 import io.camunda.zeebe.gateway.interceptors.impl.DecoratedInterceptor;
 import io.camunda.zeebe.gateway.interceptors.impl.InterceptorRepository;
+import io.camunda.zeebe.gateway.otel.OpenTelemetryProvider;
 import io.camunda.zeebe.gateway.query.impl.QueryApiImpl;
 import io.camunda.zeebe.scheduler.Actor;
 import io.camunda.zeebe.scheduler.ActorSchedulingService;
@@ -33,8 +34,10 @@ import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
+import io.opentelemetry.instrumentation.grpc.v1_6.GrpcTelemetry;
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -134,11 +137,20 @@ public final class Gateway {
 
   private Server buildServer(
       final ServerBuilder<?> serverBuilder, final BindableService interceptorService) {
+    final GrpcTelemetry grpcTelemetry =
+        GrpcTelemetry.builder(OpenTelemetryProvider.sdk())
+            .setPeerService("io.camunda.zeebe.gateway")
+            .build();
+    final ServerInterceptor tracingInterceptor = grpcTelemetry.newServerInterceptor();
     return serverBuilder
-        .addService(applyInterceptors(interceptorService))
+        .addService(
+            applyInterceptors(
+                interceptorService, tracingInterceptor, MONITORING_SERVER_INTERCEPTOR))
         .addService(
             ServerInterceptors.intercept(
-                healthManager.getHealthService(), MONITORING_SERVER_INTERCEPTOR))
+                healthManager.getHealthService(),
+                tracingInterceptor,
+                MONITORING_SERVER_INTERCEPTOR))
         .build();
   }
 
@@ -223,7 +235,8 @@ public final class Gateway {
     return LongPollingActivateJobsHandler.newBuilder().setBrokerClient(brokerClient).build();
   }
 
-  private ServerServiceDefinition applyInterceptors(final BindableService service) {
+  private ServerServiceDefinition applyInterceptors(
+      final BindableService service, final ServerInterceptor... additionalInterceptors) {
     final var repository = new InterceptorRepository().load(gatewayCfg.getInterceptors());
     final var queryApi = new QueryApiImpl(brokerClient);
     final List<ServerInterceptor> interceptors =
@@ -234,7 +247,7 @@ public final class Gateway {
     // chain
     Collections.reverse(interceptors);
     interceptors.add(new ContextInjectingInterceptor(queryApi));
-    interceptors.add(MONITORING_SERVER_INTERCEPTOR);
+    interceptors.addAll(Arrays.asList(additionalInterceptors));
 
     return ServerInterceptors.intercept(service, interceptors);
   }

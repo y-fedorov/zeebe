@@ -23,8 +23,10 @@ import io.camunda.zeebe.protocol.record.intent.Intent;
 import io.camunda.zeebe.scheduler.future.ActorFuture;
 import io.camunda.zeebe.scheduler.future.CompletableActorFuture;
 import io.camunda.zeebe.util.Either;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import org.agrona.collections.Int2ObjectHashMap;
 import org.slf4j.Logger;
 
@@ -65,9 +67,14 @@ final class CommandApiRequestHandler
       final CommandApiRequestReader requestReader,
       final CommandApiResponseWriter responseWriter,
       final ErrorResponseWriter errorWriter) {
-    // TODO: set parent based on the request
-    final var span = tracer.spanBuilder("commandApi").setSpanKind(SpanKind.SERVER).startSpan();
-    try (final var ignored = span.makeCurrent()) {
+    final var spanBuilder = tracer.spanBuilder("commandApi").setSpanKind(SpanKind.SERVER);
+    if (requestReader.metadata().spanContext().hasContext()) {
+      final var parentContext =
+          Context.current().with(Span.wrap(requestReader.metadata().spanContext()));
+      spanBuilder.setParent(parentContext);
+    }
+
+    try (final var scope = spanBuilder.startSpan().makeCurrent()) {
       return handleExecuteCommandRequest(
           partitionId, requestId, requestReader, responseWriter, errorWriter);
     }
@@ -98,6 +105,7 @@ final class CommandApiRequestHandler
     metadata.recordType(RecordType.COMMAND);
     metadata.intent(intent);
     metadata.valueType(valueType);
+    metadata.spanContext().wrap(Span.current().getSpanContext());
 
     if (logStreamWriter == null) {
       errorWriter.partitionLeaderMismatch(partitionId);

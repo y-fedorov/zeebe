@@ -25,6 +25,11 @@ public final class SbeSpanContext implements SpanContext, BufferWriter, BufferRe
     return this;
   }
 
+  public SbeSpanContext reset() {
+    writer.context(null);
+    return this;
+  }
+
   public boolean hasContext() {
     return writer.context() != null;
   }

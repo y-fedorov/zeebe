@@ -11,12 +11,14 @@ import static io.camunda.zeebe.protocol.record.ExecuteCommandRequestEncoder.keyN
 import static io.camunda.zeebe.protocol.record.ExecuteCommandRequestEncoder.partitionIdNullValue;
 
 import io.camunda.zeebe.protocol.Protocol;
+import io.camunda.zeebe.protocol.impl.otel.SbeSpanContext;
 import io.camunda.zeebe.protocol.record.ExecuteCommandRequestDecoder;
 import io.camunda.zeebe.protocol.record.ExecuteCommandRequestEncoder;
 import io.camunda.zeebe.protocol.record.MessageHeaderDecoder;
 import io.camunda.zeebe.protocol.record.MessageHeaderEncoder;
 import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.Intent;
+import io.camunda.zeebe.util.SbeUtil;
 import io.camunda.zeebe.util.buffer.BufferReader;
 import io.camunda.zeebe.util.buffer.BufferWriter;
 import org.agrona.DirectBuffer;
@@ -31,6 +33,7 @@ public final class ExecuteCommandRequest implements BufferReader, BufferWriter {
   private final ExecuteCommandRequestEncoder bodyEncoder = new ExecuteCommandRequestEncoder();
   private final ExecuteCommandRequestDecoder bodyDecoder = new ExecuteCommandRequestDecoder();
   private final DirectBuffer value = new UnsafeBuffer(0, 0);
+  private final SbeSpanContext spanContext = new SbeSpanContext();
   private int partitionId;
   private long key;
   private ValueType valueType;
@@ -46,6 +49,7 @@ public final class ExecuteCommandRequest implements BufferReader, BufferWriter {
     valueType = ValueType.NULL_VAL;
     intent = Intent.UNKNOWN;
     value.wrap(0, 0);
+    spanContext.reset();
 
     return this;
   }
@@ -98,6 +102,10 @@ public final class ExecuteCommandRequest implements BufferReader, BufferWriter {
     return this;
   }
 
+  public SbeSpanContext spanContext() {
+    return spanContext;
+  }
+
   @Override
   public void wrap(final DirectBuffer buffer, int offset, final int length) {
     reset();
@@ -123,6 +131,13 @@ public final class ExecuteCommandRequest implements BufferReader, BufferWriter {
     value.wrap(buffer, offset, valueLength);
     offset += valueLength;
 
+    final int spanContextLength = bodyDecoder.spanContextLength();
+    if (spanContextLength > 0) {
+      offset += ExecuteCommandRequestDecoder.spanContextHeaderLength();
+      spanContext.wrap(buffer, offset, spanContextLength);
+    }
+    offset += spanContextLength;
+
     bodyDecoder.limit(offset);
 
     assert bodyDecoder.limit() == frameEnd
@@ -138,7 +153,9 @@ public final class ExecuteCommandRequest implements BufferReader, BufferWriter {
     return MessageHeaderEncoder.ENCODED_LENGTH
         + ExecuteCommandRequestEncoder.BLOCK_LENGTH
         + ExecuteCommandRequestEncoder.valueHeaderLength()
-        + value.capacity();
+        + value.capacity()
+        + ExecuteCommandRequestEncoder.spanContextHeaderLength()
+        + spanContext.getLength();
   }
 
   @Override
@@ -159,5 +176,10 @@ public final class ExecuteCommandRequest implements BufferReader, BufferWriter {
         .valueType(valueType)
         .intent(intent.value())
         .putValue(value, 0, value.capacity());
+    SbeUtil.writeNestedMessage(
+        bodyEncoder,
+        spanContext,
+        ExecuteCommandRequestEncoder.spanContextHeaderLength(),
+        ExecuteCommandRequestEncoder.BYTE_ORDER);
   }
 }

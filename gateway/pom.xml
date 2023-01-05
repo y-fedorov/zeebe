@@ -155,6 +155,20 @@
       <artifactId>jsr305</artifactId>
     </dependency>
 
+    <!-- OTEL -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-grpc-1.6</artifactId>
+      <version>1.21.0-alpha</version>
+    </dependency>
+
+    <!-- /OTEL -->
+
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-common</artifactId>

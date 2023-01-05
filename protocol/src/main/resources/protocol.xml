@@ -100,6 +100,11 @@
     <field name="valueType" id="5" type="ValueType"/>
     <field name="intent" id="6" type="uint8"/>
     <data name="value" id="7" type="varDataEncoding"/>
+    <!--
+      populated when the record is associated with a sampled trace; refer to the OTEL protocol for
+      encoding/decoding
+      -->
+    <data name="spanContext" id="8" type="varDataEncoding" sinceVersion="4" />
   </sbe:message>
 
   <sbe:message name="ExecuteCommandResponse" id="21">

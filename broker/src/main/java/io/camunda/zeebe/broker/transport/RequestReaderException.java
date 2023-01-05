@@ -7,6 +7,9 @@
  */
 package io.camunda.zeebe.broker.transport;
 
+import io.camunda.zeebe.protocol.record.ValueType;
+import java.util.Set;
+
 public abstract class RequestReaderException extends RuntimeException {
 
   public static final class InvalidTemplateException extends RequestReaderException {
@@ -16,6 +19,17 @@ public abstract class RequestReaderException extends RuntimeException {
     public InvalidTemplateException(final int expectedTemplate, final int actualTemplate) {
       this.expectedTemplate = expectedTemplate;
       this.actualTemplate = actualTemplate;
+    }
+  }
+
+  public static final class InvalidValueTypeException extends RequestReaderException {
+    final Set<ValueType> expectedTypes;
+    final ValueType actualType;
+
+    public InvalidValueTypeException(
+        final Set<ValueType> expectedTypes, final ValueType actualType) {
+      this.expectedTypes = expectedTypes;
+      this.actualType = actualType;
     }
   }
 }
