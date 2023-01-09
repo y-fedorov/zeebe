@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zeebe-streamer
+  labels:
+    app: zeebe-streamer
+spec:
+  selector:
+    matchLabels:
+      app: zeebe-streamer
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zeebe-streamer
+        metrics: gmp
+    spec:
+      containers:
+        - name: zeebe-streamer
+          image: gcr.io/zeebe-io/streamer:np-batch-push
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_OPTIONS
+              value: >-
+                -Dconfig.override_with_env_vars=true
+                -Dapp.brokerUrl=np-batch-push-zeebe-gateway:26500
+                -Dapp.worker.completionDelay=50ms
+            - name: LOG_LEVEL
+              value: "warn"
+          envFrom:
+            - configMapRef:
+                name: zeebe-streamer-config
+                optional: true
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: zeebe
+    app.kubernetes.io/instance: np-batch-push
+    app.kubernetes.io/name: zeebe-cluster
+  name: zeebe-streamer
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 9600
+      protocol: TCP
+      targetPort: 9600
+  publishNotReadyAddresses: true
+  selector:
+    app: zeebe-streamer
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: { }
