@@ -35,6 +35,10 @@ import io.camunda.zeebe.stream.impl.records.TypedRecordImpl;
 import io.camunda.zeebe.util.buffer.BufferUtil;
 import io.camunda.zeebe.util.exception.RecoverableException;
 import io.camunda.zeebe.util.exception.UnrecoverableException;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.context.Context;
 import io.prometheus.client.Histogram;
 import java.time.Duration;
 import java.util.List;
@@ -240,13 +244,29 @@ public final class ProcessingStateMachine {
     final var processingStartTime = ActorClock.currentTimeMillis();
     processingTimer = metrics.startProcessingDurationTimer(metadata.getRecordType());
 
+    final SpanBuilder spanBuilder =
+        context.tracer().spanBuilder("processCommand").setSpanKind(SpanKind.SERVER);
+    final Span span;
+    if (metadata.spanContext().hasContext()) {
+      final var parentContext = Context.current().with(Span.wrap(metadata.spanContext()));
+      spanBuilder.setParent(parentContext);
+
+      spanBuilder.setAttribute("partitionId", String.valueOf(context.getPartitionId()));
+      spanBuilder.setAttribute("valueType", metadata.getValueType().name());
+      spanBuilder.setAttribute("intent", metadata.getIntent().name());
+      span = spanBuilder.startSpan();
+    } else {
+      span = Span.getInvalid();
+    }
+
     try {
       final var value = recordValues.readRecordValue(command, metadata.getValueType());
       typedCommand.wrap(command, metadata, value);
 
       final long position = typedCommand.getPosition();
       final ProcessingResultBuilder processingResultBuilder =
-          new BufferedProcessingResultBuilder(logStreamWriter::canWriteEvents);
+          new BufferedProcessingResultBuilder(
+              logStreamWriter::canWriteEvents, metadata.spanContext());
 
       metrics.processingLatency(command.getTimestamp(), processingStartTime);
 
@@ -287,6 +307,8 @@ public final class ProcessingStateMachine {
       throw unrecoverableException;
     } catch (final Exception e) {
       onError(e, this::writeRecords);
+    } finally {
+      span.end();
     }
   }
 

@@ -22,6 +22,9 @@ import io.camunda.zeebe.stream.api.state.KeyGeneratorControls;
 import io.camunda.zeebe.stream.api.state.MutableLastProcessedPositionState;
 import io.camunda.zeebe.stream.impl.StreamProcessor.Phase;
 import io.camunda.zeebe.stream.impl.records.RecordValues;
+import io.camunda.zeebe.util.VersionUtil;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
 import java.util.function.BooleanSupplier;
 
 public final class StreamProcessorContext implements ReadonlyStreamProcessorContext {
@@ -55,6 +58,9 @@ public final class StreamProcessorContext implements ReadonlyStreamProcessorCont
   // this is accessed outside, which is why we need to make sure that it is thread-safe
   private volatile StreamProcessor.Phase phase = Phase.INITIAL;
   private KeyGeneratorControls keyGeneratorControls;
+
+  private final Tracer tracer =
+      GlobalOpenTelemetry.getTracer("io.camunda.zeebe.broker.stream", VersionUtil.getVersion());
 
   public StreamProcessorContext actor(final ActorControl actor) {
     this.actor = actor;
@@ -195,5 +201,9 @@ public final class StreamProcessorContext implements ReadonlyStreamProcessorCont
 
   public void streamProcessorPhase(final Phase phase) {
     this.phase = phase;
+  }
+
+  public Tracer tracer() {
+    return tracer;
   }
 }

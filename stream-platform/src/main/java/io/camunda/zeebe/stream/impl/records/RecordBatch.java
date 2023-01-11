@@ -18,6 +18,7 @@ import io.camunda.zeebe.stream.api.records.MutableRecordBatch;
 import io.camunda.zeebe.stream.api.records.RecordBatchSizePredicate;
 import io.camunda.zeebe.util.Either;
 import io.camunda.zeebe.util.buffer.BufferWriter;
+import io.opentelemetry.api.trace.SpanContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -48,7 +49,8 @@ public final class RecordBatch implements MutableRecordBatch {
       final RejectionType rejectionType,
       final String rejectionReason,
       final ValueType valueType,
-      final BufferWriter valueWriter) {
+      final BufferWriter valueWriter,
+      final SpanContext spanContext) {
     final var recordBatchEntry =
         RecordBatchEntry.createEntry(
             key,
@@ -60,6 +62,9 @@ public final class RecordBatch implements MutableRecordBatch {
             valueType,
             valueWriter);
     final var entryLength = recordBatchEntry.getLength();
+    if (recordType == RecordType.COMMAND) {
+      recordBatchEntry.recordMetadata().spanContext().wrap(spanContext);
+    }
 
     if (!recordBatchSizePredicate.test(recordBatchEntries.size() + 1, batchSize + entryLength)) {
       return Either.left(

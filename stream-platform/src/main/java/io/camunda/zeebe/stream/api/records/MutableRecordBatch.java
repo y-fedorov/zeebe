@@ -13,6 +13,8 @@ import io.camunda.zeebe.protocol.record.ValueType;
 import io.camunda.zeebe.protocol.record.intent.Intent;
 import io.camunda.zeebe.util.Either;
 import io.camunda.zeebe.util.buffer.BufferWriter;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 
 /**
  * Represents a modifiable batch of record, which means we can add multiple Records to the batch.
@@ -35,6 +37,27 @@ public interface MutableRecordBatch extends ImmutableRecordBatch {
    * @param valueWriter the actual record value
    * @return either a failure if record can't be added to the batch or null on success
    */
+  default Either<RuntimeException, Void> appendRecord(
+      final long key,
+      final int sourceIndex,
+      final RecordType recordType,
+      final Intent intent,
+      final RejectionType rejectionType,
+      final String rejectionReason,
+      final ValueType valueType,
+      final BufferWriter valueWriter) {
+    return appendRecord(
+        key,
+        sourceIndex,
+        recordType,
+        intent,
+        rejectionType,
+        rejectionReason,
+        valueType,
+        valueWriter,
+        Span.current().getSpanContext());
+  }
+
   Either<RuntimeException, Void> appendRecord(
       final long key,
       final int sourceIndex,
@@ -43,7 +66,8 @@ public interface MutableRecordBatch extends ImmutableRecordBatch {
       final RejectionType rejectionType,
       final String rejectionReason,
       final ValueType valueType,
-      final BufferWriter valueWriter);
+      final BufferWriter valueWriter,
+      final SpanContext spanContext);
 
   /**
    * Allows to verify whether the given record length is suitable to be appended in the current

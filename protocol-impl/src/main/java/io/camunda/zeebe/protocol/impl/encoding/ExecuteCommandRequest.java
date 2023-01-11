@@ -21,6 +21,7 @@ import io.camunda.zeebe.protocol.record.intent.Intent;
 import io.camunda.zeebe.util.SbeUtil;
 import io.camunda.zeebe.util.buffer.BufferReader;
 import io.camunda.zeebe.util.buffer.BufferWriter;
+import io.opentelemetry.api.trace.SpanContext;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
@@ -176,10 +177,18 @@ public final class ExecuteCommandRequest implements BufferReader, BufferWriter {
         .valueType(valueType)
         .intent(intent.value())
         .putValue(value, 0, value.capacity());
-    SbeUtil.writeNestedMessage(
-        bodyEncoder,
-        spanContext,
-        ExecuteCommandRequestEncoder.spanContextHeaderLength(),
-        ExecuteCommandRequestEncoder.BYTE_ORDER);
+
+    if (spanContext.hasContext()) {
+      SbeUtil.writeNestedMessage(
+          bodyEncoder,
+          spanContext,
+          ExecuteCommandRequestEncoder.spanContextHeaderLength(),
+          ExecuteCommandRequestEncoder.BYTE_ORDER);
+    }
+  }
+
+  public ExecuteCommandRequest setSpanContext(final SpanContext spanContext) {
+    this.spanContext.wrap(spanContext);
+    return this;
   }
 }

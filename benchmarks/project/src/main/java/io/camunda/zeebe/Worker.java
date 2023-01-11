@@ -21,6 +21,8 @@ import io.camunda.zeebe.client.api.command.FinalCommandStep;
 import io.camunda.zeebe.client.api.worker.JobWorker;
 import io.camunda.zeebe.config.AppCfg;
 import io.camunda.zeebe.config.WorkerCfg;
+import io.opentelemetry.instrumentation.grpc.v1_6.GrpcTelemetry;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingDeque;
@@ -32,7 +34,7 @@ public class Worker extends App {
 
   private final AppCfg appCfg;
 
-  Worker(AppCfg appCfg) {
+  Worker(final AppCfg appCfg) {
     this.appCfg = appCfg;
   }
 
@@ -62,7 +64,7 @@ public class Worker extends App {
                   } else {
                     try {
                       Thread.sleep(completionDelay);
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                       e.printStackTrace();
                     }
                     requestFutures.add(command.send());
@@ -100,7 +102,11 @@ public class Worker extends App {
             .defaultJobWorkerMaxJobsActive(workerCfg.getCapacity())
             .defaultJobPollInterval(workerCfg.getPollingDelay())
             .withProperties(System.getProperties())
-            .withInterceptors(monitoringInterceptor);
+            .withInterceptors(
+                GrpcTelemetry.create(
+                        AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk())
+                    .newClientInterceptor(),
+                monitoringInterceptor);
 
     if (!appCfg.isTls()) {
       builder.usePlaintext();
@@ -109,7 +115,7 @@ public class Worker extends App {
     return builder.build();
   }
 
-  public static void main(String[] args) {
+  public static void main(final String[] args) {
     createApp(Worker::new);
   }
 

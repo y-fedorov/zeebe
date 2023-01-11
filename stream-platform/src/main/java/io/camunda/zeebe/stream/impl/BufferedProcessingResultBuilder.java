@@ -23,6 +23,8 @@ import io.camunda.zeebe.stream.impl.records.RecordBatch;
 import io.camunda.zeebe.stream.impl.records.RecordBatchEntry;
 import io.camunda.zeebe.util.Either;
 import io.camunda.zeebe.util.StringUtil;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,10 +38,17 @@ final class BufferedProcessingResultBuilder implements ProcessingResultBuilder {
   private final List<PostCommitTask> postCommitTasks = new ArrayList<>();
 
   private final RecordBatch mutableRecordBatch;
+  private final SpanContext spanContext;
   private ProcessingResponseImpl processingResponse;
 
   BufferedProcessingResultBuilder(final RecordBatchSizePredicate predicate) {
+    this(predicate, Span.getInvalid().getSpanContext());
+  }
+
+  BufferedProcessingResultBuilder(
+      final RecordBatchSizePredicate predicate, final SpanContext spanContext) {
     mutableRecordBatch = new RecordBatch(predicate);
+    this.spanContext = spanContext;
   }
 
   @Override
@@ -60,7 +69,15 @@ final class BufferedProcessingResultBuilder implements ProcessingResultBuilder {
     if (value instanceof UnifiedRecordValue unifiedRecordValue) {
       final var either =
           mutableRecordBatch.appendRecord(
-              key, -1, type, intent, rejectionType, rejectionReason, valueType, unifiedRecordValue);
+              key,
+              -1,
+              type,
+              intent,
+              rejectionType,
+              rejectionReason,
+              valueType,
+              unifiedRecordValue,
+              spanContext);
       if (either.isLeft()) {
         return Either.left(either.getLeft());
       }

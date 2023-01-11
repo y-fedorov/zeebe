@@ -11,16 +11,25 @@ import io.camunda.zeebe.logstreams.impl.Loggers;
 import io.camunda.zeebe.logstreams.impl.flowcontrol.AppendErrorHandler;
 import io.camunda.zeebe.logstreams.impl.flowcontrol.AppenderFlowControl;
 import io.camunda.zeebe.logstreams.impl.flowcontrol.InFlightAppend;
+import io.camunda.zeebe.logstreams.log.LogAppendEntry;
 import io.camunda.zeebe.logstreams.storage.LogStorage;
 import io.camunda.zeebe.scheduler.Actor;
 import io.camunda.zeebe.scheduler.future.ActorFuture;
 import io.camunda.zeebe.scheduler.future.CompletableActorFuture;
+import io.camunda.zeebe.util.VersionUtil;
 import io.camunda.zeebe.util.health.FailureListener;
 import io.camunda.zeebe.util.health.HealthMonitorable;
 import io.camunda.zeebe.util.health.HealthReport;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.agrona.CloseHelper;
 import org.slf4j.Logger;
 
 /** Consume the write buffer and append the blocks to the distributedlog. */
@@ -33,6 +42,9 @@ final class LogStorageAppender extends Actor implements HealthMonitorable, Appen
   private final Set<FailureListener> failureListeners = new HashSet<>();
   private final ActorFuture<Void> closeFuture;
   private final int partitionId;
+
+  private final Tracer tracer =
+      GlobalOpenTelemetry.getTracer("io.camunda.zeebe.broker.log", VersionUtil.getVersion());
 
   LogStorageAppender(
       final String name,
@@ -122,11 +134,41 @@ final class LogStorageAppender extends Actor implements HealthMonitorable, Appen
       return;
     }
 
-    final var lowestPosition = sequencedBatch.firstPosition();
-    final var highestPosition =
-        sequencedBatch.firstPosition() + sequencedBatch.entries().size() - 1;
-    append.start(highestPosition);
-    logStorage.append(lowestPosition, highestPosition, sequencedBatch, append);
+    final List<AutoCloseable> spans =
+        sequencedBatch.entries().stream()
+            .map(LogAppendEntry::recordMetadata)
+            .map(
+                metadata -> {
+                  final var spanBuilder =
+                      tracer.spanBuilder("writeBatch").setSpanKind(SpanKind.SERVER);
+                  final Span span;
+
+                  if (metadata.spanContext().hasContext() && metadata.spanContext().isValid()) {
+                    final var parentContext =
+                        Context.current().with(Span.wrap(metadata.spanContext()));
+                    spanBuilder.setParent(parentContext);
+
+                    spanBuilder.setAttribute("partitionId", String.valueOf(partitionId));
+                    spanBuilder.setAttribute("valueType", metadata.getValueType().name());
+                    spanBuilder.setAttribute("intent", metadata.getIntent().name());
+                    span = spanBuilder.startSpan();
+                  } else {
+                    span = Span.getInvalid();
+                  }
+
+                  return (AutoCloseable) span::end;
+                })
+            .toList();
+
+    try {
+      final var lowestPosition = sequencedBatch.firstPosition();
+      final var highestPosition =
+          sequencedBatch.firstPosition() + sequencedBatch.entries().size() - 1;
+      append.start(highestPosition);
+      logStorage.append(lowestPosition, highestPosition, sequencedBatch, append);
+    } finally {
+      CloseHelper.quietCloseAll(spans);
+    }
     actor.submit(this::tryWriteBatch);
   }
 
@@ -138,12 +180,12 @@ final class LogStorageAppender extends Actor implements HealthMonitorable, Appen
   }
 
   @Override
-  public void onWriteError(final Throwable error) {
+  public void onCommitError(final Throwable error) {
     actor.run(() -> onFailure(error));
   }
 
   @Override
-  public void onCommitError(final Throwable error) {
+  public void onWriteError(final Throwable error) {
     actor.run(() -> onFailure(error));
   }
 }

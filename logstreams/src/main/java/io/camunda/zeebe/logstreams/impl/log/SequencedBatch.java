@@ -9,13 +9,27 @@ package io.camunda.zeebe.logstreams.impl.log;
 
 import io.camunda.zeebe.logstreams.impl.serializer.SequencedBatchSerializer;
 import io.camunda.zeebe.logstreams.log.LogAppendEntry;
+import io.camunda.zeebe.protocol.impl.otel.SbeSpanContext;
+import io.camunda.zeebe.protocol.impl.record.RecordMetadata;
+import io.camunda.zeebe.util.SpanContextProvider;
 import io.camunda.zeebe.util.buffer.BufferWriter;
+import io.opentelemetry.api.trace.SpanContext;
 import java.util.List;
 import org.agrona.MutableDirectBuffer;
 
 public record SequencedBatch(
     long timestamp, long firstPosition, long sourcePosition, List<LogAppendEntry> entries)
-    implements BufferWriter {
+    implements BufferWriter, SpanContextProvider {
+
+  @Override
+  public List<SpanContext> spanContexts() {
+    return entries.stream()
+        .map(LogAppendEntry::recordMetadata)
+        .map(RecordMetadata::spanContext)
+        .filter(SbeSpanContext::hasContext)
+        .map(SpanContext.class::cast)
+        .toList();
+  }
 
   @Override
   public int getLength() {

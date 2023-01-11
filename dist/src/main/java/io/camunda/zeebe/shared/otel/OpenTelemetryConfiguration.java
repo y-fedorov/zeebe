@@ -7,7 +7,6 @@
  */
 package io.camunda.zeebe.shared.otel;
 
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 public final class OpenTelemetryConfiguration {
   @Bean
   public OpenTelemetrySdk openTelemetrySdk() {
-    final SpanContext context;
     return AutoConfiguredOpenTelemetrySdk.builder()
         .setResultAsGlobal(true)
         .registerShutdownHook(true)

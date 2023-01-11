@@ -89,8 +89,8 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
     offset += headerDecoder.blockLength();
 
     final int rejectionReasonLength = decoder.rejectionReasonLength();
+    offset += RecordMetadataDecoder.rejectionReasonHeaderLength();
     if (rejectionReasonLength > 0) {
-      offset += RecordMetadataDecoder.rejectionReasonHeaderLength();
       rejectionReason.wrap(buffer, offset, rejectionReasonLength);
     } else {
       decoder.skipRejectionReason();

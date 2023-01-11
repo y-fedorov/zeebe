@@ -68,15 +68,18 @@ final class CommandApiRequestHandler
       final CommandApiResponseWriter responseWriter,
       final ErrorResponseWriter errorWriter) {
     final var spanBuilder = tracer.spanBuilder("commandApi").setSpanKind(SpanKind.SERVER);
-    if (requestReader.metadata().spanContext().hasContext()) {
-      final var parentContext =
-          Context.current().with(Span.wrap(requestReader.metadata().spanContext()));
+    if (requestReader.spanContext().hasContext()) {
+      final var parentContext = Context.current().with(Span.wrap(requestReader.spanContext()));
       spanBuilder.setParent(parentContext);
     }
 
-    try (final var scope = spanBuilder.startSpan().makeCurrent()) {
+    final Span span =
+        spanBuilder.setAttribute("partitionId", String.valueOf(partitionId)).startSpan();
+    try {
       return handleExecuteCommandRequest(
           partitionId, requestId, requestReader, responseWriter, errorWriter);
+    } finally {
+      span.end();
     }
   }
 
@@ -105,7 +108,9 @@ final class CommandApiRequestHandler
     metadata.recordType(RecordType.COMMAND);
     metadata.intent(intent);
     metadata.valueType(valueType);
-    metadata.spanContext().wrap(Span.current().getSpanContext());
+    if (reader.spanContext().hasContext()) {
+      metadata.spanContext().wrap(reader.spanContext());
+    }
 
     if (logStreamWriter == null) {
       errorWriter.partitionLeaderMismatch(partitionId);

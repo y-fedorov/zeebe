@@ -120,7 +120,7 @@
     <version.jackson-databind-nullable>0.2.4</version.jackson-databind-nullable>
     <version.jackson-annotations>2.14.1</version.jackson-annotations>
     <version.swagger-annotations>2.2.7</version.swagger-annotations>
-    <version.otel>1.20.1</version.otel>
+    <version.otel>1.21.0</version.otel>
     <version.exporter-trace>0.15.0</version.exporter-trace>
 
     <!-- maven plugins -->
@@ -936,6 +936,18 @@
         <version>${version.otel}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>io.opentelemetry.instrumentation</groupId>
+        <artifactId>opentelemetry-grpc-1.6</artifactId>
+        <version>${version.otel}-alpha</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+        <version>${version.otel}-alpha</version>
       </dependency>
 
       <dependency>

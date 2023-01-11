@@ -53,13 +53,23 @@ import io.atomix.raft.zeebe.ZeebeLogAppender;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.Scheduled;
 import io.camunda.zeebe.journal.JournalException;
+import io.camunda.zeebe.util.SpanContextProvider;
+import io.camunda.zeebe.util.VersionUtil;
 import io.camunda.zeebe.util.buffer.BufferWriter;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import org.agrona.CloseHelper;
 
 /** Leader state. */
 public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
@@ -70,6 +80,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   private long configuring;
   private CompletableFuture<Void> commitInitialEntriesFuture;
   private ApplicationEntry lastZbEntry = null;
+  private final Tracer tracer =
+      GlobalOpenTelemetry.getTracer("io.camunda.zeebe.atomix.raft", VersionUtil.getVersion());
 
   public LeaderRole(final RaftContext context) {
     super(context);
@@ -536,7 +548,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
 
   @Override
   public void appendEntry(final ApplicationEntry entry, final AppendListener appendListener) {
-    raft.getThreadContext().execute(() -> safeAppendEntry(entry, appendListener));
+    raft.getThreadContext().execute(() -> safeAppendEntry(entry, appendListener, List.of()));
   }
 
   @Override
@@ -550,7 +562,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
             () ->
                 safeAppendEntry(
                     new SerializedApplicationEntry(lowestPosition, highestPosition, data),
-                    appendListener));
+                    appendListener,
+                    List.of()));
   }
 
   @Override
@@ -559,15 +572,43 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
       final long highestPosition,
       final BufferWriter data,
       final AppendListener appendListener) {
+
+    final List<Span> spans = new ArrayList<>();
+    if (data instanceof SpanContextProvider provider) {
+      provider
+          .spanContexts()
+          .forEach(
+              sc -> {
+                final var spanBuilder =
+                    tracer.spanBuilder("appendEntry").setSpanKind(SpanKind.SERVER);
+                if (sc.isValid()) {
+                  final var parentContext = Context.current().with(Span.wrap(sc));
+                  spanBuilder.setParent(parentContext);
+                  spanBuilder.setAttribute("partitionId", String.valueOf(raft.getPartitionId()));
+
+                  spans.add(spanBuilder.startSpan());
+                }
+              });
+    }
+
     raft.getThreadContext()
         .execute(
-            () ->
+            () -> {
+              try {
                 safeAppendEntry(
                     new UnserializedApplicationEntry(lowestPosition, highestPosition, data),
-                    appendListener));
+                    appendListener,
+                    spans);
+              } finally {
+                CloseHelper.quietCloseAll(spans.stream().map(s -> (AutoCloseable) s::end).toList());
+              }
+            });
   }
 
-  private void safeAppendEntry(final ApplicationEntry entry, final AppendListener appendListener) {
+  private void safeAppendEntry(
+      final ApplicationEntry entry,
+      final AppendListener appendListener,
+      final List<Span> parentSpans) {
     raft.checkThread();
 
     if (!isRunning()) {
@@ -581,9 +622,20 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
       appendListener.onWriteError(new IllegalStateException(result.errorMessage()));
       raft.transition(Role.FOLLOWER);
     } else {
+      final List<Span> spans = new ArrayList<>();
+      parentSpans.forEach(
+          p -> {
+            final var spanBuilder = tracer.spanBuilder("append").setSpanKind(SpanKind.SERVER);
+            final var parentContext = Context.current().with(p);
+            spanBuilder.setParent(parentContext);
+            spanBuilder.setAttribute("partitionId", String.valueOf(raft.getPartitionId()));
+
+            spans.add(spanBuilder.startSpan());
+          });
       append(new RaftLogEntry(raft.getTerm(), entry))
           .whenComplete(
               (indexed, error) -> {
+                CloseHelper.quietCloseAll(spans.stream().map(s -> (AutoCloseable) s::end).toList());
                 if (error != null) {
                   appendListener.onWriteError(Throwables.getRootCause(error));
                   if (!(error instanceof JournalException)) {
@@ -598,18 +650,33 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                   }
 
                   appendListener.onWrite(indexed);
-                  replicate(indexed, appendListener);
+                  replicate(indexed, appendListener, parentSpans);
                 }
               });
     }
   }
 
-  private void replicate(final IndexedRaftLogEntry indexed, final AppendListener appendListener) {
+  private void replicate(
+      final IndexedRaftLogEntry indexed,
+      final AppendListener appendListener,
+      final List<Span> parentSpans) {
+    final List<Span> spans = new ArrayList<>();
+    parentSpans.forEach(
+        p -> {
+          final var spanBuilder = tracer.spanBuilder("replicate").setSpanKind(SpanKind.SERVER);
+          final var parentContext = Context.current().with(p);
+          spanBuilder.setParent(parentContext);
+          spanBuilder.setAttribute("partitionId", String.valueOf(raft.getPartitionId()));
+
+          spans.add(spanBuilder.startSpan());
+        });
+
     raft.checkThread();
     appender
         .appendEntries(indexed.index())
         .whenCompleteAsync(
             (commitIndex, commitError) -> {
+              CloseHelper.quietCloseAll(spans.stream().map(s -> (AutoCloseable) s::end).toList());
               if (!isRunning()) {
                 return;
               }

@@ -116,4 +116,8 @@ public class CommandApiRequestReader implements RequestReader<ExecuteCommandRequ
   public RecordMetadata metadata() {
     return metadata;
   }
+
+  public SbeSpanContext spanContext() {
+    return spanContext;
+  }
 }
