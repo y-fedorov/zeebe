@@ -94,4 +94,13 @@ public final class SbeSpanContext implements SpanContext, BufferWriter, BufferRe
   public boolean isRemote() {
     return writer.context().isRemote();
   }
+
+  public SpanContext copy() {
+    if (isRemote()) {
+      return SpanContext.createFromRemoteParent(
+          getTraceId(), getSpanId(), getTraceFlags(), getTraceState());
+    } else {
+      return SpanContext.create(getTraceId(), getSpanId(), getTraceFlags(), getTraceState());
+    }
+  }
 }

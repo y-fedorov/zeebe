@@ -19,6 +19,8 @@ import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.ZeebeClientBuilder;
 import io.camunda.zeebe.config.AppCfg;
 import io.camunda.zeebe.config.StarterCfg;
+import io.opentelemetry.instrumentation.grpc.v1_6.GrpcTelemetry;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -184,7 +186,11 @@ public class Starter extends App {
             .gatewayAddress(appCfg.getBrokerUrl())
             .numJobWorkerExecutionThreads(0)
             .withProperties(System.getProperties())
-            .withInterceptors(monitoringInterceptor);
+            .withInterceptors(
+                GrpcTelemetry.create(
+                        AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk())
+                    .newClientInterceptor(),
+                monitoringInterceptor);
 
     if (!appCfg.isTls()) {
       builder.usePlaintext();

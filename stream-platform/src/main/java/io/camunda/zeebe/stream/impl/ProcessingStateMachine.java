@@ -14,7 +14,9 @@ import io.camunda.zeebe.logstreams.log.LogStreamReader;
 import io.camunda.zeebe.logstreams.log.LogStreamWriter;
 import io.camunda.zeebe.logstreams.log.LoggedEvent;
 import io.camunda.zeebe.protocol.impl.record.RecordMetadata;
+import io.camunda.zeebe.protocol.impl.record.value.processinstance.ProcessInstanceRecord;
 import io.camunda.zeebe.protocol.record.RecordType;
+import io.camunda.zeebe.protocol.record.value.ProcessInstanceRelated;
 import io.camunda.zeebe.scheduler.ActorControl;
 import io.camunda.zeebe.scheduler.clock.ActorClock;
 import io.camunda.zeebe.scheduler.future.ActorFuture;
@@ -244,29 +246,38 @@ public final class ProcessingStateMachine {
     final var processingStartTime = ActorClock.currentTimeMillis();
     processingTimer = metrics.startProcessingDurationTimer(metadata.getRecordType());
 
+    final var value = recordValues.readRecordValue(command, metadata.getValueType());
+    typedCommand.wrap(command, metadata, value);
+
     final SpanBuilder spanBuilder =
         context.tracer().spanBuilder("processCommand").setSpanKind(SpanKind.SERVER);
     final Span span;
     if (metadata.spanContext().hasContext()) {
-      final var parentContext = Context.current().with(Span.wrap(metadata.spanContext()));
+      final var parentContext = Context.current().with(Span.wrap(metadata.spanContext().copy()));
       spanBuilder.setParent(parentContext);
 
       spanBuilder.setAttribute("partitionId", String.valueOf(context.getPartitionId()));
       spanBuilder.setAttribute("valueType", metadata.getValueType().name());
       spanBuilder.setAttribute("intent", metadata.getIntent().name());
+
+      if (value instanceof ProcessInstanceRecord p) {
+        spanBuilder.setAttribute("bpmnElementType", p.getBpmnElementType().name());
+      }
+
+      if (value instanceof ProcessInstanceRelated r) {
+        spanBuilder.setAttribute("processInstanceKey", r.getProcessInstanceKey());
+      }
+
       span = spanBuilder.startSpan();
     } else {
       span = Span.getInvalid();
     }
 
     try {
-      final var value = recordValues.readRecordValue(command, metadata.getValueType());
-      typedCommand.wrap(command, metadata, value);
-
       final long position = typedCommand.getPosition();
       final ProcessingResultBuilder processingResultBuilder =
           new BufferedProcessingResultBuilder(
-              logStreamWriter::canWriteEvents, metadata.spanContext());
+              logStreamWriter::canWriteEvents, span.getSpanContext());
 
       metrics.processingLatency(command.getTimestamp(), processingStartTime);
 
