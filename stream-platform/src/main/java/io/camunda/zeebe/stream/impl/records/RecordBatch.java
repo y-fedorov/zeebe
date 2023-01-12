@@ -26,6 +26,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -63,8 +64,8 @@ public final class RecordBatch implements MutableRecordBatch {
     final Span span;
     if (recordType == RecordType.COMMAND) {
       final var builder = tracer.spanBuilder("appendRecord").setSpanKind(SpanKind.PRODUCER);
-      if (spanContext != null && spanContext.isValid() && spanContext.isSampled()) {
-        builder.addLink(spanContext);
+      if (spanContext != null) {
+        builder.setParent(Context.current().with(Span.wrap(spanContext)));
       }
 
       if (valueWriter instanceof ProcessInstanceRecord p) {
