@@ -247,6 +247,11 @@
       <artifactId>opentelemetry-exporter-otlp</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.google.cloud.opentelemetry</groupId>
+      <artifactId>exporter-trace</artifactId>
+    </dependency>
+
     <!-- /end -->
 
     <dependency>

@@ -121,7 +121,7 @@
     <version.jackson-annotations>2.14.1</version.jackson-annotations>
     <version.swagger-annotations>2.2.7</version.swagger-annotations>
     <version.otel>1.21.0</version.otel>
-    <version.exporter-trace>0.15.0</version.exporter-trace>
+    <version.exporter-trace>0.20.0</version.exporter-trace>
 
     <!-- maven plugins -->
     <plugin.version.antrun>3.1.0</plugin.version.antrun>
