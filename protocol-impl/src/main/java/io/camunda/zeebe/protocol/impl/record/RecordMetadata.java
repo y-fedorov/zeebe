@@ -92,17 +92,15 @@ public final class RecordMetadata implements BufferWriter, BufferReader {
     offset += RecordMetadataDecoder.rejectionReasonHeaderLength();
     if (rejectionReasonLength > 0) {
       rejectionReason.wrap(buffer, offset, rejectionReasonLength);
-    } else {
-      decoder.skipRejectionReason();
     }
+    decoder.skipRejectionReason();
 
     final int spanContextLength = decoder.spanContextLength();
     if (spanContextLength > 0) {
       offset += RecordMetadataDecoder.spanContextHeaderLength();
       spanContext.wrap(buffer, offset, spanContextLength);
-    } else {
-      decoder.skipSpanContext();
     }
+    decoder.skipSpanContext();
   }
 
   @Override

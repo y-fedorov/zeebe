@@ -121,7 +121,6 @@
     <version.jackson-annotations>2.14.1</version.jackson-annotations>
     <version.swagger-annotations>2.2.7</version.swagger-annotations>
     <version.otel>1.21.0</version.otel>
-    <version.exporter-trace>0.20.0</version.exporter-trace>
 
     <!-- maven plugins -->
     <plugin.version.antrun>3.1.0</plugin.version.antrun>
@@ -948,12 +947,6 @@
         <groupId>io.opentelemetry</groupId>
         <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
         <version>${version.otel}-alpha</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.google.cloud.opentelemetry</groupId>
-        <artifactId>exporter-trace</artifactId>
-        <version>${version.exporter-trace}</version>
       </dependency>
 
       <dependency>
