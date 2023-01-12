@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: starter
+  labels:
+    app: starter
+spec:
+  selector:
+    matchLabels:
+      app: starter
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: starter
+        metrics: gmp
+    spec:
+      containers:
+        - name: starter
+          image: gcr.io/zeebe-io/starter:np-otel
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_OPTIONS
+              value: >-
+                -Dconfig.override_with_env_vars=true
+                -Dapp.brokerUrl=np-otel-zeebe-gateway:26500
+                -Dapp.starter.rate=75
+                -Dapp.starter.durationLimit=0
+                -Dzeebe.client.requestTimeout=62000
+                -XX:+HeapDumpOnOutOfMemoryError
+            - name: LOG_LEVEL
+              value: "warn"
+            - name: OTEL_TRACES_EXPORTER
+              value: "otlp"
+            - name: OTEL_METRICS_EXPORTER
+              value: "none"
+            - name: OTEL_LOGS_EXPORTER
+              value: "none"
+            - name: OTEL_TRACES_SAMPLER
+              value: "parentbased_traceidratio"
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: "0.001"
+            - name: OTEL_SERVICE_NAME
+              value: "starter"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector.jaeger.svc:4317"
+          envFrom:
+            - configMapRef:
+                name: starter-config
+                optional: true
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: zeebe
+    app.kubernetes.io/instance: np-otel
+    app.kubernetes.io/name: zeebe-cluster
+  name: starter
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 9600
+      protocol: TCP
+      targetPort: 9600
+  publishNotReadyAddresses: true
+  selector:
+    app: starter
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: { }

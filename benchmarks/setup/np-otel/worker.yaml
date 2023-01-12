@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  labels:
+    app: worker
+spec:
+  selector:
+    matchLabels:
+      app: worker
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: worker
+        metrics: gmp
+    spec:
+      containers:
+        - name: worker
+          image: gcr.io/zeebe-io/worker:np-otel
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_OPTIONS
+              value: >-
+                -Dconfig.override_with_env_vars=true
+                -Dapp.brokerUrl=np-otel-zeebe-gateway:26500
+                -Dzeebe.client.requestTimeout=62000
+                -Dapp.worker.capacity=60
+                -Dapp.worker.pollingDelay=1ms
+                -Dapp.worker.completionDelay=50ms
+                -XX:+HeapDumpOnOutOfMemoryError
+            - name: LOG_LEVEL
+              value: "warn"
+            - name: OTEL_TRACES_EXPORTER
+              value: "otlp"
+            - name: OTEL_METRICS_EXPORTER
+              value: "none"
+            - name: OTEL_LOGS_EXPORTER
+              value: "none"
+            - name: OTEL_TRACES_SAMPLER
+              value: "parentbased_traceidratio"
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: "0.001"
+            - name: OTEL_SERVICE_NAME
+              value: "worker"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector.jaeger.svc:4317"
+          envFrom:
+            - configMapRef:
+                name: worker-config
+                optional: true
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: zeebe
+    app.kubernetes.io/instance: np-otel
+    app.kubernetes.io/name: zeebe-cluster
+  name: worker
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 9600
+      protocol: TCP
+      targetPort: 9600
+  publishNotReadyAddresses: true
+  selector:
+    app: worker
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: { }
