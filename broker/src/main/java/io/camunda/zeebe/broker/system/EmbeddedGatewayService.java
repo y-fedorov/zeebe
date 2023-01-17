@@ -34,7 +34,8 @@ public final class EmbeddedGatewayService implements AutoCloseable {
         new JobStreamServer(
             clusterServices.getMessagingService(),
             clusterServices.getEventService(),
-            clusterServices.getMembershipService());
+            clusterServices.getMembershipService(),
+            clusterServices.getCommunicationService());
 
     gateway =
         new Gateway(configuration.getGateway(), brokerClient, actorScheduler, jobStreamServer);

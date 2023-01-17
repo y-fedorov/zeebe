@@ -11,9 +11,9 @@ import io.atomix.cluster.ClusterMembershipEvent;
 import io.atomix.cluster.ClusterMembershipEvent.Type;
 import io.atomix.cluster.ClusterMembershipEventListener;
 import io.atomix.cluster.ClusterMembershipService;
+import io.atomix.cluster.messaging.ClusterCommunicationService;
 import io.atomix.cluster.messaging.ClusterEventService;
 import io.atomix.cluster.messaging.MessagingService;
-import io.atomix.utils.net.Address;
 import io.camunda.zeebe.gateway.Loggers;
 import io.camunda.zeebe.gateway.ResponseMapper;
 import io.camunda.zeebe.gateway.grpc.ServerStreamObserver;
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import org.agrona.CloseHelper;
 import org.agrona.concurrent.UnsafeBuffer;
 
@@ -74,6 +75,7 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
 
   private final ClusterEventService eventService;
   private final ClusterMembershipService membershipService;
+  private final ClusterCommunicationService communicationService;
   private final List<ServerStreamObserver<ActivatedJob>> observers = new ArrayList<>();
 
   private int lastTargetObserver = 0;
@@ -81,7 +83,8 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
   public JobStreamServer(
       final MessagingService messagingService,
       final ClusterEventService eventService,
-      final ClusterMembershipService membershipService) {
+      final ClusterMembershipService membershipService,
+      final ClusterCommunicationService communicationService) {
     this.eventService = eventService;
     this.membershipService = membershipService;
 
@@ -93,6 +96,7 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
     //            .setShutdownTimeout(Duration.ofSeconds(1));
     //    messagingService = new NettyMessagingService("zeebe-cluster", address, messagingConfig);
     this.messagingService = messagingService;
+    this.communicationService = communicationService;
   }
 
   @Override
@@ -100,7 +104,12 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
     REGISTERED_CLIENTS.set(0);
     //    messagingService.start().join();
 
-    messagingService.registerHandler("job-stream-push", this::handleRequest, actor::run);
+    communicationService.subscribe(
+        "job-stream-push",
+        Function.identity(),
+        this::handleRequest,
+        Function.identity(),
+        actor::run);
     membershipService.addListener(this);
   }
 
@@ -172,7 +181,7 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
     REGISTERED_CLIENTS.set(observers.size());
   }
 
-  private byte[] handleRequest(final Address replyTo, final byte[] bytes) {
+  private byte[] handleRequest(final byte[] bytes) {
     return handlePushedJob(deserialize(bytes));
   }
 

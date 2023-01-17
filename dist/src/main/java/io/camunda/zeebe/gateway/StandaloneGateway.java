@@ -99,7 +99,8 @@ public class StandaloneGateway
         new JobStreamServer(
             atomixCluster.getMessagingService(),
             atomixCluster.getEventService(),
-            atomixCluster.getMembershipService());
+            atomixCluster.getMembershipService(),
+            atomixCluster.getCommunicationService());
     gateway = new Gateway(configuration, brokerClient, actorScheduler, jobStreamServer);
 
     springGatewayBridge.registerBrokerClientSupplier(gateway::getBrokerClient);

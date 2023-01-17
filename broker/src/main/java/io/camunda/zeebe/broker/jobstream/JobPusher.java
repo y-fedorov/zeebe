@@ -12,10 +12,10 @@ import io.atomix.cluster.ClusterMembershipEvent.Type;
 import io.atomix.cluster.ClusterMembershipEventListener;
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
+import io.atomix.cluster.messaging.ClusterCommunicationService;
 import io.atomix.cluster.messaging.ClusterEventService;
 import io.atomix.cluster.messaging.MessagingService;
 import io.atomix.cluster.messaging.Subscription;
-import io.atomix.utils.net.Address;
 import io.camunda.zeebe.broker.Loggers;
 import io.camunda.zeebe.broker.clustering.ClusterServices;
 import io.camunda.zeebe.protocol.impl.encoding.PushedJobRequest;
@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.agrona.CloseHelper;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ public final class JobPusher extends Actor implements ClusterMembershipEventList
   private final ClusterEventService eventService;
   private final ClusterMembershipService membershipService;
   private final MessagingService messagingService;
+  private final ClusterCommunicationService communicationService;
   private final List<MemberId> gateways = new ArrayList<>();
   private final Collection<Subscription> subscriptions = new ArrayList<>();
 
@@ -86,6 +88,7 @@ public final class JobPusher extends Actor implements ClusterMembershipEventList
     //            .setShutdownTimeout(Duration.ofSeconds(1));
     //    messagingService = new NettyMessagingService("zeebe-cluster", address, messagingConfig);
     messagingService = clusterServices.getMessagingService();
+    communicationService = clusterServices.getCommunicationService();
   }
 
   @Override
@@ -167,12 +170,20 @@ public final class JobPusher extends Actor implements ClusterMembershipEventList
     final var timer = PUSH_LATENCY.startTimer();
     final var targetMember = membershipService.getMember(targetGateway);
     final var serializedRequest = serializeRequest(request);
+    //    final var response =
+    //        messagingService.sendAndReceive(
+    //            targetMember.address(),
+    //            "job-stream-push",
+    //            serializedRequest,
+    //            true,
+    //            Duration.ofSeconds(15));
     final var response =
-        messagingService.sendAndReceive(
-            Address.from(targetMember.address().host(), 26504),
+        communicationService.send(
             "job-stream-push",
             serializedRequest,
-            true,
+            Function.identity(),
+            Function.identity(),
+            targetGateway,
             Duration.ofSeconds(15));
     PUSHED_JOBS.inc();
 
