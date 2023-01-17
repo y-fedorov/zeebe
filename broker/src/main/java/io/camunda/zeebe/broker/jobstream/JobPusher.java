@@ -13,11 +13,8 @@ import io.atomix.cluster.ClusterMembershipEventListener;
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
 import io.atomix.cluster.messaging.ClusterEventService;
-import io.atomix.cluster.messaging.ManagedMessagingService;
-import io.atomix.cluster.messaging.MessagingConfig;
-import io.atomix.cluster.messaging.MessagingConfig.CompressionAlgorithm;
+import io.atomix.cluster.messaging.MessagingService;
 import io.atomix.cluster.messaging.Subscription;
-import io.atomix.cluster.messaging.impl.NettyMessagingService;
 import io.atomix.utils.net.Address;
 import io.camunda.zeebe.broker.Loggers;
 import io.camunda.zeebe.broker.clustering.ClusterServices;
@@ -66,7 +63,7 @@ public final class JobPusher extends Actor implements ClusterMembershipEventList
 
   private final ClusterEventService eventService;
   private final ClusterMembershipService membershipService;
-  private final ManagedMessagingService messagingService;
+  private final MessagingService messagingService;
   private final List<MemberId> gateways = new ArrayList<>();
   private final Collection<Subscription> subscriptions = new ArrayList<>();
 
@@ -79,21 +76,23 @@ public final class JobPusher extends Actor implements ClusterMembershipEventList
     eventService = clusterServices.getEventService();
     membershipService = clusterServices.getMembershipService();
 
-    final var address = Address.from(clusterServices.getMessagingService().address().host(), 26503);
-    final var messagingConfig =
-        new MessagingConfig()
-            .setPort(26503)
-            .setCompressionAlgorithm(CompressionAlgorithm.SNAPPY)
-            .setShutdownQuietPeriod(Duration.ZERO)
-            .setShutdownTimeout(Duration.ofSeconds(1));
-    messagingService = new NettyMessagingService("zeebe-cluster", address, messagingConfig);
+    //    final var address = Address.from(clusterServices.getMessagingService().address().host(),
+    // 26503);
+    //    final var messagingConfig =
+    //        new MessagingConfig()
+    //            .setPort(26503)
+    //            .setCompressionAlgorithm(CompressionAlgorithm.SNAPPY)
+    //            .setShutdownQuietPeriod(Duration.ZERO)
+    //            .setShutdownTimeout(Duration.ofSeconds(1));
+    //    messagingService = new NettyMessagingService("zeebe-cluster", address, messagingConfig);
+    messagingService = clusterServices.getMessagingService();
   }
 
   @Override
   protected void onActorStarted() {
     REGISTERED_GATEWAYS.set(0);
 
-    messagingService.start().join();
+    //    messagingService.start().join();
 
     subscriptions.add(
         eventService
@@ -110,7 +109,7 @@ public final class JobPusher extends Actor implements ClusterMembershipEventList
   protected void onActorClosing() {
     subscriptions.forEach(s -> CloseHelper.quietClose(s::close));
     membershipService.removeListener(this);
-    messagingService.stop().join();
+    //    messagingService.stop().join();
   }
 
   @Override

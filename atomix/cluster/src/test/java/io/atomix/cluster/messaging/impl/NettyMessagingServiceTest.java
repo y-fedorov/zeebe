@@ -660,7 +660,7 @@ public class NettyMessagingServiceTest {
                 ProtocolVersion.V2,
                 (channelFactory) ->
                     // returning channel pool - to create spied channels
-                    new ChannelPool(
+                    new ChannelPoolImpl(
                         (addr) -> {
                           // channel factory
                           channelsOpen.incrementAndGet();

@@ -62,4 +62,29 @@ class RaftMessageContext {
       return String.format("%s-%s", prefix, type);
     }
   }
+
+  //  public static void main(final String[] args) {
+  //    final var ctx = new RaftMessageContext("raft-partition-partition-2");
+  //    final var offset = ctx.appendSubject.hashCode() % 8;
+  //
+  //    ReflectionUtils.doWithFields(
+  //        RaftMessageContext.class,
+  //        field -> {
+  //          System.out.printf(
+  //              "Field %s = %s (offset: %d)%n",
+  //              field.getName(), field.get(ctx), Math.abs(field.get(ctx).hashCode() % 8));
+  //        });
+  //
+  //    System.out.printf(
+  //        "%s (offset: %d)%n", "job-stream-push", Math.abs("job-stream-push".hashCode() % 8));
+  //    System.out.printf(
+  //        "%s (offset: %d)%n", "command-api-1", Math.abs("command-api-1".hashCode() % 8));
+  //    System.out.printf(
+  //        "%s (offset: %d)%n", "command-api-2", Math.abs("command-api-2".hashCode() % 8));
+  //    System.out.printf(
+  //        "%s (offset: %d)%n", "command-api-3", Math.abs("command-api-3".hashCode() % 8));
+  //    System.out.printf(
+  //        "%s (offset: %d)%n",
+  //        "atomix-membership-sync", Math.abs("atomix-membership-sync".hashCode() % 8));
+  //  }
 }

@@ -7,7 +7,6 @@
  */
 package io.camunda.zeebe.broker.system;
 
-import io.atomix.utils.net.Address;
 import io.camunda.zeebe.broker.clustering.ClusterServices;
 import io.camunda.zeebe.broker.system.configuration.BrokerCfg;
 import io.camunda.zeebe.gateway.Gateway;
@@ -33,7 +32,7 @@ public final class EmbeddedGatewayService implements AutoCloseable {
             actorScheduler);
     final var jobStreamServer =
         new JobStreamServer(
-            Address.from(clusterServices.getMessagingService().address().host(), 26504),
+            clusterServices.getMessagingService(),
             clusterServices.getEventService(),
             clusterServices.getMembershipService());
 

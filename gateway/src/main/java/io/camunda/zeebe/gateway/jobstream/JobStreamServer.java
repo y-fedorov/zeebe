@@ -12,10 +12,7 @@ import io.atomix.cluster.ClusterMembershipEvent.Type;
 import io.atomix.cluster.ClusterMembershipEventListener;
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.messaging.ClusterEventService;
-import io.atomix.cluster.messaging.ManagedMessagingService;
-import io.atomix.cluster.messaging.MessagingConfig;
-import io.atomix.cluster.messaging.MessagingConfig.CompressionAlgorithm;
-import io.atomix.cluster.messaging.impl.NettyMessagingService;
+import io.atomix.cluster.messaging.MessagingService;
 import io.atomix.utils.net.Address;
 import io.camunda.zeebe.gateway.Loggers;
 import io.camunda.zeebe.gateway.ResponseMapper;
@@ -28,7 +25,6 @@ import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.agrona.CloseHelper;
@@ -73,7 +69,8 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
           .help("Approximate duration of gateway-to-client push")
           .register();
 
-  private final ManagedMessagingService messagingService;
+  //  private final ManagedMessagingService messagingService;
+  private final MessagingService messagingService;
 
   private final ClusterEventService eventService;
   private final ClusterMembershipService membershipService;
@@ -82,25 +79,26 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
   private int lastTargetObserver = 0;
 
   public JobStreamServer(
-      final Address address,
+      final MessagingService messagingService,
       final ClusterEventService eventService,
       final ClusterMembershipService membershipService) {
     this.eventService = eventService;
     this.membershipService = membershipService;
 
-    final var messagingConfig =
-        new MessagingConfig()
-            .setPort(address.port()) // to allow for embedded gateway
-            .setCompressionAlgorithm(CompressionAlgorithm.SNAPPY)
-            .setShutdownQuietPeriod(Duration.ZERO)
-            .setShutdownTimeout(Duration.ofSeconds(1));
-    messagingService = new NettyMessagingService("zeebe-cluster", address, messagingConfig);
+    //    final var messagingConfig =
+    //        new MessagingConfig()
+    //            .setPort(address.port()) // to allow for embedded gateway
+    //            .setCompressionAlgorithm(CompressionAlgorithm.SNAPPY)
+    //            .setShutdownQuietPeriod(Duration.ZERO)
+    //            .setShutdownTimeout(Duration.ofSeconds(1));
+    //    messagingService = new NettyMessagingService("zeebe-cluster", address, messagingConfig);
+    this.messagingService = messagingService;
   }
 
   @Override
   protected void onActorStarted() {
     REGISTERED_CLIENTS.set(0);
-    messagingService.start().join();
+    //    messagingService.start().join();
 
     messagingService.registerHandler("job-stream-push", this::handleRequest, actor::run);
     membershipService.addListener(this);
@@ -108,7 +106,7 @@ public final class JobStreamServer extends Actor implements ClusterMembershipEve
 
   @Override
   protected void onActorClosing() {
-    messagingService.stop().join();
+    //    messagingService.stop().join();
     membershipService.removeListener(this);
     notifyBrokersToRemoveStreamReceiver();
 

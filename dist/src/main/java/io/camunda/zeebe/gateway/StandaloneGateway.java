@@ -8,7 +8,6 @@
 package io.camunda.zeebe.gateway;
 
 import io.atomix.cluster.AtomixCluster;
-import io.atomix.utils.net.Address;
 import io.camunda.zeebe.gateway.impl.SpringGatewayBridge;
 import io.camunda.zeebe.gateway.impl.broker.BrokerClient;
 import io.camunda.zeebe.gateway.impl.broker.cluster.BrokerTopologyManager;
@@ -98,7 +97,7 @@ public class StandaloneGateway
 
     final var jobStreamServer =
         new JobStreamServer(
-            Address.from(atomixCluster.getMessagingService().address().host(), 26504),
+            atomixCluster.getMessagingService(),
             atomixCluster.getEventService(),
             atomixCluster.getMembershipService());
     gateway = new Gateway(configuration, brokerClient, actorScheduler, jobStreamServer);
