@@ -56,7 +56,6 @@ final class PosixSegmentAllocator implements SegmentAllocator {
     // fallocate and zero-out to prevent penalties on first access
     try {
       posixFs.posixFallocate(descriptor, 0, segmentSize);
-      IoUtil.fill(segmentChannel, 0, segmentSize, (byte) 0);
     } catch (final UnsupportedOperationException e) {
       LOGGER.warn(
           "Failed to use native system call to pre-allocate file, will use fallback from now on",
