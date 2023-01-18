@@ -55,7 +55,7 @@ class SegmentedJournalWriter {
       throw new SegmentSizeTooSmall("Failed appending, segment size is too small");
     }
 
-    journalMetrics.observeSegmentCreation(this::createNewSegment);
+    createNewSegment();
     final var appendResultOnNewSegment = currentWriter.append(asqn, recordDataWriter);
     if (appendResultOnNewSegment.isLeft()) {
       throw appendResultOnNewSegment.getLeft();
@@ -73,7 +73,7 @@ class SegmentedJournalWriter {
       throw new SegmentSizeTooSmall("Failed appending, segment size is too small");
     }
 
-    journalMetrics.observeSegmentCreation(this::createNewSegment);
+    journalMetrics.observeNextSegmentCreation(this::createNewSegment);
     final var resultInNewSegment = currentWriter.append(record);
     if (resultInNewSegment.isLeft()) {
       throw resultInNewSegment.getLeft();

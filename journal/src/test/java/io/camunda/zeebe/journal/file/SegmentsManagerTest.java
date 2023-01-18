@@ -136,7 +136,7 @@ class SegmentsManagerTest {
         directory.resolve("data").toFile(),
         lastWrittenIndex,
         JOURNAL_NAME,
-        new SegmentLoader());
+        new SegmentLoader(new JournalMetrics(JOURNAL_NAME)));
   }
 
   private SegmentedJournal openJournal(final float entriesPerSegment) {

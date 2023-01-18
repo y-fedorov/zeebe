@@ -53,11 +53,7 @@ final class PosixFs {
   private volatile boolean supportsPosixFallocate =
       FILE_DESCRIPTOR_FD_FIELD != null && Platform.getNativePlatform().isUnix();
 
-  // by default, we assume non-Windows platforms support posix_fallocate. some may not, and some
-  // file systems may not, and normally C libraries will emulate the behavior, but some (e.g. musl)
-  // may return EOPNOTSUPP, in which case we want to set this flag to false.
-  //
-  // note that this flag assumes there is only one underlying filesystem for the whole application
+  // by default, we assume all Unix platforms support posix_madvise
   private volatile boolean supportsPosixMadvise = Platform.getNativePlatform().isUnix();
 
   private final LibC libC;

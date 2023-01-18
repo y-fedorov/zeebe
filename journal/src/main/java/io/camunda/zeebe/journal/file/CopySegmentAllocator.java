@@ -7,11 +7,13 @@
  */
 package io.camunda.zeebe.journal.file;
 
+import io.camunda.zeebe.journal.file.LinuxFs.Advice;
 import io.camunda.zeebe.util.VisibleForTesting;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UncheckedIOException;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,6 +55,22 @@ public final class CopySegmentAllocator implements SegmentAllocator {
       } else {
         file.getChannel().transferTo(0, segmentSize, channel);
       }
+    }
+  }
+
+  @Override
+  public void onMemoryMapped(final MappedByteBuffer buffer) {
+    if (!linuxFs.isMadviseEnabled()) {
+      return;
+    }
+
+    try {
+      linuxFs.madvise(buffer, buffer.remaining(), Advice.MADV_SEQUENTIAL);
+    } catch (final UnsupportedOperationException e) {
+      LOGGER.warn(
+          "Failed to use native system call to advise filesystem, will use fallback from now on",
+          e);
+      linuxFs.disableMadvise();
     }
   }
 

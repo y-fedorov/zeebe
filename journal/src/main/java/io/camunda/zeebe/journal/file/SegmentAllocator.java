@@ -9,6 +9,7 @@ package io.camunda.zeebe.journal.file;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import org.agrona.IoUtil;
@@ -29,6 +30,13 @@ public interface SegmentAllocator {
    */
   void allocate(FileDescriptor fd, FileChannel channel, final long segmentSize) throws IOException;
 
+  /**
+   * Called to perform some optimizations once memory mapped.
+   *
+   * @param buffer the mapped buffer
+   */
+  default void onMemoryMapped(final MappedByteBuffer buffer) {}
+
   /** Returns an allocator which does nothing, i.e. does not allocate disk space. */
   static SegmentAllocator noop() {
     return (f, c, s) -> {};
@@ -40,11 +48,19 @@ public interface SegmentAllocator {
   }
 
   static SegmentAllocator posix() {
-    return new PosixSegmentAllocator();
+    return posix(true);
+  }
+
+  static SegmentAllocator posix(final boolean prefaultMapping) {
+    return new PosixSegmentAllocator(new PosixFs(), fill(), prefaultMapping);
   }
 
   static SegmentAllocator linux() {
-    return new LinuxSegmentAllocator();
+    return linux(true);
+  }
+
+  static SegmentAllocator linux(final boolean prefaultMapping) {
+    return new LinuxSegmentAllocator(new LinuxFs(), fill(), prefaultMapping);
   }
 
   static SegmentAllocator copy(final Path segmentsDirectory, final long segmentSize) {

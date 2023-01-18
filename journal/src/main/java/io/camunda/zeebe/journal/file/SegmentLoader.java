@@ -9,7 +9,6 @@ package io.camunda.zeebe.journal.file;
 
 import io.camunda.zeebe.journal.CorruptedJournalException;
 import io.camunda.zeebe.journal.JournalException;
-import io.camunda.zeebe.journal.file.PosixFs.Advice;
 import io.camunda.zeebe.util.FileUtil;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -29,19 +28,31 @@ final class SegmentLoader {
   private static final Logger LOGGER = LoggerFactory.getLogger(SegmentLoader.class);
   private static final ByteOrder ENDIANNESS = ByteOrder.LITTLE_ENDIAN;
 
-  // TODO: make injectable
-  private final PosixFs posixFs = new PosixFs();
   private final SegmentAllocator allocator;
+  private final JournalMetrics metrics;
 
-  SegmentLoader() {
-    this(SegmentAllocator.fill());
+  SegmentLoader(final JournalMetrics metrics) {
+    this(SegmentAllocator.fill(), metrics);
   }
 
-  SegmentLoader(final SegmentAllocator allocator) {
+  SegmentLoader(final SegmentAllocator allocator, final JournalMetrics metrics) {
     this.allocator = allocator;
+    this.metrics = metrics;
   }
 
   Segment createSegment(
+      final Path segmentFile,
+      final SegmentDescriptor descriptor,
+      final long lastWrittenIndex,
+      final long lastWrittenAsqn,
+      final JournalIndex journalIndex) {
+    try (final var ignored = metrics.timeSegmentCreation()) {
+      return timedCreateSegment(
+          segmentFile, descriptor, lastWrittenIndex, lastWrittenAsqn, journalIndex);
+    }
+  }
+
+  private Segment timedCreateSegment(
       final Path segmentFile,
       final SegmentDescriptor descriptor,
       final long lastWrittenIndex,
@@ -119,7 +130,6 @@ final class SegmentLoader {
       throws IOException {
     final var mappedSegment = channel.map(MapMode.READ_WRITE, 0, segmentSize);
     mappedSegment.order(ENDIANNESS);
-    madvise(mappedSegment, segmentSize);
 
     return mappedSegment;
   }
@@ -204,24 +214,14 @@ final class SegmentLoader {
       return mapNewSegment(segmentPath, descriptor, lastWrittenIndex);
     }
 
-    try (final var file = new RandomAccessFile(segmentPath.toFile(), "rw")) {
+    try (final var file = new RandomAccessFile(segmentPath.toFile(), "rw");
+        final var ignored = metrics.timeSegmentAllocation()) {
       allocator.allocate(file.getFD(), file.getChannel(), maxSegmentSize);
-      return mapSegment(file.getChannel(), maxSegmentSize);
-    }
-  }
 
-  private void madvise(final MappedByteBuffer mappedSegment, final long segmentSize) {
-    if (!posixFs.isPosixMadviseEnabled()) {
-      return;
-    }
+      final var mappedSegment = mapSegment(file.getChannel(), maxSegmentSize);
+      allocator.onMemoryMapped(mappedSegment);
 
-    try {
-      posixFs.madvise(mappedSegment, segmentSize, Advice.POSIX_MADV_SEQUENTIAL);
-    } catch (final UnsupportedOperationException e) {
-      LOGGER.warn(
-          "Failed to use native system call to advise filesystem, will use fallback from now on",
-          e);
-      posixFs.disablePosixMadvise();
+      return mappedSegment;
     }
   }
 }

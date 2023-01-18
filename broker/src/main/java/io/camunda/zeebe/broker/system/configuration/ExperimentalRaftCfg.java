@@ -85,7 +85,9 @@ public final class ExperimentalRaftCfg implements ConfigurationEntry {
     NOOP((p, s) -> SegmentAllocator.noop()),
     FILL((p, s) -> SegmentAllocator.fill()),
     POSIX((p, s) -> SegmentAllocator.posix()),
+    POSIX_NOFAULT((p, s) -> SegmentAllocator.posix(false)),
     LINUX((p, s) -> SegmentAllocator.linux()),
+    LINUX_NOFAULT((p, s) -> SegmentAllocator.linux(false)),
     COPY(SegmentAllocator::copy);
 
     private final SegmentAllocatorFactory segmentAllocatorFactory;

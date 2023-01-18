@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.nio.MappedByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.IntSupplier;
@@ -20,6 +21,7 @@ import jnr.constants.platform.Errno;
 import jnr.ffi.LastError;
 import jnr.ffi.Platform;
 import jnr.ffi.Platform.OS;
+import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +44,18 @@ final class LinuxFs {
     FILE_DESCRIPTOR_FD_FIELD = fileDescriptorFd;
   }
 
-  // by default, we assume non-Windows platforms support posix_fallocate. some may not, and some
-  // file systems may not, and normally C libraries will emulate the behavior, but some (e.g. musl)
-  // may return EOPNOTSUPP, in which case we want to set this flag to false.
+  // by default, we assume only Linux supports fallocate. some may not, and some file systems may
+  // not, and normally C libraries will emulate the behavior, but some (e.g. musl) may return
+  // EOPNOTSUPP, in which case we want to set this flag to false.
   //
   // note that this flag assumes there is only one underlying filesystem for the whole application
   private volatile boolean supportsFallocate =
       FILE_DESCRIPTOR_FD_FIELD != null && Platform.getNativePlatform().getOS() == OS.LINUX;
 
+  // by default, we assume only Linux platforms support madvise
+  private volatile boolean supportsMadvise = Platform.getNativePlatform().getOS() == OS.LINUX;
+
+  // by default, we assume only Linux platforms support copy_file_range
   private volatile boolean supportsCopyFileRange =
       FILE_DESCRIPTOR_FD_FIELD != null
           && Platform.getNativePlatform().getOS() == OS.LINUX
@@ -205,6 +211,73 @@ final class LinuxFs {
     return result;
   }
 
+  /**
+   * Returns whether calls to {@link #madvise(MappedByteBuffer, long, Advice)} are supported or not.
+   * If this returns false, then a call to {@link #madvise(MappedByteBuffer, long, Advice)} will
+   * throw an {@link UnsupportedOperationException}.
+   *
+   * @return true if supported, false otherwise
+   */
+  boolean isMadviseEnabled() {
+    return supportsMadvise;
+  }
+
+  /**
+   * Disables usage of {@link #madvise(MappedByteBuffer, long, Advice)}. After calling this, {@link
+   * #isMadviseEnabled()} ()} will return false.
+   */
+  void disableMadvise() {
+    LOGGER.debug("Disabling usage of madvise optimization");
+    supportsMadvise = false;
+  }
+
+  /**
+   * Provides advice to the OS about usage of the memory mapped buffer. See <a
+   * href="https://man7.org/linux/man-pages/man3/posix_madvise.3.html">posix_madvise(3)</a> for
+   * more.
+   *
+   * @param buffer the buffer to advise on
+   * @param length the length of the range for which the advice is valid
+   * @param advice the specific advice
+   * @throws IllegalArgumentException if the length is negative, or the advice is not valid on that
+   *     system
+   * @throws UnsupportedOperationException if the function was previously disabled, or does not
+   *     exist on this system
+   * @throws IndexOutOfBoundsException if any of the computed page range (using the buffer's start
+   *     address up to the given length in bytes) does not belong to this process
+   */
+  void madvise(final MappedByteBuffer buffer, final long length, final Advice advice) {
+    if (length < 0) {
+      throw new IllegalArgumentException(
+          String.format("Cannot advise system about negative range [%d]", length));
+    }
+
+    if (!isMadviseEnabled()) {
+      throw new UnsupportedOperationException(
+          "Failed to pre-allocate file natively: posix_fallocate is disabled");
+    }
+
+    final Pointer address = Pointer.wrap(Runtime.getSystemRuntime(), buffer);
+    final int result = libC.posix_madvise(address, length, advice.value);
+
+    // success
+    if (result == 0) {
+      return;
+    }
+
+    final Errno error = Errno.valueOf(result);
+    switch (error) {
+      case EINVAL -> throw new IllegalArgumentException(
+          "Computed address [%s] of the given buffer is not a multiple of the system page size, or advice [%s] is invalid"
+              .formatted(address, advice));
+      case ENOMEM -> throw new IndexOutOfBoundsException(
+          "Addresses in the specified range [%d, %d] are partially or completely outside the caller's address space"
+              .formatted(address.address(), address.getAddress(length)));
+      default -> throw new UnsupportedOperationException(
+          "Failed to provide advice for memory mapping: the underlying filesystem does not support this operation");
+    }
+  }
+
   private int computeModeFromFlags(final FallocateFlag... flags) {
     return Arrays.stream(flags).map(FallocateFlag::mode).reduce((m1, m2) -> m1 & m2).orElse(0);
   }
@@ -249,6 +322,25 @@ final class LinuxFs {
 
     int mode() {
       return mode;
+    }
+  }
+
+  enum Advice {
+    // No further special treatment
+    POSIX_MADV_NORMAL(0),
+    // Expect random page references
+    MADV_RANDOM(1),
+    // Expect sequential page references
+    MADV_SEQUENTIAL(2),
+    // Will need these pages
+    MADV_WILLNEED(3),
+    // Don't need these pages
+    MADV_DONTNEED(4);
+
+    private final int value;
+
+    Advice(final int value) {
+      this.value = value;
     }
   }
 }

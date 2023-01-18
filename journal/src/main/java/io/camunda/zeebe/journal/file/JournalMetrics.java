@@ -22,11 +22,20 @@ import io.prometheus.client.Histogram;
 final class JournalMetrics {
   private static final String NAMESPACE = "atomix";
   private static final String PARTITION_LABEL = "partition";
+  private static final Histogram NEXT_SEGMENT_CREATION_TIME =
+      Histogram.build()
+          .namespace(NAMESPACE)
+          .name("next_segment_creation_time")
+          .help(
+              "Time spent creating a new segment for the writer, including flush the previous one")
+          .labelNames(PARTITION_LABEL)
+          .register();
+
   private static final Histogram SEGMENT_CREATION_TIME =
       Histogram.build()
           .namespace(NAMESPACE)
           .name("segment_creation_time")
-          .help("Time spend to create a new segment")
+          .help("Time spent to create a new segment")
           .labelNames(PARTITION_LABEL)
           .register();
 
@@ -69,6 +78,7 @@ final class JournalMetrics {
           .register();
 
   private final Histogram.Child segmentCreationTime;
+  private final Histogram.Child nextSegmentCreationTime;
   private final Histogram.Child segmentFlushTime;
   private final Histogram.Child segmentTruncateTime;
   private final Histogram.Child segmentAllocateTime;
@@ -76,6 +86,7 @@ final class JournalMetrics {
   private final Gauge.Child segmentCount;
 
   JournalMetrics(final String logName) {
+    nextSegmentCreationTime = NEXT_SEGMENT_CREATION_TIME.labels(logName);
     segmentCreationTime = SEGMENT_CREATION_TIME.labels(logName);
     segmentFlushTime = SEGMENT_FLUSH_TIME.labels(logName);
     segmentTruncateTime = SEGMENT_TRUNCATE_TIME.labels(logName);
@@ -84,8 +95,8 @@ final class JournalMetrics {
     segmentCount = SEGMENT_COUNT.labels(logName);
   }
 
-  void observeSegmentCreation(final Runnable segmentCreation) {
-    segmentCreationTime.time(segmentCreation);
+  void observeNextSegmentCreation(final Runnable segmentCreation) {
+    nextSegmentCreationTime.time(segmentCreation);
   }
 
   void observeSegmentFlush(final Runnable segmentFlush) {
@@ -110,5 +121,9 @@ final class JournalMetrics {
 
   public Histogram.Timer timeSegmentAllocation() {
     return segmentAllocateTime.startTimer();
+  }
+
+  public Histogram.Timer timeSegmentCreation() {
+    return segmentCreationTime.startTimer();
   }
 }
