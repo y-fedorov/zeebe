@@ -44,8 +44,12 @@ public class ZeebeTransaction implements ZeebeDbTransaction, AutoCloseable {
       final byte[] value,
       final int valueLength)
       throws Exception {
-    RocksDbInternal.putWithHandle.invoke(
-        transaction, nativeHandle, key, keyLength, value, valueLength, columnFamilyHandle, false);
+    try {
+      RocksDbInternal.putWithHandle.invokeExact(
+          transaction, nativeHandle, key, keyLength, value, valueLength, columnFamilyHandle, false);
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public byte[] get(
@@ -54,15 +58,23 @@ public class ZeebeTransaction implements ZeebeDbTransaction, AutoCloseable {
       final byte[] key,
       final int keyLength)
       throws Exception {
-    return (byte[])
-        RocksDbInternal.getWithHandle.invoke(
-            transaction, nativeHandle, readOptionsHandle, key, keyLength, columnFamilyHandle);
+    try {
+      return (byte[])
+          RocksDbInternal.getWithHandle.invokeExact(
+              transaction, nativeHandle, readOptionsHandle, key, keyLength, columnFamilyHandle);
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void delete(final long columnFamilyHandle, final byte[] key, final int keyLength)
       throws Exception {
-    RocksDbInternal.removeWithHandle.invoke(
-        transaction, nativeHandle, key, keyLength, columnFamilyHandle, false);
+    try {
+      RocksDbInternal.removeWithHandle.invokeExact(
+          transaction, nativeHandle, key, keyLength, columnFamilyHandle, false);
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public RocksIterator newIterator(final ReadOptions options, final ColumnFamilyHandle handle) {
