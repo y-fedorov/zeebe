@@ -56,6 +56,11 @@ jobs:
       cluster: zeebe-cluster
       cluster-region: europe-west1-b
       ref: ${{ needs.benchmark-data.outputs.full-ref }}
+      benchmark-load: >
+        --set starter.rate=100
+        --set starter.replicas=2
+        --set worker.capacity=80
+        --set worker.replicas=3
   setup-mixed-benchmark:
     name: Setup mixed benchmark
     uses: ./.github/workflows/benchmark.yml
