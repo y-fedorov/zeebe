@@ -30,6 +30,7 @@ import io.camunda.zeebe.engine.processing.streamprocessor.TypedRecordProcessorCo
 import io.camunda.zeebe.engine.processing.streamprocessor.TypedRecordProcessors;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.Writers;
 import io.camunda.zeebe.engine.processing.timer.DueDateTimerChecker;
+import io.camunda.zeebe.engine.state.ScheduledTaskDbState;
 import io.camunda.zeebe.engine.state.immutable.ZeebeState;
 import io.camunda.zeebe.engine.state.migration.DbMigrationController;
 import io.camunda.zeebe.engine.state.mutable.MutableZeebeState;
@@ -97,7 +98,12 @@ public final class EngineProcessors {
         deploymentDistributionCommandSender,
         zeebeState.getKeyGenerator());
     addMessageProcessors(
-        bpmnBehaviors, subscriptionCommandSender, zeebeState, typedRecordProcessors, writers);
+        bpmnBehaviors,
+        subscriptionCommandSender,
+        zeebeState,
+        typedRecordProcessorContext.getScheduledTaskDbState(),
+        typedRecordProcessors,
+        writers);
 
     final TypedRecordProcessor<ProcessInstanceRecord> bpmnStreamProcessor =
         addProcessProcessors(
@@ -214,10 +220,16 @@ public final class EngineProcessors {
       final BpmnBehaviorsImpl bpmnBehaviors,
       final SubscriptionCommandSender subscriptionCommandSender,
       final MutableZeebeState zeebeState,
+      final ScheduledTaskDbState scheduledTaskDbState,
       final TypedRecordProcessors typedRecordProcessors,
       final Writers writers) {
     MessageEventProcessors.addMessageProcessors(
-        bpmnBehaviors, typedRecordProcessors, zeebeState, subscriptionCommandSender, writers);
+        bpmnBehaviors,
+        typedRecordProcessors,
+        zeebeState,
+        scheduledTaskDbState,
+        subscriptionCommandSender,
+        writers);
   }
 
   private static void addDecisionProcessors(
