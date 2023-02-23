@@ -15,6 +15,7 @@ import io.camunda.zeebe.engine.processing.streamprocessor.TypedRecordProcessorFa
 import io.camunda.zeebe.engine.processing.streamprocessor.TypedRecordProcessors;
 import io.camunda.zeebe.engine.processing.streamprocessor.writers.Writers;
 import io.camunda.zeebe.engine.state.EventApplier;
+import io.camunda.zeebe.engine.state.ScheduledTaskDbState;
 import io.camunda.zeebe.engine.state.ZeebeDbState;
 import io.camunda.zeebe.engine.state.appliers.EventAppliers;
 import io.camunda.zeebe.engine.state.processing.DbBlackListState;
@@ -65,12 +66,15 @@ public class Engine implements RecordProcessor {
 
   @Override
   public void init(final RecordProcessorContext recordProcessorContext) {
+    final var zeebeDb = recordProcessorContext.getZeebeDb();
     zeebeState =
         new ZeebeDbState(
             recordProcessorContext.getPartitionId(),
-            recordProcessorContext.getZeebeDb(),
+            zeebeDb,
             recordProcessorContext.getTransactionContext(),
             recordProcessorContext.getKeyGenerator());
+    final var scheduledTaskDbState = new ScheduledTaskDbState(zeebeDb, zeebeDb.createContext());
+
     eventApplier = new EventAppliers(zeebeState);
 
     writers = new Writers(resultBuilderMutex, eventApplier);
@@ -80,6 +84,7 @@ public class Engine implements RecordProcessor {
             recordProcessorContext.getPartitionId(),
             recordProcessorContext.getScheduleService(),
             zeebeState,
+            scheduledTaskDbState,
             writers,
             recordProcessorContext.getPartitionCommandSender());
 
