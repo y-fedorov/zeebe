@@ -67,7 +67,7 @@ public class StreamProcessingComposite {
   private TypedRecordProcessors createTypedRecordProcessors(
       final StreamProcessorTestFactory factory,
       final TypedRecordProcessorContext typedRecordProcessorContext) {
-    zeebeState = typedRecordProcessorContext.getZeebeState();
+    zeebeState = typedRecordProcessorContext.getProcessingState();
 
     return factory.build(
         TypedRecordProcessors.processors(
@@ -90,7 +90,7 @@ public class StreamProcessingComposite {
             getLogName(partitionId),
             zeebeDbFactory,
             (processingContext -> {
-              zeebeState = processingContext.getZeebeState();
+              zeebeState = processingContext.getProcessingState();
 
               return factory.createProcessors(processingContext);
             }),

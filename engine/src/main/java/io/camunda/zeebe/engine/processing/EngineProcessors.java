@@ -55,7 +55,7 @@ public final class EngineProcessors {
       final Consumer<String> onJobsAvailableCallback,
       final FeatureFlags featureFlags) {
 
-    final MutableZeebeState zeebeState = typedRecordProcessorContext.getZeebeState();
+    final MutableZeebeState zeebeState = typedRecordProcessorContext.getProcessingState();
     final var writers = typedRecordProcessorContext.getWriters();
     final TypedRecordProcessors typedRecordProcessors =
         TypedRecordProcessors.processors(zeebeState.getKeyGenerator(), writers);

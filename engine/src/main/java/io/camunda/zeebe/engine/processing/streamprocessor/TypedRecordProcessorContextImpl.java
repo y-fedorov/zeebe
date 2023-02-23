@@ -17,19 +17,19 @@ public class TypedRecordProcessorContextImpl implements TypedRecordProcessorCont
 
   private final int partitionId;
   private final ProcessingScheduleService scheduleService;
-  private final ZeebeDbState zeebeState;
+  private final ZeebeDbState processingState;
   private final Writers writers;
   private final InterPartitionCommandSender partitionCommandSender;
 
   public TypedRecordProcessorContextImpl(
       final int partitionId,
       final ProcessingScheduleService scheduleService,
-      final ZeebeDbState zeebeState,
+      final ZeebeDbState processingState,
       final Writers writers,
       final InterPartitionCommandSender partitionCommandSender) {
     this.partitionId = partitionId;
     this.scheduleService = scheduleService;
-    this.zeebeState = zeebeState;
+    this.processingState = processingState;
     this.writers = writers;
     this.partitionCommandSender = partitionCommandSender;
   }
@@ -45,8 +45,8 @@ public class TypedRecordProcessorContextImpl implements TypedRecordProcessorCont
   }
 
   @Override
-  public MutableZeebeState getZeebeState() {
-    return zeebeState;
+  public MutableZeebeState getProcessingState() {
+    return processingState;
   }
 
   @Override

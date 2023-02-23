@@ -187,7 +187,7 @@ public final class EngineErrorHandlingTest {
         STREAM_NAME,
         DefaultZeebeDbFactory.defaultFactory(),
         (processingContext) -> {
-          zeebeState = processingContext.getZeebeState();
+          zeebeState = processingContext.getProcessingState();
           return TypedRecordProcessors.processors(
                   zeebeState.getKeyGenerator(), processingContext.getWriters())
               .onCommand(
@@ -227,7 +227,7 @@ public final class EngineErrorHandlingTest {
         STREAM_NAME,
         DefaultZeebeDbFactory.defaultFactory(),
         (processingContext) -> {
-          zeebeState = processingContext.getZeebeState();
+          zeebeState = processingContext.getProcessingState();
           return TypedRecordProcessors.processors(
                   zeebeState.getKeyGenerator(), processingContext.getWriters())
               .onCommand(
@@ -274,7 +274,7 @@ public final class EngineErrorHandlingTest {
         DefaultZeebeDbFactory.defaultFactory(),
         (processingContext) -> {
           dumpProcessorRef.set(spy(new DumpProcessor(processingContext.getWriters())));
-          zeebeState = processingContext.getZeebeState();
+          zeebeState = processingContext.getProcessingState();
           return TypedRecordProcessors.processors(
                   zeebeState.getKeyGenerator(), processingContext.getWriters())
               .onCommand(
@@ -355,7 +355,7 @@ public final class EngineErrorHandlingTest {
         STREAM_NAME,
         DefaultZeebeDbFactory.defaultFactory(),
         (processingContext) -> {
-          zeebeState = processingContext.getZeebeState();
+          zeebeState = processingContext.getProcessingState();
           return TypedRecordProcessors.processors(
                   zeebeState.getKeyGenerator(), processingContext.getWriters())
               .withListener(
@@ -402,7 +402,7 @@ public final class EngineErrorHandlingTest {
         STREAM_NAME,
         DefaultZeebeDbFactory.defaultFactory(),
         (processingContext) -> {
-          zeebeState = processingContext.getZeebeState();
+          zeebeState = processingContext.getProcessingState();
           dumpProcessorRef.set(
               spy(
                   new TypedRecordProcessor<>() {
@@ -491,7 +491,7 @@ public final class EngineErrorHandlingTest {
         STREAM_NAME,
         DefaultZeebeDbFactory.defaultFactory(),
         (processingContext) -> {
-          zeebeState = processingContext.getZeebeState();
+          zeebeState = processingContext.getProcessingState();
           return TypedRecordProcessors.processors(
                   zeebeState.getKeyGenerator(), processingContext.getWriters())
               .onCommand(

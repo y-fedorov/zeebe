@@ -18,7 +18,7 @@ public interface TypedRecordProcessorContext {
 
   ProcessingScheduleService getScheduleService();
 
-  MutableZeebeState getZeebeState();
+  MutableZeebeState getProcessingState();
 
   Writers getWriters();
 
