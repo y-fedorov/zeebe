@@ -29,6 +29,8 @@ import io.grpc.Metadata.Key;
 import io.grpc.ServerInterceptors;
 import io.grpc.Status;
 import io.grpc.testing.GrpcServerRule;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,6 +46,8 @@ public final class CredentialsTest {
   private final RecordingInterceptor recordingInterceptor = new RecordingInterceptor();
   private final RecordingGatewayService gatewayService = new RecordingGatewayService();
   private ZeebeClient client;
+
+  private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
   @Before
   public void setUp() {
@@ -82,7 +86,7 @@ public final class CredentialsTest {
                 return false;
               }
             });
-    client = new ZeebeClientImpl(builder, serverRule.getChannel());
+    client = new ZeebeClientImpl(builder, serverRule.getChannel(), meterRegistry);
 
     // when
     client.newTopologyRequest().send().join();
@@ -118,7 +122,7 @@ public final class CredentialsTest {
               }
             });
     builder.usePlaintext().credentialsProvider(provider);
-    client = new ZeebeClientImpl(builder, serverRule.getChannel());
+    client = new ZeebeClientImpl(builder, serverRule.getChannel(), meterRegistry);
 
     // when
     client.newTopologyRequest().send().join();
@@ -152,7 +156,7 @@ public final class CredentialsTest {
               }
             });
     builder.usePlaintext().credentialsProvider(provider);
-    client = new ZeebeClientImpl(builder, serverRule.getChannel());
+    client = new ZeebeClientImpl(builder, serverRule.getChannel(), meterRegistry);
 
     // when/then
     assertThatThrownBy(() -> client.newTopologyRequest().send().join())
@@ -167,7 +171,7 @@ public final class CredentialsTest {
     // given
     final ZeebeClientBuilderImpl builder = new ZeebeClientBuilderImpl();
     builder.usePlaintext();
-    client = new ZeebeClientImpl(builder, serverRule.getChannel());
+    client = new ZeebeClientImpl(builder, serverRule.getChannel(), meterRegistry);
 
     // when
     client.newTopologyRequest().send().join();

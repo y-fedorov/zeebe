@@ -32,6 +32,8 @@ import io.camunda.zeebe.client.api.JsonMapper;
 import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProviderBuilder;
 import io.camunda.zeebe.client.impl.util.Environment;
 import io.grpc.ClientInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +64,7 @@ public final class ZeebeClientBuilderImpl implements ZeebeClientBuilder, ZeebeCl
   private Duration keepAlive = Duration.ofSeconds(45);
   private JsonMapper jsonMapper = new ZeebeObjectMapper();
   private String overrideAuthority;
+  private MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
   @Override
   public String getGatewayAddress() {
@@ -131,6 +134,11 @@ public final class ZeebeClientBuilderImpl implements ZeebeClientBuilder, ZeebeCl
   @Override
   public JsonMapper getJsonMapper() {
     return jsonMapper;
+  }
+
+  @Override
+  public MeterRegistry getMeterRegistry() {
+    return meterRegistry;
   }
 
   @Override
@@ -300,6 +308,12 @@ public final class ZeebeClientBuilderImpl implements ZeebeClientBuilder, ZeebeCl
   }
 
   @Override
+  public ZeebeClientBuilder withMeterRegistry(final MeterRegistry meterRegistry) {
+    this.meterRegistry = meterRegistry;
+    return this;
+  }
+
+  @Override
   public ZeebeClientBuilder overrideAuthority(final String authority) {
     overrideAuthority = authority;
     return this;
@@ -311,7 +325,7 @@ public final class ZeebeClientBuilderImpl implements ZeebeClientBuilder, ZeebeCl
       applyOverrides();
     }
 
-    return new ZeebeClientImpl(this);
+    return new ZeebeClientImpl(this, meterRegistry);
   }
 
   private void keepAlive(final String keepAlive) {

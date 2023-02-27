@@ -25,8 +25,13 @@ import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsResponse;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -40,6 +45,8 @@ public final class JobPoller implements StreamObserver<ActivateJobsResponse> {
   private final GatewayStub gatewayStub;
   private final Builder requestBuilder;
   private final JsonMapper jsonMapper;
+
+  private final MeterRegistry meterRegistry;
   private final long requestTimeout;
   private final Predicate<Throwable> retryPredicate;
 
@@ -47,6 +54,10 @@ public final class JobPoller implements StreamObserver<ActivateJobsResponse> {
   private IntConsumer doneCallback;
   private Consumer<Throwable> errorCallback;
   private int activatedJobs;
+  private AtomicInteger activatedJobsCounter;
+  private Timer pollIntervalTimer;
+  private Timer.Sample pollIntervalSample;
+
   private BooleanSupplier openSupplier;
 
   public JobPoller(
@@ -54,16 +65,19 @@ public final class JobPoller implements StreamObserver<ActivateJobsResponse> {
       final Builder requestBuilder,
       final JsonMapper jsonMapper,
       final Duration requestTimeout,
-      final Predicate<Throwable> retryPredicate) {
+      final Predicate<Throwable> retryPredicate,
+      MeterRegistry meterRegistry) {
     this.gatewayStub = gatewayStub;
     this.requestBuilder = requestBuilder;
     this.jsonMapper = jsonMapper;
     this.requestTimeout = requestTimeout.toMillis();
     this.retryPredicate = retryPredicate;
+    this.meterRegistry = meterRegistry;
   }
 
   private void reset() {
     activatedJobs = 0;
+    setActivatedJobsCounterMetric(0);
   }
 
   /**
@@ -89,6 +103,18 @@ public final class JobPoller implements StreamObserver<ActivateJobsResponse> {
     this.errorCallback = errorCallback;
     this.openSupplier = openSupplier;
 
+    if (pollIntervalTimer == null) {
+      String threadName = Thread.currentThread().getName();
+      Tags tags = Tags.of("worker_type", requestBuilder.getType(), "thread_name", threadName);
+
+      pollIntervalTimer = Timer
+          .builder("zeebe.jobs.poll.interval")
+          .tags(tags)
+          .register(meterRegistry);
+    }
+
+    pollIntervalSample = Timer.start(meterRegistry);
+
     poll();
   }
 
@@ -106,6 +132,9 @@ public final class JobPoller implements StreamObserver<ActivateJobsResponse> {
   @Override
   public void onNext(final ActivateJobsResponse activateJobsResponse) {
     activatedJobs += activateJobsResponse.getJobsCount();
+
+    setActivatedJobsCounterMetric(activatedJobs);
+
     activateJobsResponse.getJobsList().stream()
         .map(job -> new ActivatedJobImpl(jsonMapper, job))
         .forEach(jobConsumer);
@@ -132,6 +161,9 @@ public final class JobPoller implements StreamObserver<ActivateJobsResponse> {
   }
 
   private void logFailure(final Throwable throwable) {
+    // stop polling timer
+    pollIntervalSample.stop(pollIntervalTimer);
+
     final String errorMsg = "Failed to activate jobs for worker {} and job type {}";
 
     if (throwable instanceof StatusRuntimeException) {
@@ -149,7 +181,23 @@ public final class JobPoller implements StreamObserver<ActivateJobsResponse> {
     LOG.warn(errorMsg, requestBuilder.getWorker(), requestBuilder.getType(), throwable);
   }
 
+  private void setActivatedJobsCounterMetric(int activatedJobs) {
+    if (this.activatedJobsCounter == null) {
+      String threadName = Thread.currentThread().getName();
+      Tags tags = Tags.of("worker_type", requestBuilder.getType(), "thread_name", threadName);
+      this.activatedJobsCounter = meterRegistry.gauge("zeebe.jobs.activated_new", tags,
+          new AtomicInteger(activatedJobs));
+    } else {
+      activatedJobsCounter.set(activatedJobs);
+    }
+  }
+
   private void pollingDone() {
+    // stop polling timer
+    pollIntervalSample.stop(pollIntervalTimer);
+
+    setActivatedJobsCounterMetric(activatedJobs);
+
     if (activatedJobs > 0) {
       LOG.debug(
           "Activated {} jobs for worker {} and job type {}",

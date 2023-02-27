@@ -59,6 +59,7 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.netty.handler.ssl.SslContext;
 import java.io.Closeable;
 import java.io.FileInputStream;
@@ -74,6 +75,7 @@ import java.util.concurrent.TimeUnit;
 public final class ZeebeClientImpl implements ZeebeClient {
   private final ZeebeClientConfiguration config;
   private final JsonMapper jsonMapper;
+  private final MeterRegistry meterRegistry;
   private final GatewayStub asyncStub;
   private final ManagedChannel channel;
   private final ScheduledExecutorService executorService;
@@ -81,32 +83,38 @@ public final class ZeebeClientImpl implements ZeebeClient {
   private final JobClient jobClient;
   private final CredentialsProvider credentialsProvider;
 
-  public ZeebeClientImpl(final ZeebeClientConfiguration configuration) {
-    this(configuration, buildChannel(configuration));
-  }
-
   public ZeebeClientImpl(
-      final ZeebeClientConfiguration configuration, final ManagedChannel channel) {
-    this(configuration, channel, buildGatewayStub(channel, configuration));
+      final ZeebeClientConfiguration configuration, final MeterRegistry meterRegistry) {
+    this(configuration, buildChannel(configuration), meterRegistry);
   }
 
   public ZeebeClientImpl(
       final ZeebeClientConfiguration configuration,
       final ManagedChannel channel,
-      final GatewayStub gatewayStub) {
-    this(configuration, channel, gatewayStub, buildExecutorService(configuration));
+      final MeterRegistry meterRegistry) {
+    this(configuration, channel, buildGatewayStub(channel, configuration), meterRegistry);
+  }
+
+  public ZeebeClientImpl(
+      final ZeebeClientConfiguration configuration,
+      final ManagedChannel channel,
+      final GatewayStub gatewayStub,
+      MeterRegistry meterRegistry) {
+    this(configuration, channel, gatewayStub, buildExecutorService(configuration), meterRegistry);
   }
 
   public ZeebeClientImpl(
       final ZeebeClientConfiguration config,
       final ManagedChannel channel,
       final GatewayStub gatewayStub,
-      final ScheduledExecutorService executorService) {
+      final ScheduledExecutorService executorService,
+      MeterRegistry meterRegistry) {
     this.config = config;
     jsonMapper = config.getJsonMapper();
     this.channel = channel;
     asyncStub = gatewayStub;
     this.executorService = executorService;
+    this.meterRegistry = meterRegistry;
 
     if (config.getCredentialsProvider() != null) {
       credentialsProvider = config.getCredentialsProvider();
@@ -324,6 +332,7 @@ public final class ZeebeClientImpl implements ZeebeClient {
         asyncStub,
         jobClient,
         jsonMapper,
+        meterRegistry,
         executorService,
         closeables,
         credentialsProvider::shouldRetryRequest);

@@ -32,6 +32,7 @@ import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1;
 import io.camunda.zeebe.client.impl.ZeebeClientBuilderImpl;
 import io.camunda.zeebe.client.impl.ZeebeClientCloudBuilderImpl;
 import io.camunda.zeebe.client.impl.ZeebeClientImpl;
+import io.micrometer.core.instrument.MeterRegistry;
 
 /** The client to communicate with a Zeebe broker/cluster. */
 public interface ZeebeClient extends AutoCloseable, JobClient {
@@ -39,8 +40,8 @@ public interface ZeebeClient extends AutoCloseable, JobClient {
   /**
    * @return a new Zeebe client with default configuration values. In order to customize
    *     configuration, use the methods {@link #newClientBuilder()} or {@link
-   *     #newClient(ZeebeClientConfiguration)}. See {@link ZeebeClientBuilder} for the configuration
-   *     options and default values.
+   *     #newClient(ZeebeClientConfiguration, MeterRegistry)}. See {@link ZeebeClientBuilder} for
+   *     the configuration options and default values.
    */
   static ZeebeClient newClient() {
     return newClientBuilder().build();
@@ -49,8 +50,9 @@ public interface ZeebeClient extends AutoCloseable, JobClient {
   /**
    * @return a new {@link ZeebeClient} using the provided configuration.
    */
-  static ZeebeClient newClient(final ZeebeClientConfiguration configuration) {
-    return new ZeebeClientImpl(configuration);
+  static ZeebeClient newClient(
+      final ZeebeClientConfiguration configuration, final MeterRegistry meterRegistry) {
+    return new ZeebeClientImpl(configuration, meterRegistry);
   }
 
   /**
