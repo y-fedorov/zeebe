@@ -25,6 +25,8 @@ import io.camunda.zeebe.client.impl.ZeebeClientImpl;
 import io.camunda.zeebe.gateway.protocol.GatewayGrpc.GatewayStub;
 import io.grpc.ManagedChannel;
 import io.grpc.testing.GrpcServerRule;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -64,7 +66,8 @@ public final class TestEnvironmentRule extends ExternalResource {
     final ZeebeClientBuilderImpl builder = new ZeebeClientBuilderImpl();
     clientConfigurator.accept(builder);
     gatewayStub = spy(ZeebeClientImpl.buildGatewayStub(channel, builder));
-    client = new ZeebeClientImpl(builder, channel, gatewayStub);
+    final MeterRegistry meterRegistry = new SimpleMeterRegistry();
+    client = new ZeebeClientImpl(builder, channel, gatewayStub, meterRegistry);
   }
 
   @Override

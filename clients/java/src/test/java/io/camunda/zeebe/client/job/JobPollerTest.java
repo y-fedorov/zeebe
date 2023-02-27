@@ -29,6 +29,8 @@ import io.camunda.zeebe.gateway.protocol.GatewayOuterClass;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsRequest;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -42,6 +44,8 @@ public final class JobPollerTest extends ClientTest {
   private Consumer<ActivatedJob> jobConsumer;
   private IntConsumer doneCallback;
   private Consumer<Throwable> errorCallback;
+
+  private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
   @Before
   public void setup() {
@@ -111,7 +115,8 @@ public final class JobPollerTest extends ClientTest {
         ActivateJobsRequest.newBuilder(),
         new ZeebeObjectMapper(),
         requestTimeout,
-        (t) -> false);
+        (t) -> false,
+        meterRegistry);
   }
 
   private static final class TestData {

@@ -31,6 +31,7 @@ import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1.JobWorkerBuilder
 import io.camunda.zeebe.gateway.protocol.GatewayGrpc.GatewayStub;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsRequest.Builder;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.Arrays;
@@ -47,6 +48,8 @@ public final class JobWorkerBuilderImpl
   private final GatewayStub gatewayStub;
   private final JobClient jobClient;
   private final JsonMapper jsonMapper;
+
+  private final MeterRegistry meterRegistry;
   private final ScheduledExecutorService executorService;
   private final List<Closeable> closeables;
   private final Predicate<Throwable> retryPredicate;
@@ -65,12 +68,14 @@ public final class JobWorkerBuilderImpl
       final GatewayStub gatewayStub,
       final JobClient jobClient,
       final JsonMapper jsonMapper,
+      final MeterRegistry meterRegistry,
       final ScheduledExecutorService executorService,
       final List<Closeable> closeables,
       final Predicate<Throwable> retryPredicate) {
     this.gatewayStub = gatewayStub;
     this.jobClient = jobClient;
     this.jsonMapper = jsonMapper;
+    this.meterRegistry = meterRegistry;
     this.executorService = executorService;
     this.closeables = closeables;
 
@@ -171,7 +176,8 @@ public final class JobWorkerBuilderImpl
 
     final JobRunnableFactory jobRunnableFactory = new JobRunnableFactory(jobClient, handler);
     final JobPoller jobPoller =
-        new JobPoller(gatewayStub, requestBuilder, jsonMapper, deadline, retryPredicate);
+        new JobPoller(
+            gatewayStub, requestBuilder, jsonMapper, deadline, retryPredicate, meterRegistry);
 
     final JobWorkerImpl jobWorker =
         new JobWorkerImpl(

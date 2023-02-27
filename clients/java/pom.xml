@@ -32,7 +32,11 @@
       <groupId>io.camunda</groupId>
       <artifactId>zeebe-bpmn-model</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+      <version>${version.micrometer}</version>
+    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>

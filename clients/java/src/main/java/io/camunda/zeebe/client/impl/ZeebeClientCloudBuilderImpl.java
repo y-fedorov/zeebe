@@ -29,6 +29,7 @@ import io.camunda.zeebe.client.ZeebeClientCloudBuilderStep1.ZeebeClientCloudBuil
 import io.camunda.zeebe.client.api.JsonMapper;
 import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProviderBuilder;
 import io.grpc.ClientInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Properties;
@@ -179,6 +180,12 @@ public class ZeebeClientCloudBuilderImpl
   @Override
   public ZeebeClientCloudBuilderStep4 withJsonMapper(final JsonMapper jsonMapper) {
     innerBuilder.withJsonMapper(jsonMapper);
+    return this;
+  }
+
+  @Override
+  public ZeebeClientBuilder withMeterRegistry(final MeterRegistry meterRegistry) {
+    innerBuilder.withMeterRegistry(meterRegistry);
     return this;
   }
 

@@ -34,6 +34,8 @@ import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcCleanupRule;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -76,8 +78,11 @@ public final class JobWorkerImplTest {
     final ManagedChannel channel =
         grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
 
+    final MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
     client =
-        new ZeebeClientImpl(new ZeebeClientBuilderImpl(), channel, GatewayGrpc.newStub(channel));
+        new ZeebeClientImpl(
+            new ZeebeClientBuilderImpl(), channel, GatewayGrpc.newStub(channel), meterRegistry);
   }
 
   @Test

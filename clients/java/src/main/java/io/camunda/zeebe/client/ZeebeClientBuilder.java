@@ -18,6 +18,7 @@ package io.camunda.zeebe.client;
 import io.camunda.zeebe.client.api.JsonMapper;
 import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1.JobWorkerBuilderStep3;
 import io.grpc.ClientInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.Properties;
 
@@ -101,6 +102,8 @@ public interface ZeebeClientBuilder {
   ZeebeClientBuilder withInterceptors(ClientInterceptor... interceptor);
 
   ZeebeClientBuilder withJsonMapper(JsonMapper jsonMapper);
+
+  ZeebeClientBuilder withMeterRegistry(MeterRegistry meterRegistry);
 
   /**
    * Overrides the authority used with TLS virtual hosting. Specifically, to override hostname
